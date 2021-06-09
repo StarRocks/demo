@@ -30,15 +30,15 @@ Hive  -----> spark load -> spark etl ->   broker load  ->  dorisDB
 
 # 二、flink开发
 
-## 01_flinkConnector_Bean2DorisDB
+[05_flinkConnector_Bean2DorisDB](docs/05_flinkConnector_Bean2DorisDB.md)
 ```
 bean --->   flink-connector --->  dorisDB 02_flinkConnector_Bean2DorisDB
 ```
-## 02_flinkConnector_Json2DorisDB 
+[06_flinkConnector_Json2DorisDB](docs/06_flinkConnector_Json2DorisDB.md) 
 ```
 json   -->   flink-connector --->  dorisDB
 ```
-## 03_flinkConnector_Sql2DorisDB 
+[07_flinkConnector_Sql2DorisDB](docs/07_flinkConnector_Sql2DorisDB.md) 
 ```
 flinkSql --> flin-connector -->  dorisDB 
 ``` 
