@@ -21,7 +21,26 @@ Query OK, 0 rows affected (0.11 sec)
 
 ## 执行程序
 
-IDEA里执行 FlinkDemo模块的[Demo2](../FlinkDemo/src/main/scala/com/dorisdb/flink/Demo2.scala)
+1. 可以在IDEA里执行 FlinkDemo模块的[Demo2](../FlinkDemo/src/main/scala/com/dorisdb/flink/Demo2.scala)
+2. 也可以打包在server上提交flink作业：
+
+run.sh
+
+```
+#!/bin/bash
+
+~/app/flink-1.11.0/bin/flink run \
+-m yarn-cluster \
+--yarnname Demo \
+-c com.dorisdb.flink.Demo2 \
+-yjm 1048 -ytm 1048 \
+-ys 1 -d  \
+./demo.jar
+```
+
+flink ui
+
+![06_flink_ui_1](imgs/06_flink_ui_1.png)
 
 ## 验证数据持续导入
 
