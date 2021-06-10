@@ -17,7 +17,7 @@ package com.dorisdb.flink
 import java.util.concurrent.TimeUnit
 import com.dorisdb.connector.flink.DorisSink
 import com.dorisdb.connector.flink.table.{DorisDynamicTableSinkFactory, DorisSinkOptions}
-import com.dorisdb.funcs.Demo2Source
+import com.dorisdb.funcs.MySource
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.typeutils.RowTypeInfo
@@ -31,7 +31,7 @@ import org.apache.flink.table.api._
 import org.apache.flink.types.Row
 
 /**
-  * Demo4：
+  * Demo3：
   *    通过org.apache.flink.types.Row构建TemporaryView
   *    FlinkSql通过flink-connector-dorisdb 写入数据到 DorisDB；
   */
@@ -45,7 +45,7 @@ object Demo3 {
     val streamTableEnv = StreamTableEnvironment.create(env,settings)
 
     val source: DataStream[Row] = env
-      .addSource(new Demo2Source())(getRowTypeInfo())
+      .addSource(new MySource())(getRowTypeInfo())
         .uid("sourceStream-uid").name("sourceStream")
         .setParallelism(1)
 

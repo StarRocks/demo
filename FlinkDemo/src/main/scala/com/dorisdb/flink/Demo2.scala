@@ -16,7 +16,7 @@ package com.dorisdb.flink
 import java.util.concurrent.TimeUnit
 import com.dorisdb.connector.flink.DorisSink
 import com.dorisdb.connector.flink.table.{DorisDynamicTableSinkFactory, DorisSinkOptions}
-import com.dorisdb.funcs.Demo2Source
+import com.dorisdb.funcs.MySource
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.api.scala._
 import org.apache.flink.streaming.api.environment.CheckpointConfig
@@ -26,7 +26,7 @@ import org.apache.flink.table.api.EnvironmentSettings
 import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
 
 /**
- * Demo3 - json数据通过Flink-Conncter导入DorisDB
+ * Demo2 - json数据通过Flink-Conncter导入DorisDB
  */
 object Demo2 {
   def main(args: Array[String]): Unit = {
@@ -38,7 +38,7 @@ object Demo2 {
     // val streamTableEnv = StreamTableEnvironment.create(env,settings)
 
     val source: DataStream[String] = env
-      .addSource(new Demo2Source())
+      .addSource(new MySource())
         .uid("sourceStream-uid").name("sourceStream")
         .setParallelism(1)
       .map(x => {

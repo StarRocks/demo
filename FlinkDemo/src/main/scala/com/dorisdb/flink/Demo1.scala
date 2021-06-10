@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
 import com.dorisdb.connector.flink.DorisSink
 import com.dorisdb.connector.flink.row.DorisSinkRowBuilder
 import com.dorisdb.connector.flink.table.DorisSinkOptions
-import com.dorisdb.funcs.{Demo2Source, BeanData}
+import com.dorisdb.funcs.{MySource, BeanData}
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.streaming.api.environment.CheckpointConfig
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
@@ -29,7 +29,7 @@ import org.apache.flink.table.api._
 import org.apache.flink.table.api.bridge.scala._
 
 /**
- *  Demo2
+ *  Demo1
  *   - 自定义BeanData类，调用connector导入DorisDB
  */
 object Demo1 {
@@ -42,7 +42,7 @@ object Demo1 {
     // val streamTableEnv = StreamTableEnvironment.create(env,settings)
 
     val source: DataStream[BeanData] = env
-      .addSource(new Demo2Source())
+      .addSource(new MySource())
       .uid("sourceStream-uid").name("sourceStream")
       .setParallelism(1)
       .map(x => {

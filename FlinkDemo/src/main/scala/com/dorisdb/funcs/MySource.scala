@@ -21,27 +21,24 @@ import scala.util.Random
 /**
   * 自定义数据源
   */
-class Demo3Source extends SourceFunction[Row]{
+class MySource extends SourceFunction[Row]{
 
-  var ct = 0
-  val t = 100 // 100个ele
-  val m = 100 // metric
+  var isRunning = true
 
   override def run(ctx: SourceFunction.SourceContext[Row]) :Unit ={
-    while (ct < t){
+    while (isRunning){
       val time = System.currentTimeMillis()
-      val eleList = Range(0,t)
-      val metric = Int.box(Random.nextInt(m))
-      val ele = eleList(ct)
-      ctx.collect(Row.of(""+ ele, metric))
-      println(s"ele:${ele}, metric: ${metric}")
-      ct = ct +1
+      val eleList = List("stephen","lebron","kobe")
+      for(ele <- eleList){
+        ctx.collect(Row.of(ele,Int.box(Random.nextInt(100))))
+      }
+      // 休眠 5s，发送下一次数据
+      Thread.sleep(5000)
     }
-    while(true) Thread.sleep(5000)  // 不退出程序
   }
 
   override def cancel(): Unit = {
-    ct = 0
+    isRunning = false
   }
 
 }
