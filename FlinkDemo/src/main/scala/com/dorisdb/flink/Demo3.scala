@@ -30,6 +30,11 @@ import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
 import org.apache.flink.table.api._
 import org.apache.flink.types.Row
 
+import org.apache.calcite.sql.parser.SqlParser.Config
+
+import org.apache.flink.table.planner.delegation.PlannerContext
+
+
 /**
   * Demo3：
   *    通过org.apache.flink.types.Row构建TemporaryView
@@ -37,11 +42,9 @@ import org.apache.flink.types.Row
   */
 object Demo3 {
   def main(args: Array[String]): Unit = {
-    // DorisDynamicTableSinkFactory
     // 使用 Blink Planner 创建流表运行环境
     val env = getExecutionEnvironment()
-    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
-    val settings = EnvironmentSettings.newInstance.useBlinkPlanner.inStreamingMode.build
+    val settings = EnvironmentSettings.newInstance.useBlinkPlanner().inStreamingMode.build
     val streamTableEnv = StreamTableEnvironment.create(env,settings)
 
     val source: DataStream[Row] = env
@@ -54,9 +57,9 @@ object Demo3 {
 
     streamTableEnv.executeSql(
       """
-        |CREATE TABLE TestTable(
-        |NAME VARCHAR,
-        |SCORE INT
+        |CREATE TABLE testTable(
+        |`NAME` VARCHAR,
+        |`SCORE` INT
         |) WITH (
         |'connector' = 'doris',
         |'jdbc-url'='jdbc:mysql://master1:9030?doris_demo',
@@ -69,19 +72,25 @@ object Demo3 {
         |'sink.buffer-flush.max-bytes' = '300000000',
         |'sink.buffer-flush.interval-ms' = '300000',
         |'sink.max-retries' = '3',
-        |'sink.properties.row_delimiter' = '\\x02',
-        |'sink.properties.column_separator' = '\\x01',
+        |'sink.properties.row_delimiter' = '\x02',
+        |'sink.properties.column_separator' = '\x01',
         |'sink.properties.columns' = 'NAME, SCORE'
         |)
         |""".stripMargin
     )
+    // TODO 注意！在Scala开发时：
+    // 1. 如59-79行代码段所示，使用三引号包整个sql，不需转义字符，直接写 '\x02' 和 '\x01'
+    // 2. 如用多行双引号string拼齐整个sql，则需写成"\\x02" 和 "\\x01"，例如：
+    //  ...
+    //  + "'sink.properties.row_delimiter' = '\\x02',"
+    //  + "'sink.properties.column_separator' = '\\x01' "
+    //  + ...
 
     streamTableEnv.executeSql(
       """
-        |insert into TestTable select `NAME`,`SCORE` from sourceTable
+        |insert into testTable select `NAME`,`SCORE` from sourceTable
       """.stripMargin)
 
-//    env.execute("DorisDBSink_SQL")    // IDEA里执行时，可以注释掉本行
 
   }
 
@@ -96,7 +105,7 @@ object Demo3 {
       org.apache.flink.api.common.time.Time.of(10, TimeUnit.SECONDS) // 延时
     ))
     // checkpoint配置
-    env.enableCheckpointing(1000 * 600)
+    env.enableCheckpointing(1000 * 5)
     env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.AT_LEAST_ONCE)
     env.getCheckpointConfig.setMinPauseBetweenCheckpoints(500)
     env.getCheckpointConfig.setCheckpointTimeout(1000 * 60 * 10)

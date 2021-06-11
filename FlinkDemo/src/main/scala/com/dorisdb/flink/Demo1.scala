@@ -99,7 +99,7 @@ object Demo1 {
       org.apache.flink.api.common.time.Time.of(10, TimeUnit.SECONDS) // 延时
     ))
     // checkpoint配置
-    env.enableCheckpointing(1000 * 600)
+    env.enableCheckpointing(1000 * 5)
     env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.AT_LEAST_ONCE)
     env.getCheckpointConfig.setMinPauseBetweenCheckpoints(500)
     env.getCheckpointConfig.setCheckpointTimeout(1000 * 60 * 10)

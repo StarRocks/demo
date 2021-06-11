@@ -18,7 +18,6 @@
         <java.version>1.8</java.version>
         <flink.version>1.11.0</flink.version>
         <scope.mode>compile</scope.mode>
-    <!--        <scope.mode>provided</scope.mode>-->
     </properties>
 
     <repositories>
@@ -30,46 +29,62 @@
             <id>dorisdb-maven-snapshots</id>
             <url>http://dorisdbvisitor:dorisdbvisitor134@nexus.dorisdb.com/repository/maven-snapshots/</url>
         </repository>
+       <repository>
+            <id>aliyun</id>
+            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+        </repository>
+        <repository>
+            <id>apache</id>
+            <url>https://repository.apache.org/content/repositories/snapshots/</url>
+        </repository>
+
     </repositories>
 
     <dependencies>
-        <dependency>
-            <groupId>com.dorisdb.connector</groupId>
-            <artifactId>flink-connector-doris</artifactId>
-            <version>1.0.26-SNAPSHOT</version>
-        </dependency>
+
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-table-api-java</artifactId>
+            <artifactId>flink-table-planner_2.11</artifactId>
             <version>${flink.version}</version>
+            <scope>${scope.mode}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-table-planner-blink_2.11</artifactId>
             <version>${flink.version}</version>
+            <scope>${scope.mode}</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-table-api-java</artifactId>
+            <version>${flink.version}</version>
+            <scope>${scope.mode}</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-table-api-scala_2.11</artifactId>
+            <version>${flink.version}</version>
+            <scope>${scope.mode}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-table-api-scala-bridge_2.11</artifactId>
             <version>${flink.version}</version>
+            <scope>${scope.mode}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-table-common</artifactId>
             <version>${flink.version}</version>
+            <scope>${scope.mode}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-clients_2.11</artifactId>
             <version>${flink.version}</version>
-        </dependency>
-<!--        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-core</artifactId>
-            <version>${flink.version}</version>
             <scope>${scope.mode}</scope>
-        </dependency>-->
-        <!-- https://mvnrepository.com/artifact/com.alibaba.blink/flink-scala -->
+        </dependency>
+
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-scala_2.11</artifactId>
@@ -85,33 +100,12 @@
             <!--<scope>test</scope>-->
             <scope>${scope.mode}</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.alibaba.blink/flink-table -->
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-<!--            <artifactId>flink-table_2.11</artifactId>-->
-            <artifactId>flink-table</artifactId>
-            <version>${flink.version}</version>
-            <type>pom</type>
-            <scope>${scope.mode}</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.flink/flink-connector-kafka-0.10 -->
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-connector-kafka-0.10_2.11</artifactId>
-            <version>${flink.version}</version>
-<!--            <scope>${scope.mode}</scope>-->
-        </dependency>
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-connector-filesystem_2.11</artifactId>
-            <version>${flink.version}</version>
-<!--            <scope>${scope.mode}</scope>-->
-        </dependency>
 
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-hadoop-fs</artifactId>
             <version>${flink.version}</version>
+            <scope>${scope.mode}</scope>
         </dependency>
 
         <dependency>
@@ -160,6 +154,12 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.44</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dorisdb.connector</groupId>
+            <artifactId>flink-connector-doris</artifactId>
+            <version>1.0.26-SNAPSHOT</version>
         </dependency>
 
     </dependencies>
@@ -219,6 +219,7 @@
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
     </build>
 </project>
