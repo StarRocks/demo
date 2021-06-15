@@ -103,7 +103,11 @@ object SparkStreaming2DorisDB {
       })
     }).foreachRDD( rdd =>{
       rdd.repartition(buckets).foreachPartition( iter => {
-        val sink = new MyDorisSink(Map( //"label"->"label123"  , 使用指定的label需注意唯一性，否则会提示已经存在而无法导入
+        val sink = new MyDorisSink(Map(
+          // "label"->"label123" , 关于标签：
+          //     1. 如果不指定label，DorisDB会自动随机生成；
+          //     2. 如果自己指定label需注意唯一性，相同的label只会成功导入一次，
+          //        可以使用batch time和TaskContext.get.partitionId()来创建label
           "max_filter_ratio" -> s"${filterRatio}",
           "columns" -> columns,
           "column_separator" -> Consts.dorisSep),
