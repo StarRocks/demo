@@ -35,9 +35,9 @@ object SparkStreaming2DorisDB {
   val tblName =  "demo1_spark_tb0"
   val userName =  "root"
   val password =  ""
-  val dorisFe = "master1"
-  val port =  8030
-  val filterRatio =  0.8
+  val dorisFe = "master1"   // fe主机名
+  val port =  8030          // fe的http端口
+  val filterRatio =  0.2
   val columns = "site,date,hour,minute,uv,uv=to_bitmap(uv)"
   val master = "local"
   val consumerGroup =  "demo1_kgid1"
@@ -97,7 +97,7 @@ object SparkStreaming2DorisDB {
           val date = dt.toString( s"yyyy${Consts.dateSep}MM${Consts.dateSep}dd")
           val hour = dt.getHourOfDay
           val minute = dt.getMinuteOfHour
-          list append Array(site, date, hour, minute,  uid).mkString(Consts.dorisSep)
+          list append Array(site, date, hour, minute,  uid).mkString(Consts.dorisdbSep)
         }
         list.iterator
       })
@@ -110,7 +110,7 @@ object SparkStreaming2DorisDB {
           //        可以使用batch time和TaskContext.get.partitionId()来创建label
           "max_filter_ratio" -> s"${filterRatio}",
           "columns" -> columns,
-          "column_separator" -> Consts.dorisSep),
+          "column_separator" -> Consts.dorisdbSep),
           dorisDbName,
           userName,
           password,

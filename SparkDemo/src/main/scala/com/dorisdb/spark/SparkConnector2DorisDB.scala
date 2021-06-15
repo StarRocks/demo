@@ -25,9 +25,9 @@ object SparkConnector2DorisDB {
   val tblNameDst =  "demo1_spark_tb2"
   val userName =  "root"
   val password =  ""
-  val dorisFe = "master1"
-  val port =  8030
-  val filterRatio =  0.8
+  val dorisFe = "master1"   // fe主机名
+  val port =  8030          // fe的http端口
+  val filterRatio =  0.2
   val columns = "uid,date,hour,minute,site"
   val master = "local"
   val appName = "app_spark_demo2"
@@ -65,7 +65,7 @@ object SparkConnector2DorisDB {
 
     resDf.show(5, false)  // 本地打印
 
-    resDf.map( x => x.toString().replaceAll("\\[|\\]","").replace(",",Consts.dorisSep))
+    resDf.map( x => x.toString().replaceAll("\\[|\\]","").replace(",",Consts.dorisdbSep))
       .repartition(buckets).foreachPartition(
       itr => {
         val sink = new MyDorisSink(Map(
@@ -75,7 +75,7 @@ object SparkConnector2DorisDB {
           //        可以使用batch time和TaskContext.get.partitionId()来创建label
           "max_filter_ratio" -> s"${filterRatio}",
           "columns" -> columns,
-          "column_separator" -> Consts.dorisSep),
+          "column_separator" -> Consts.dorisdbSep),
           dorisDbName,
           userName,
           password,

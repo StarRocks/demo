@@ -55,6 +55,7 @@ object Sql2DorisDB {
     val sourceTable = streamTableEnv.fromDataStream(source,'NAME,'SCORE)
     streamTableEnv.createTemporaryView("sourceTable",sourceTable)
 
+    // master1为主机名，9030为query端口，8030为fe的http端口，doris_demo为库名，客户根据自己情况调整参数
     streamTableEnv.executeSql(
       """
         |CREATE TABLE testTable(

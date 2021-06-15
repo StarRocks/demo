@@ -132,6 +132,13 @@ object PutUtil {
     }
   }
 
+  /**
+   * PutUtil Object 主要用于实现被spark程序调用的静态方法；
+   *
+   * PutUtil.main() 本身也可以直接执行，用于测试将payload导入相应stream load接口，其中：
+   *    - master1为主机名，8030为fe的http端口，doris_demo为库名，demo1_dup_tb1和demo1_agg_tb2为表名；
+   *    - TODO 客户根据自己情况调整地址和参数
+   */
   def main(args: Array[String]): Unit = {
     // duplicate table1
     // cols: date, hour, minute, name , metric

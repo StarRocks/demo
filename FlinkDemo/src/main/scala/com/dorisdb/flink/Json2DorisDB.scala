@@ -53,7 +53,7 @@ object Json2DorisDB {
       .addSink(
         DorisSink.sink(
           // the sink options
-          DorisSinkOptions.builder()
+          DorisSinkOptions.builder()  // master1为主机名，9030为query端口，8030为fe的http端口，doris_demo为库名，客户根据自己情况调整参数
             .withProperty("jdbc-url", "jdbc:mysql://master1:9030?doris_demo")
             .withProperty("load-url", "master1:8030")
             .withProperty("username", "root")

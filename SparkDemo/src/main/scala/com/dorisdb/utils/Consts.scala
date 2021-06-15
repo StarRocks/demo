@@ -15,5 +15,5 @@ package com.dorisdb.utils
 
 object Consts {
   val dateSep = "-"
-  val dorisSep = "\t"
+  val dorisdbSep = "\t"
 }
