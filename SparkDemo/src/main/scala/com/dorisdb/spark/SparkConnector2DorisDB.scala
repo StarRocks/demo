@@ -18,7 +18,7 @@ import org.apache.spark.{SparkConf, TaskContext}
 import org.apache.spark.sql.SparkSession
 import org.apache.doris.spark._
 
-object Demo2 {
+object SparkConnector2DorisDB {
   // parameters
   val dorisDbName =  "doris_demo"
   val tblName_src =  "demo1_spark_tb1"
@@ -67,7 +67,7 @@ object Demo2 {
 
     resDf.map( x => x.toString().replaceAll("\\[|\\]","").replace(",",Consts.dorisSep))
       .repartition(buckets).foreachPartition(
-      itr =>{
+      itr => {
         val sink = new MyDorisSink(Map( //"label"->"label123"  , 使用指定的label需注意唯一性，否则会提示已经存在而无法导入
           "max_filter_ratio" -> s"${filterRatio}",
           "columns" -> columns,
@@ -78,7 +78,8 @@ object Demo2 {
           tblName_dst,
           dorisFe,
           port,
-          debug,debug)
+          debug,
+          debug)
         if (itr.hasNext) sink.invoke(itr.mkString("\n"))
       }
     )

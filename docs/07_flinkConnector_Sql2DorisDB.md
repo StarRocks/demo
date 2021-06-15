@@ -21,7 +21,7 @@ Query OK, 0 rows affected (0.11 sec)
 
 ## 执行程序
 
-IDEA里执行 FlinkDemo模块的[Demo3](../FlinkDemo/src/main/scala/com/dorisdb/flink/Demo3.scala)
+IDEA里执行 FlinkDemo模块的[Sql2DorisDB](../FlinkDemo/src/main/scala/com/dorisdb/flink/Sql2DorisDB.scala)
 
 ## 验证数据持续导入
 

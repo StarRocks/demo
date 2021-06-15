@@ -268,8 +268,7 @@ MySQL [doris_demo]> CREATE EXTERNAL TABLE hive_t1
     ->  properties (
     ->     "resource" = "hive0",
     ->     "database" = "default",
-    ->     "table" = "t1",
-    ->     "hive.metastore.uris" = "thrift://master1:9083");
+    ->     "table" = "t1");
 Query OK, 0 rows affected (0.03 sec)
 
 ```

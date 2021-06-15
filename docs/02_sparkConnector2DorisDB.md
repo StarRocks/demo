@@ -88,7 +88,7 @@ PROPERTIES (
 
 ### 执行
 
-在IDEA里运行SparkDemo模块的com.dorisdb.spark.Demo2
+在IDEA里运行SparkDemo模块的com.dorisdb.spark.SparkConnector2DorisDB
 
 > 读取demo1_spark_tb1经sparkSql炸开list后，写入demo1_spark_tb2：
 

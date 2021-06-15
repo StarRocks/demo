@@ -21,7 +21,7 @@ Query OK, 0 rows affected (0.11 sec)
 ```
 ## 执行程序
 
-1. 可以在IDEA里执行 FlinkDemo模块的[Demo1](../FlinkDemo/src/main/scala/com/dorisdb/flink/Demo1.scala)
+1. 可以在IDEA里执行 FlinkDemo模块的[Bean2DorisDB](../FlinkDemo/src/main/scala/com/dorisdb/flink/Bean2DorisDB.scala)
 2. 也可以打包在server上提交flink作业：
 
 run.sh

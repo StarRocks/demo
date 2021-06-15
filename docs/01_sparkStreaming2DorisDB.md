@@ -77,7 +77,7 @@ PROPERTIES (
 
 ### 3. 执行程序 
 
-IDEA里编译执行 SparkDemo模块的com.dorisdb.spark.Demo1
+IDEA里编译执行 SparkDemo模块的com.dorisdb.spark.SparkStreaming2DorisDB
 
 ![01_spark_idea1](./imgs/01_spark_idea1.png)
 

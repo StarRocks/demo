@@ -26,7 +26,7 @@ import org.joda.time.DateTime
 
 import scala.collection.mutable.ListBuffer
 
-object Demo1 {
+object SparkStreaming2DorisDB {
   LoggerUtil.setSparkLogLevels()
   // parameters
   val topics =  "spark_demo1_src"

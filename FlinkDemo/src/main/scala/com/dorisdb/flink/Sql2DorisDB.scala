@@ -13,63 +13,84 @@
 
 package com.dorisdb.flink
 
+
 import java.util.concurrent.TimeUnit
 import com.dorisdb.connector.flink.DorisSink
 import com.dorisdb.connector.flink.table.{DorisDynamicTableSinkFactory, DorisSinkOptions}
 import com.dorisdb.funcs.MySource
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
+import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flink.api.java.typeutils.RowTypeInfo
 import org.apache.flink.api.scala._
 import org.apache.flink.streaming.api.environment.CheckpointConfig
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import org.apache.flink.streaming.api.{CheckpointingMode, TimeCharacteristic}
 import org.apache.flink.table.api.EnvironmentSettings
 import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
+import org.apache.flink.table.api._
+import org.apache.flink.types.Row
+
+import org.apache.calcite.sql.parser.SqlParser.Config
+
+import org.apache.flink.table.planner.delegation.PlannerContext
+
 
 /**
- * Demo2 - json数据通过Flink-Conncter导入DorisDB
- */
-object Demo2 {
+  * Demo3：
+  *    通过org.apache.flink.types.Row构建TemporaryView
+  *    FlinkSql通过flink-connector-dorisdb 写入数据到 DorisDB；
+  */
+object Sql2DorisDB {
   def main(args: Array[String]): Unit = {
-
     // 使用 Blink Planner 创建流表运行环境
     val env = getExecutionEnvironment()
-    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
-    // val settings = EnvironmentSettings.newInstance.useBlinkPlanner.inStreamingMode.build
-    // val streamTableEnv = StreamTableEnvironment.create(env,settings)
+    val settings = EnvironmentSettings.newInstance.useBlinkPlanner().inStreamingMode.build
+    val streamTableEnv = StreamTableEnvironment.create(env,settings)
 
-    val source: DataStream[String] = env
-      .addSource(new MySource())
+    val source: DataStream[Row] = env
+      .addSource(new MySource())(getRowTypeInfo())
         .uid("sourceStream-uid").name("sourceStream")
         .setParallelism(1)
-      .map(x => {
-        val name = x.getField(0).toString
-        val score = x.getField(1).toString.toInt
-        "{\"NAME\": \"" + name + "\", \"SCORE\": \"" + score + "\"}"    // 通过map，模拟成json格式
-      })
-        .uid("sourceStreamMap-uid").name("sourceStreamMap")
-        .setParallelism(1)
 
-    source
-      .addSink(
-        DorisSink.sink(
-          // the sink options
-          DorisSinkOptions.builder()
-            .withProperty("jdbc-url", "jdbc:mysql://master1:9030?doris_demo")
-            .withProperty("load-url", "master1:8030")
-            .withProperty("username", "root")
-            .withProperty("password", "")
-            .withProperty("table-name", "demo2_flink_tb1")
-            .withProperty("database-name", "doris_demo")
-            .withProperty("sink.properties.format", "json")
-            .withProperty("sink.properties.strip_outer_array", "true")
-            .withProperty("sink.properties.row_delimiter","\\x02")      // 防止数量里有常用行分隔符，如\n
-            .withProperty("sink.properties.column_separator","\\x01")   // 防止字段里有常用列分隔符，如逗号，制表符\t等
-            .build()
-      ))
-        .uid("sourceSink-uid").name("sourceSink")
-        .setParallelism(1)
+    val sourceTable = streamTableEnv.fromDataStream(source,'NAME,'SCORE)
+    streamTableEnv.createTemporaryView("sourceTable",sourceTable)
 
-    env.execute("DorisDBSink_String")
+    streamTableEnv.executeSql(
+      """
+        |CREATE TABLE testTable(
+        |`NAME` VARCHAR,
+        |`SCORE` INT
+        |) WITH (
+        |'connector' = 'doris',
+        |'jdbc-url'='jdbc:mysql://master1:9030?doris_demo',
+        |'load-url'='master1:8030',
+        |'database-name' = 'doris_demo',
+        |'table-name' = 'demo2_flink_tb1',
+        |'username' = 'root',
+        |'password' = '',
+        |'sink.buffer-flush.max-rows' = '1000000',
+        |'sink.buffer-flush.max-bytes' = '300000000',
+        |'sink.buffer-flush.interval-ms' = '300000',
+        |'sink.max-retries' = '3',
+        |'sink.properties.row_delimiter' = '\x02',
+        |'sink.properties.column_separator' = '\x01',
+        |'sink.properties.columns' = 'NAME, SCORE'
+        |)
+        |""".stripMargin
+    )
+    // TODO 注意！在Scala开发时：
+    // 1. 如59-79行代码段所示，使用三引号包整个sql，不需转义字符，直接写 '\x02' 和 '\x01'
+    // 2. 如用多行双引号string拼齐整个sql，则需写成"\\x02" 和 "\\x01"，例如：
+    //  ...
+    //  + "'sink.properties.row_delimiter' = '\\x02',"
+    //  + "'sink.properties.column_separator' = '\\x01' "
+    //  + ...
+
+    streamTableEnv.executeSql(
+      """
+        |insert into testTable select `NAME`,`SCORE` from sourceTable
+      """.stripMargin)
+
 
   }
 
@@ -92,6 +113,11 @@ object Demo2 {
     env.getCheckpointConfig.enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION)
     env.getCheckpointConfig.setTolerableCheckpointFailureNumber(Integer.MAX_VALUE)
     env
+  }
+
+  def getRowTypeInfo(): RowTypeInfo = {
+    new RowTypeInfo(
+      TypeInformation.of(classOf[String]),TypeInformation.of(classOf[Int]))
   }
 
 }

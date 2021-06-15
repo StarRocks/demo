@@ -36,26 +36,26 @@ class MyDorisSink(headers:Map[String,String],
 
   def invoke(value: String): Unit = {
     httpClient = PutUtil.clientGen(userName, password)
-    try{
+    try {
       val res = PutUtil.put(httpClient, value, api, CONTENT_TYPE, headers, debug, showPayLoad)
       status = res._1
       httpClient = res._2
       response = res._3
-    }catch {
+    } catch {
       case ex:Exception => {
         println("### invoke ERROR:")
         ex.printStackTrace()
       }
-    }
-    try{
-      httpClient.close()
-      response.close()
-    } catch {
-      case ex:Exception => {
-        println("### http close ERROR:")
-        ex.printStackTrace()
+    } finally {
+      try{
+        httpClient.close()
+        response.close()
+      } catch {
+        case ex:Exception => {
+          println("### http close ERROR:")
+          ex.printStackTrace()
+        }
       }
     }
   }
-
 }

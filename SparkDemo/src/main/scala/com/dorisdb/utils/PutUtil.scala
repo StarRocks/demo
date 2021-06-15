@@ -67,7 +67,8 @@ object PutUtil {
            api:String ,
            contentType:String = CONTENT_TYPE ,
            headers: Map[String, String] = null,
-           debug: Boolean = false, showPayLoad: Boolean = false): (Boolean,CloseableHttpClient, CloseableHttpResponse) ={
+           debug: Boolean = false,
+           showPayLoad: Boolean = false): (Boolean,CloseableHttpClient, CloseableHttpResponse) ={
     var response:CloseableHttpResponse = null
     var status = true
     try{
