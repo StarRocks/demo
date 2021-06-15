@@ -21,8 +21,8 @@ import org.apache.doris.spark._
 object SparkConnector2DorisDB {
   // parameters
   val dorisDbName =  "doris_demo"
-  val tblName_src =  "demo1_spark_tb1"
-  val tblName_dst =  "demo1_spark_tb2"
+  val tblNameSrc =  "demo1_spark_tb1"
+  val tblNameDst =  "demo1_spark_tb2"
   val userName =  "root"
   val password =  ""
   val dorisFe = "master1"
@@ -48,7 +48,7 @@ object SparkConnector2DorisDB {
     import spark.implicits._
 
     val dorisSparkDF = spark.read.format("doris")
-      .option("doris.table.identifier", s"${dorisDbName}.${tblName_src}")
+      .option("doris.table.identifier", s"${dorisDbName}.${tblNameSrc}")
       .option("doris.fenodes", s"${dorisFe}:${port}")
       .option("user", s"${userName}")
       .option("password", s"${password}")
@@ -75,7 +75,7 @@ object SparkConnector2DorisDB {
           dorisDbName,
           userName,
           password,
-          tblName_dst,
+          tblNameDst,
           dorisFe,
           port,
           debug,

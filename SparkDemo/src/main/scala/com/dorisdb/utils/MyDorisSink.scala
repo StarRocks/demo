@@ -47,7 +47,7 @@ class MyDorisSink(headers:Map[String,String],
         ex.printStackTrace()
       }
     } finally {
-      try{
+      try {
         httpClient.close()
         response.close()
       } catch {

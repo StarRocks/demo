@@ -40,7 +40,7 @@ object SparkStreaming2DorisDB {
   val filterRatio =  0.8
   val columns = "site,date,hour,minute,uv,uv=to_bitmap(uv)"
   val master = "local"
-  val consumer_group =  "demo1_kgid1"
+  val consumerGroup =  "demo1_kgid1"
   val appName = "app_spark_demo1"
   val duration =  10 // 10秒钟一个窗口
   val partitions =   2   //计算的并发度
@@ -61,7 +61,7 @@ object SparkStreaming2DorisDB {
     val kafkaParams = Map("bootstrap.servers" -> brokers,
       "key.deserializer" -> classOf[StringDeserializer],
       "value.deserializer" -> classOf[StringDeserializer],
-      "group.id" -> consumer_group,
+      "group.id" -> consumerGroup,
       "auto.offset.reset" -> "latest" )
     val topic = topics.split(",")
     var offsetRanges = Array.empty[OffsetRange]
@@ -113,7 +113,8 @@ object SparkStreaming2DorisDB {
           tblName,
           dorisFe,
           port,
-          debug,debug)
+          debug,
+          debug)
 
         if (iter.hasNext) sink.invoke(iter.mkString("\n"))
 
