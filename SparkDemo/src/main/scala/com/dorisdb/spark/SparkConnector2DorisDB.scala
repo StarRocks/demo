@@ -1,4 +1,4 @@
-// Copyright 2021 DorisDB, Inc.
+// Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,14 +25,14 @@ object SparkConnector2DorisDB {
   val tblNameDst =  "demo1_spark_tb2"
   val userName =  "root"
   val password =  ""
-  val dorisFe = "master1"   // fe主机名
-  val port =  8030          // fe的http端口
+  val dorisFe = "master1"   // fe hostname
+  val port =  8030          // fe http port
   val filterRatio =  0.2
   val columns = "uid,date,hour,minute,site"
   val master = "local"
   val appName = "app_spark_demo2"
-  val partitions =   2   //计算的并发度
-  val buckets =   1      // 写doris的并发度
+  val partitions =   2   // computing parallelism
+  val buckets =   1      // sink parallelism
   val debug = false
 
   LoggerUtil.setSparkLogLevels()
@@ -63,16 +63,16 @@ object SparkConnector2DorisDB {
         |lateral view explode(split(uid_list_str,',')) temp_tbl as uid
         |""".stripMargin)
 
-    resDf.show(5, false)  // 本地打印
+    resDf.show(5, false)  // IDEA/REPL local outputs
 
     resDf.map( x => x.toString().replaceAll("\\[|\\]","").replace(",",Consts.dorisdbSep))
       .repartition(buckets).foreachPartition(
       itr => {
         val sink = new MyDorisSink(Map(
-          // "label"->"label123" , 关于标签：
-          //     1. 如果不指定label，DorisDB会自动随机生成；
-          //     2. 如果自己指定label需注意唯一性，相同的label只会成功导入一次，
-          //        可以使用batch time和TaskContext.get.partitionId()来创建label
+          // "label"->"label123" ：
+          //     1. If not customized, DorisDB randomly generates a code as the label;
+          //     2. Stream-load label is 'Unique', the Stream-load with same label can be loaded only once.
+          //        [Good choice]: the label can be combined with info like batch-time and TaskContext.get.partitionId().
           "max_filter_ratio" -> s"${filterRatio}",
           "columns" -> columns,
           "column_separator" -> Consts.dorisdbSep),

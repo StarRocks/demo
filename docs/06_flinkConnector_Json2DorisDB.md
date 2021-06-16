@@ -19,12 +19,12 @@ Query OK, 0 rows affected (0.11 sec)
 
 ```
 
-## 执行程序
+## Performing
 
-1. 可以在IDEA里执行 FlinkDemo模块的[Json2DorisDB](../FlinkDemo/src/main/scala/com/dorisdb/flink/Json2DorisDB.scala)
-2. 也可以打包在server上提交flink作业：
+1. Run [Json2DorisDB](../FlinkDemo/src/main/scala/com/dorisdb/flink/Json2DorisDB.scala) directly in IDEA;
+2. or package a jar and submit to flink-server;
 
-run.sh
+> run.sh
 
 ```
 #!/bin/bash
@@ -42,7 +42,7 @@ flink ui
 
 ![06_flink_ui_1](imgs/06_flink_ui_1.png)
 
-## 验证数据持续导入
+## Verification
 
 ```
 MySQL [doris_demo]> select * from demo2_flink_tb1 limit 5;

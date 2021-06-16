@@ -1,4 +1,4 @@
-// Copyright 2021 DorisDB, Inc.
+// Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,16 +35,16 @@ object SparkStreaming2DorisDB {
   val tblName =  "demo1_spark_tb0"
   val userName =  "root"
   val password =  ""
-  val dorisFe = "master1"   // fe主机名
-  val port =  8030          // fe的http端口
+  val dorisFe = "master1"   // fe hostname
+  val port =  8030          // fe http port
   val filterRatio =  0.2
   val columns = "site,date,hour,minute,uv,uv=to_bitmap(uv)"
   val master = "local"
   val consumerGroup =  "demo1_kgid1"
   val appName = "app_spark_demo1"
-  val duration =  10 // 10秒钟一个窗口
-  val partitions =   2   //计算的并发度
-  val buckets =   1      // 写doris的并发度
+  val duration =  10 // 10s window
+  val partitions =   2   // computing parallelism
+  val buckets =   1      // sink parallelism
   val debug = true
 
   def main(args: Array[String]): Unit = {
@@ -70,7 +70,7 @@ object SparkStreaming2DorisDB {
     stream.foreachRDD(rdd=>{
       if(!rdd.isEmpty()) {
         offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
-        if(master.contains("local")){  // IDEA调试用
+        if(master.contains("local")){  // IDEA/REPL test locally
           rdd.foreachPartition { iter =>
             val o: OffsetRange = offsetRanges(TaskContext.get.partitionId)
             println(s"${o.topic} ${o.partition} ${o.fromOffset} ${o.untilOffset}")
@@ -104,10 +104,10 @@ object SparkStreaming2DorisDB {
     }).foreachRDD( rdd =>{
       rdd.repartition(buckets).foreachPartition( iter => {
         val sink = new MyDorisSink(Map(
-          // "label"->"label123" , 关于标签：
-          //     1. 如果不指定label，DorisDB会自动随机生成；
-          //     2. 如果自己指定label需注意唯一性，相同的label只会成功导入一次，
-          //        可以使用batch time和TaskContext.get.partitionId()来创建label
+          // "label"->"label123" ：
+          //     1. If not customized, DorisDB randomly generates a code as the label;
+          //     2. Stream-load label is 'Unique', the Stream-load with same label can be loaded only once.
+          //        [Good choice]: the label can be combined with info like batch-time and TaskContext.get.partitionId().
           "max_filter_ratio" -> s"${filterRatio}",
           "columns" -> columns,
           "column_separator" -> Consts.dorisdbSep),

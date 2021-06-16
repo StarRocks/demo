@@ -19,12 +19,12 @@ Query OK, 0 rows affected (0.11 sec)
 
 
 ```
-## Performing
+## 执行程序
 
-1. run [Bean2DorisDB](../FlinkDemo/src/main/scala/com/dorisdb/flink/Bean2DorisDB.scala) directly in IDEA;
-2. or package a jar and submit to flink-server;
+1. 可以在IDEA里执行 FlinkDemo模块的[Bean2DorisDB](../FlinkDemo/src/main/scala/com/dorisdb/flink/Bean2DorisDB.scala)
+2. 也可以打包在server上提交flink作业：
 
-> run.sh
+run.sh
 ```
 #!/bin/bash
 
@@ -40,7 +40,7 @@ flink ui
 ![05_flink_ui_1](imgs/05_flink_ui_1.png)
 
 
-## Verifications
+## 验证数据持续导入
 
 ```
 MySQL [doris_demo]> select * from demo2_flink_tb1 limit 5;

@@ -1,32 +1,31 @@
 # 03_sparkLoad2DorisDB
 
-#  Description
+# 场景描述
+演示使用sparkLoad导入数据到DorisDB
 
-Demonstration loading data into DorisDB using the SparkLoad feature.
+# 基础环境准备
 
-# Preparations
+## Hadoop环境
 
-## Hadoop environment
+在Linux环境配置好Hadoop 集群(YARN, HDFS, SPARK)等环境，
 
-Deploy Hadoop including YARN, HDFS and SPARK on Linux hosts.
-
-This demo follows below component versions:  
+具体版本视实际情况，这里测试使用的版本：
 - hadoop 2.7.7
 - spark 2.3.3
 
-### About JAVA_HOME variable
+### 关于JAVA_HOME环境变量
 
-> On the top of hadoop/libexec/hadoop-config.sh, add below export: 
+> 可能需要在hadoop/libexec/hadoop-config.sh的行首添加:
 
 ```
-export JAVA_HOME=xxxxJAVA_HOME_PATH
+export JAVA_HOME=xxxxJAVA_HOME路径
 ```
 
-## DorisDB Cluster
+## DorisDB集群
 
-### fe configures
+### fe配置
 
-> configure below options in fe.conf
+> 在fe.conf中增加以下配置( 默认是false)
 
 ```
 enable_spark_load=true
@@ -34,7 +33,7 @@ spark_home_default_dir=/usr/local/spark-2.3.3-bin-hadoop2.7/
 yarn_client_path=/usr/local/hadoop-2.7.7/bin/yarn
 ```
 
-### prepare a spark-2x.zip file
+### 准备spark-2x.zip文件
 
 ```
 [root@master1 ~ ]# cd /usr/local/spark-2.3.3-bin-hadoop2.7/jars
@@ -43,14 +42,12 @@ yarn_client_path=/usr/local/hadoop-2.7.7/bin/yarn
 
 # Case1
 
-Load CSV file on HDFS into DorisDB
+导入hdfs上的CSV文件到DorisDB
 
-## Mimic Data
+## 模拟数据
+利用[SparkDemo](../SparkDemo)模块的[gen_wide.py](../SparkDemo/src/main/py/gen_wide.py)数据生成脚本，
 
-Simulate csv file with 10000 lines, 2 cols and upload to hdfs
-
-- call [gen_wide.py](../SparkDemo/src/main/py/gen_wide.py) in module [SparkDemo](../SparkDemo)
-
+生成1万行2列的csv文件，并上传到hdfs：
 
 ```
 [root@master1 data]# python data_wide.py 10000 2 > demo3_data1.csv
@@ -72,7 +69,7 @@ Simulate csv file with 10000 lines, 2 cols and upload to hdfs
 
 ```
 
-## Testing
+## 功能测试
 
 DorisDB DDL
 
@@ -91,14 +88,14 @@ PROPERTIES (
 );
 ```
 
-Create spark1 resource in dorisDB:
+在dorisDB创建spark1资源
 
 ```
 -- add broker1
 MySQL [(none)]> ALTER SYSTEM ADD BROKER broker1 "master1:8000";
 Query OK, 0 rows affected (0.04 sec)
 
--- yarn HA cluster mode
+-- yarn HA cluster 模式
 CREATE EXTERNAL RESOURCE "spark1"
 PROPERTIES
 (
@@ -115,7 +112,7 @@ PROPERTIES
 );
 ```
 
-submit spark load job:
+启动spark load作业
 
 ```
 USE doris_demo;
@@ -144,8 +141,7 @@ PROPERTIES
 );
 ```
 
-Verification
-
+检查导入结果
 ```
 MySQL [doris_demo]> select * from demo3_spark_tb1 limit 5;
 +------+------+
@@ -187,17 +183,15 @@ MySQL [doris_demo]> select count(distinct k1) k1 from demo3_spark_tb1 limit 5;
 
 # Case2
 
-Load parquet file into DorisDB via Spark-load 
+通过Spark load导入parquet数据到dorisDB
 
-> requirement
+- 需要hive外表
 
-- External table in Hive
-- External table in DorisDB
+- 需要dorisDB外表
 
+## 模拟数据
 
-## Mimic Data
-
-Convert CSV into parquet format in Spark REPL environment (Spark-shell)
+使用spark-shell将csv文件转储为parquet
 
 ```
 scala> sc.setLogLevel("ERROR")
@@ -232,7 +226,7 @@ scala> spark.read.parquet("hdfs://mycluster/dorisDB-demo/data/demo3_data1.parque
 only showing top 5 rows     
 ```  
 
-## Testing
+## 功能测试
 
 ### Hive DDL
 
@@ -251,7 +245,7 @@ LOCATION
 TBLPROPERTIES ( 'parquet.compression'='snappy');
 ```
 
-### DorisDB DDL
+### Doris DDL
 
 ```
 CREATE EXTERNAL RESOURCE "hive0"
@@ -281,7 +275,7 @@ Query OK, 0 rows affected (0.03 sec)
 
 ### Spark load 
 
-Load data from external hive table into DorisDB inner table, using spark1 resource
+从dorisDB中的Hive外表写入dorisDB内部表
 
 ```
 USE doris_demo;
@@ -325,7 +319,7 @@ LoadFinishTime: 2021-05-31 21:06:49
 9 rows in set (0.00 sec)
 ```
 
-### Verification
+### 验证导入数据
 
 ```
 MySQL [doris_demo]> select * from demo3_spark_tb2 limit 5;
@@ -366,8 +360,7 @@ MySQL [doris_demo]> select count(distinct v1) v1 from demo3_spark_tb2 limit 5;
 ```
 
 # NOTE
-spark-submit logs can be found under below path on a fe-leader node :
-
+spark-submit的日志在fe-leader节点：
 ```
 log/spark_launcher_log/
 ```

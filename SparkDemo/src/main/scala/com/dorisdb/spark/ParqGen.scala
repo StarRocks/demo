@@ -1,4 +1,4 @@
-// Copyright 2021 DorisDB, Inc.
+// Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ object ParqGen {
 
     var i = 1
     while (i < total_lines) {
-      if (i% 13 == 1) {  // 每13* 100w 重新随机生成100w行, 即1.3亿行需要getTable十次
+      if (i% 13 == 1) {  // real getTable() calls
         // clear
         try {
           val hadoopConf = new org.apache.hadoop.conf.Configuration()
@@ -77,14 +77,14 @@ object ParqGen {
           hdfs.delete(new org.apache.hadoop.fs.Path(csv_temp), true)
         } catch { case _ : Exception => { }}
 
-        // 随机生成1w行，翻100倍，生成csv文件
-        val data = getTable(batch_lines/100, cols)  // 1w行的parquet，约5M; 10w行月500M
+        // Randomly generate 10000 rows, multiply 100 times and generate CSV file
+        val data = getTable(batch_lines/100, cols)
         val dtimes = ((data+"\n" )* 100).stripSuffix("\n")
         val res = sc.parallelize(dtimes.split("\n"))
         res.saveAsTextFile(csv_temp)
       }
 
-      // csv转储为parquet, 1次落100万行
+      // 1000000 lines csv to parquet
       spark.read.option("delimiter", "\t").csv(csv_temp)
         .repartition(1)
         .write.mode(SaveMode.Append).parquet(pq_path)

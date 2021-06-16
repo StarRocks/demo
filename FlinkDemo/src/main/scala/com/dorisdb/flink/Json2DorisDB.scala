@@ -1,4 +1,4 @@
-// Copyright 2021 DorisDB, Inc.
+// Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,14 +26,14 @@ import org.apache.flink.table.api.EnvironmentSettings
 import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
 
 /**
- * Demo2 - json数据通过Flink-Conncter导入DorisDB
+ * Demo2
+ *   - sink json to DorisDB via flink-connector-dorisdb
  */
 object Json2DorisDB {
   def main(args: Array[String]): Unit = {
 
-    // 使用 Blink Planner 创建流表运行环境
     val env = getExecutionEnvironment()
-    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+    env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime)
     // val settings = EnvironmentSettings.newInstance.useBlinkPlanner.inStreamingMode.build
     // val streamTableEnv = StreamTableEnvironment.create(env,settings)
 
@@ -44,7 +44,7 @@ object Json2DorisDB {
       .map(x => {
         val name = x.getField(0).toString
         val score = x.getField(1).toString.toInt
-        "{\"NAME\": \"" + name + "\", \"SCORE\": \"" + score + "\"}"    // 通过map，模拟成json格式
+        "{\"NAME\": \"" + name + "\", \"SCORE\": \"" + score + "\"}"    // map to json data
       })
         .uid("sourceStreamMap-uid").name("sourceStreamMap")
         .setParallelism(1)
@@ -52,8 +52,15 @@ object Json2DorisDB {
     source
       .addSink(
         DorisSink.sink(
-          // the sink options
-          DorisSinkOptions.builder()  // master1为主机名，9030为query端口，8030为fe的http端口，doris_demo为库名，客户根据自己情况调整参数
+          /*
+          The sink options for this demo:
+          - hostname: master1
+          - fe http port: 8030
+          - database name: doris_demo
+          - table names: demo2_flink_tb1
+          - TODO: customize above args to fit your environment.
+          */
+          DorisSinkOptions.builder()
             .withProperty("jdbc-url", "jdbc:mysql://master1:9030?doris_demo")
             .withProperty("load-url", "master1:8030")
             .withProperty("username", "root")
@@ -62,8 +69,8 @@ object Json2DorisDB {
             .withProperty("database-name", "doris_demo")
             .withProperty("sink.properties.format", "json")
             .withProperty("sink.properties.strip_outer_array", "true")
-            .withProperty("sink.properties.row_delimiter","\\x02")      // 防止数量里有常用行分隔符，如\n
-            .withProperty("sink.properties.column_separator","\\x01")   // 防止字段里有常用列分隔符，如逗号，制表符\t等
+            .withProperty("sink.properties.row_delimiter","\\x02")      // in case of raw data contains common delimiter like '\n'
+            .withProperty("sink.properties.column_separator","\\x01")   // in case of raw data contains common separator like '\t'
             .build()
       ))
         .uid("sourceSink-uid").name("sourceSink")
@@ -77,13 +84,13 @@ object Json2DorisDB {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setMaxParallelism(3)
     env.setParallelism(3)
-    // 失败重试
+
     env.setRestartStrategy(RestartStrategies.failureRateRestart(
-      3, // 每个时间间隔的最大故障次数
-      org.apache.flink.api.common.time.Time.of(5, TimeUnit.MINUTES), // 测量故障率的时间间隔
-      org.apache.flink.api.common.time.Time.of(10, TimeUnit.SECONDS) // 延时
+      3, // failureRate
+      org.apache.flink.api.common.time.Time.of(5, TimeUnit.MINUTES), // failureInterval
+      org.apache.flink.api.common.time.Time.of(10, TimeUnit.SECONDS) // delayInterval
     ))
-    // checkpoint配置
+    // checkpoint options
     env.enableCheckpointing(1000 * 5)
     env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.AT_LEAST_ONCE)
     env.getCheckpointConfig.setMinPauseBetweenCheckpoints(500)

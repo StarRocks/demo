@@ -1,4 +1,4 @@
-// Copyright 2021 DorisDB, Inc.
+// Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ object PutUtil {
     var httpClient: Any = null
     HttpClientBuilder.create()
       .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy)
-      .setRedirectStrategy(new DefaultRedirectStrategy(){  // 对应 curl命令里的 --location-trusted 参数
+      .setRedirectStrategy(new DefaultRedirectStrategy(){  // refer to linux cmd: curl --location-trusted
         override def isRedirectable(method: String): Boolean = {
           super.isRedirectable(method)
           true
@@ -58,9 +58,9 @@ object PutUtil {
   /**
     * HTTP put
     *
-    * @param payload      要发送的数据(string)
-    * @param api          doris的API
-    * @param contentType  设置put内容类型为json还是二进制流
+    * @param payload      data to send(string)
+    * @param api          Stream load API
+    * @param contentType  json/ binary type to PUT
     */
   def put( httpclient:CloseableHttpClient,
            payload:String,
@@ -123,28 +123,25 @@ object PutUtil {
     (status, httpclient, response)
   }
 
-  def postRetry(httpclient: CloseableHttpClient, payload:String, api:String , contentType:String = CONTENT_TYPE, maxRetry:Int = 5): Unit = {
-    var fail = true
-    var tried = 0
-    while (tried<maxRetry && fail){
-      fail = ! put(httpclient, payload, api , contentType)._1
-      tried +=1
-    }
-  }
 
   /**
-   * PutUtil Object 主要用于实现被spark程序调用的静态方法；
+   * PutUtil Object mainly handles static funcs for Spark
    *
-   * PutUtil.main() 本身也可以直接执行，用于测试将payload导入相应stream load接口，其中：
-   *    - master1为主机名，8030为fe的http端口，doris_demo为库名，demo1_dup_tb1和demo1_agg_tb2为表名；
-   *    - TODO 客户根据自己情况调整地址和参数
+   * PutUtil.main() runs locally can help to test putting payload into stream load API
+   *    Args for this demo:
+   *    - hostname: master1
+   *    - fe http port: 8030
+   *    - database name: doris_demo
+   *    - table names: demo1_dup_tb1 and demo1_agg_tb2
+   *    - TODO customize above args to fit your environment.
    */
   def main(args: Array[String]): Unit = {
     // duplicate table1
     // cols: date, hour, minute, name , metric
     val api = "http://master1:8030/api/doris_demo/demo1_dup_tb1/_stream_load"
     val payload = "20190903_11_1_tom_130\n20190903_11_2_jerry_838"
-    val headers = Map(   //"label"->"label123"  , 使用指定的label需注意唯一性，否则会提示已经存在而无法导入
+    val headers = Map(
+      //"label"->"label123"
       "max_filter_ratio"->"0.2",
       "columns"->"date,hour,minute,username,visit",
       "column_separator"->"_"
@@ -155,7 +152,8 @@ object PutUtil {
     // cols: id, name , metric
     val api2 = "http://master1:8030/api/doris_demo/demo1_agg_tb2/_stream_load"
     val payload2 = "1_tom_313\n1_tom_318"
-    val headers2 = Map(   //"label"->"label123"  , 使用指定的label需注意唯一性，否则会提示已经存在而无法导入
+    val headers2 = Map(
+      //"label"->"label123"
       "max_filter_ratio"->"0.2",
       "columns"->"siteid,username,visit",
       "column_separator"->"_"

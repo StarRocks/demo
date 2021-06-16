@@ -3,11 +3,12 @@
 
 [![license](docs/imgs/dorisdb.svg)](LICENSE)
 
-本项目旨在提供完整的代码demo示例，便于开发者快速掌握相关场合的开发流程
+This project provides a bunch of code examples in relevant occasions,
+to help developers master the development process.
 
 ![banner1](docs/imgs/banner1.png)
 
-# 一、spark开发
+# 1. spark demo
 
 [01_sparkStreaming2DorisDB](docs/01_sparkStreaming2DorisDB.md)
 
@@ -28,7 +29,7 @@ Hive  -----> spark load -> spark etl ->   broker load  ->  DorisDB
 
 > Generate Parquet Data
 
-# 二、flink开发
+# 2. flink demo
 
 [05_flinkConnector_Bean2DorisDB](docs/05_flinkConnector_Bean2DorisDB.md)
 ```
@@ -42,6 +43,9 @@ json   -->   flink-connector --->  DorisDB
 ```
 flinkSql --> flin-connector -->  DorisDB 
 ``` 
+
+## Chinese wiki
+-> [Wiki list](docs/cn/README_cn.md) 
 
 ## License
 

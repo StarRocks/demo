@@ -1,26 +1,23 @@
 # 02_sparkConnector2DorisDB
 
-##  Description
+## 场景描述
 
-- Read DorisDB table via spark-connector
-- ETL in Spark: Explode data to multiple lines
-- Write results into another DorisDB table
+### 效果
+  - 读取DorisDB源表，经过Spark进行ETL，写回DorisDB目标表。
+  - demo2的代码演示效果：用sparkSql进行explode出多行uid结果明细。
 
+### 数据流向
 
-### DataFlow
+> dorisDB(bitmap表) -> spark connector -> sparkSql ETL -> dorisDB(uid明细表)
 
-> dorisDB(bitmap table) -> spark-connector -> sparkSql ETL -> dorisDB(uid details table)
+## 基础环境准备
 
-## Preparations
+### 数据准备
+> - demo2复用demo1的数据构建src源表，
+> - demo1_spark_tb0（refer to  [01_sparkStreaming2DorisDB](./01_sparkStreaming2DorisDB.md)  ）的uv字段是bitmap型，
+> - 使用bitmap_to_string(uv)转为string_list，写进demo1_spark_tb1表
 
-### prepare datas
-
-> - demo2 re-use the data in demo1
-> - uv field in demo1_spark_tb0 is bitmap type（refer to  [01_sparkStreaming2DorisDB](./01_sparkStreaming2DorisDB.md)  ）,
-> - convert bitmap type to string_list and sink to DorisDB table demo1_spark_tb1
-
-
-#### Source Data table DDL
+#### 数据源表DDL
 
 ```
 CREATE TABLE `demo1_spark_tb1` (
@@ -40,7 +37,7 @@ PROPERTIES (
 );
 ```
 
-Reuse the simulated data from demo1_spark_tb0:
+可以复用demo1模拟出的数据：
 
 ```
 insert into demo1_spark_tb1(site, date, hour, minute, uid_list_str)
@@ -48,7 +45,7 @@ select site,date,hour,minute, bitmap_to_string(uv)
 from demo1_spark_tb0;
 ```
 
-Verify the result
+检查写入的数据
 
 ```
 MySQL [doris_demo]> select * from demo1_spark_tb1 limit 5;
@@ -64,7 +61,7 @@ MySQL [doris_demo]> select * from demo1_spark_tb1 limit 5;
 5 rows in set (0.01 sec)
 ```
 
-#### target table DDL
+#### 目标表DDL
 
 ```
 CREATE TABLE `demo1_spark_tb2` (
@@ -84,20 +81,20 @@ PROPERTIES (
 );
 ```
 
-## Performing
+## 执行程序
 
-### add spark-connector jar into the project
+### 将spark-connector加入工程
 ![02_spark_idea1](./imgs/02_spark_idea1.png)
 
-### Run the demo
+### 执行
 
-Compile and run com.dorisdb.spark.SparkConnector2DorisDB
+在IDEA里运行SparkDemo模块的com.dorisdb.spark.SparkConnector2DorisDB
 
-> read table demo1_spark_tb1 -> sparkSql explodes to string list -> sink to demo1_spark_tb2
+> 读取demo1_spark_tb1经sparkSql炸开list后，写入demo1_spark_tb2：
 
 ![02_spark_idea2](./imgs/02_spark_idea2.png)
 
-### Verification
+### 检查目标表结果
 
 ```
 MySQL [doris_demo]> select * from demo1_spark_tb2 limit 5;

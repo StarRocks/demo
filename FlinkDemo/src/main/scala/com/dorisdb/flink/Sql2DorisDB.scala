@@ -1,4 +1,4 @@
-// Copyright 2021 DorisDB, Inc.
+// Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,12 +37,12 @@ import org.apache.flink.table.planner.delegation.PlannerContext
 
 /**
   * Demo3：
-  *    通过org.apache.flink.types.Row构建TemporaryView
-  *    FlinkSql通过flink-connector-dorisdb 写入数据到 DorisDB；
+  *    - Construct TemporaryView via org.apache.flink.types.Row
+  *    - FlinkSql -> flink-connector-dorisdb -> DorisDB
   */
 object Sql2DorisDB {
   def main(args: Array[String]): Unit = {
-    // 使用 Blink Planner 创建流表运行环境
+    // enable Blink Planner
     val env = getExecutionEnvironment()
     val settings = EnvironmentSettings.newInstance.useBlinkPlanner().inStreamingMode.build
     val streamTableEnv = StreamTableEnvironment.create(env,settings)
@@ -55,7 +55,14 @@ object Sql2DorisDB {
     val sourceTable = streamTableEnv.fromDataStream(source,'NAME,'SCORE)
     streamTableEnv.createTemporaryView("sourceTable",sourceTable)
 
-    // master1为主机名，9030为query端口，8030为fe的http端口，doris_demo为库名，客户根据自己情况调整参数
+    /*
+    The sink options for this demo:
+    - hostname: master1
+    - fe http port: 8030
+    - database name: doris_demo
+    - table names: demo2_flink_tb1
+    - TODO: customize above args to fit your environment.
+    */
     streamTableEnv.executeSql(
       """
         |CREATE TABLE testTable(
@@ -79,9 +86,9 @@ object Sql2DorisDB {
         |)
         |""".stripMargin
     )
-    // TODO 注意！在Scala开发时：
-    // 1. 如59-79行代码段所示，使用三引号包整个sql，不需转义字符，直接写 '\x02' 和 '\x01'
-    // 2. 如用多行双引号string拼齐整个sql，则需写成"\\x02" 和 "\\x01"，例如：
+    // TODO Cautions for Scala codes：
+    // 1. 3x quotation marks save some careful work with escape characters, using '\x02' and  '\x01' directly.
+    // 2. When concat multiple lines with double quotation marks, please use "\\x02" and "\\x01" instead, e.g. :
     //  ...
     //  + "'sink.properties.row_delimiter' = '\\x02',"
     //  + "'sink.properties.column_separator' = '\\x01' "
@@ -99,13 +106,12 @@ object Sql2DorisDB {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setMaxParallelism(3)
     env.setParallelism(3)
-    // 失败重试
     env.setRestartStrategy(RestartStrategies.failureRateRestart(
-      3, // 每个时间间隔的最大故障次数
-      org.apache.flink.api.common.time.Time.of(5, TimeUnit.MINUTES), // 测量故障率的时间间隔
-      org.apache.flink.api.common.time.Time.of(10, TimeUnit.SECONDS) // 延时
+      3, // failureRate
+      org.apache.flink.api.common.time.Time.of(5, TimeUnit.MINUTES), // failureInterval
+      org.apache.flink.api.common.time.Time.of(10, TimeUnit.SECONDS) // delayInterval
     ))
-    // checkpoint配置
+    // checkpoint options
     env.enableCheckpointing(1000 * 5)
     env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.AT_LEAST_ONCE)
     env.getCheckpointConfig.setMinPauseBetweenCheckpoints(500)

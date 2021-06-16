@@ -1,56 +1,50 @@
 # 01_sparkStreaming2DorisDB
 
-## Demonstration Description
+## 场景描述
+通过流式计算，满足实时大屏上，当日各时段uv柱状趋势图的实时增长效果
+数据流向
 
-Streaming computing the UV metric for each time period on a realtime Dashboard. 
+> mimic -> Kafka -> spark streaming -> stream load -> dorisDB -> zeppline UI (趋势图)
 
-### DataFlow
-
-> mimic -> Kafka -> spark streaming -> stream load -> dorisDB -> zeppline UI (chart)
-
-## Preparations
+## 基础环境准备
 
 ### 1. Kafka
-
-Pull a docker-landoop as local testing environment ( Deploy your own Kafka cluster works as well. ) .
+本地开发采用docker-landoop环境（也可以根据自己条件自建kafka集群）
 
 ```
-### Get docker-landoop：
+### 拉取方式：
 docker pull landoop/fast-data-dev
 
-### Start landoop
+### 启动landoop
 docker run --rm -d -p 2181:2181 -p 3030:3030 -p 7081-7083:8081-8083  -p 9581-9585:9581-9585 -p 9092:9092 -e ADV_HOST="${myip:=127.0.0.1}"  landoop/fast-data-dev:latest
 
-### Open landoop web ui in browser as below.
+### macbook 用open命令在浏览器打开landoop页面；windows电脑可以直接在浏览器访问下面链接
 open http://127.0.0.1:3030
 ```
 
-cTopic.sh creates kafka topic spark_demo1_src
+执行kafka主题创建脚本cTopic.sh创建测试主题spark_demo1_src ：
 ```
 # cTopic.sh create spark_demo1_src  
                                                            
 Created topic "spark_demo1_src".
 ```
-
-landoop web ui:
+页面里查看：
 
 ![01_spark_landoop1](./imgs/01_spark_landoop1.png)
 
-topic is empty by far:
+可以看到主题已经被创建，暂时还没有数据：
 
 ![01_spark_landoop2](./imgs/01_spark_landoop2.png)
 
-### 2. Mimic the data
+### 2. 模拟数据
+采用python脚本，模拟生产json数据，通过kafka-console-sonsumer定时打入kafka。
+生成器代码demo1_data_gen.py被包在genData.sh脚本中。
 
-- The python script is used to simulate the JSON data.
-- Kafka-console-consumer is used to input Kafka periodically.
-- The generator code demo1_data_gen.py is wrapped in the gendata.sh script.
+## 功能测试
 
-## Testing
+### 1. 数据生成器
 
-### 1. Data Generation
-
-Result: Random generation of integers up to 10 every 2s and  send to topic spark_demo1_src.
+执行效果：2秒间隔，10以内随机行数，发往kafka主题：spark_demo1_src
 
 ```
 #bash  ../sh/genData.sh 2 10 spark_demo1_src                                                                      Usage: ../sh/genData.sh topicName  interval
@@ -58,7 +52,7 @@ Sending time data to spark_demo1_src every 2 seconds...
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ```   
 
-landoop observes the data in topic spark_demo1_src
+landoop内可以看到有数据写入：
 ![01_spark_landoop3](./imgs/01_spark_landoop3.png)
 
 ### 2. DDL
@@ -81,15 +75,14 @@ PROPERTIES (
 );
 ```
 
-### 3. Run the demo 
+### 3. 执行程序 
 
-Compile and run com.dorisdb.spark.SparkStreaming2DorisDB in Module SparkDemo
+IDEA里编译执行 SparkDemo模块的com.dorisdb.spark.SparkStreaming2DorisDB
 
 ![01_spark_idea1](./imgs/01_spark_idea1.png)
 
-### 4. Verification
-
-Connect to DorisDB via Mysql Client to check the result:
+### 4. 验证
+mysql客户端登录Doris进行查询验证
 
 ```
 MySQL [doris_demo]> select * from demo1_spark_tb0 limit 5;
@@ -138,9 +131,9 @@ MySQL [doris_demo]> select site,hour, count(distinct uv) uv  from demo1_spark_tb
 9 rows in set (0.01 sec)
 ```
 
-## Data Visualization
+## 可视化demo
 
-### 1. Get zeppelin 
+### 1. 这里在Docker里拉取zeppelin
 
 ```
 docker pull apache/zeppelin
@@ -149,26 +142,25 @@ docker pull apache/zeppelin
 myzeppelin: aliased to docker run -p 8089:8080  -v /Users/simon/Documents/zep:/opt/zeppelin -v /Users/simon/Documents/zep/logs:/logs -v /Users/simon/Documents/zep/notebooks:/notebook   -e ZEPPELIN_LOG_DIR='/logs'  -e ZEPPELIN_NOTEBOOK_DIR='/notebook' -v /etc/localtime:/etc/localtime -v /Users/simon/Documents/zep/deps:/deps --rm  -d --name zeppelin apache/zeppelin:0.9.0; sleep 10; open http://localhost:8089
 ```
 
-### 2. Zeppelin configuration
-- jdbc configures
+### 2. Zeppelin
+- jdbc配置
 
 ![01_spark_zep1](./imgs/01_spark_zep1.png)
   
-- new a notebook
+- 创建notebook
 
 ![01_spark_zep2](./imgs/01_spark_zep2.png)
   
-### 3. visualization effect
+### 3. 可视化效果
+- 时序柱状图
 
-- Time series histogram
-
-> On realtime Dashboard, bar-chart increases when live data refresh
+> 用于实时大屏，刷新页面会看到柱状图逐渐增长
 
 ![01_spark_zep3](./imgs/01_spark_zep3.png)
 
-- Pie Chart
+- 饼图
 
-> The proportion of visits to each site
+> 各站点访问占比
 
 ![01_spark_zep4](./imgs/01_spark_zep4.png)
 

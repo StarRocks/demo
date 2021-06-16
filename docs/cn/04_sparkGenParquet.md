@@ -1,9 +1,7 @@
 # 04_sparkGenParquet
 
-# Description
-
-Simulate 3 big tables as parquet format, which can be used in broker-load, spark-load and external-hive table testings.
-
+# 目标
+模拟3张较大数据规模的parquet数据，用于broker load, spark load, hive外表等测试
 
 ```
 t1:
@@ -33,27 +31,25 @@ t3:
 }
 ```
 
-# Test
+# test
 
 ```
 scala> spark.sparkContext.parallelize(Seq((1,2),(3,4))).toDF("a","b").repartition(1).write.parquet("hdfs://mycluster:9002/simon_test_t1")
 ```
 
-Init temp path:
+初始化临时目录
 
 ```
 hadoop fs -mkdir hdfs://mycluster:9002/simon_test/csv_temp
 ```
 
-Run a spark-shell
+启动spark-shell
 
 ```
 [dorisdb@stability01 bin]$ spark-shell --executor-memory 30g  --driver-memory  30g --executor-cores 5  --driver-cores 5
 ```
 
-Input ':paste' in Spark-shell REPL environment followed by a 'enter hit',
-
-paste below codes and click 'ctrl+D' to really run the codes: 
+在spark-shell的REPL环境里，输入:paste回车，贴入下面一段代码，ctl+D等待执行完成
 
 ```
 import org.apache.spark.sql.{SaveMode, SparkSession}
@@ -89,20 +85,22 @@ val total_lines = 130000000
 var i = 1
 
 while (i < total_lines) {
-  if (i% 13 == 1) {  
+  if (i% 13 == 1) {  // 每13* 100w 重新随机生成100w行, 及1.3亿行需要getTable十次
     // clear
     try {
       val hadoopConf = new org.apache.hadoop.conf.Configuration()
       val hdfs = org.apache.hadoop.fs.FileSystem.get(new java.net.URI(csv_temp), hadoopConf)
       hdfs.delete(new org.apache.hadoop.fs.Path(csv_temp), true)
     } catch { case _ : Exception => { }}
-    
-    val data = getTable(10000, 80 + 167 + 45 + 23)  
+
+    // 随机生成1w行，翻100倍，生成csv文件
+    val data = getTable(10000, 80 + 167 + 45 + 23)  // 1w行的parquet，约5M; 10w行月500M
     val dtimes = ((data+"\n" )* 100).stripSuffix("\n")
     val res = sc.parallelize(dtimes.split("\n"))
     res.saveAsTextFile(csv_temp)
   }
 
+  // csv转储为parquet, 1次落100万行
   spark.read.option("delimiter", "\t").csv(csv_temp)
     .repartition(1)
     .write.mode(SaveMode.Append).parquet(pq_path)
@@ -110,9 +108,7 @@ while (i < total_lines) {
 }
 ```
 
-CSV temp files 
-and 462.8 M snappy.parquet with 1000000 lines
-will be generated.
+32个csv临时文件，1个100w行的snappy.parquet大小462.8 M 
 
 ```
 [dorisdb@stability01 ~]$ hadoop fs -du -h hdfs://mycluster:9002/simon_test/csv_temp/*
@@ -164,8 +160,7 @@ will be generated.
 462.8 M  hdfs://mycluster:9002/simon_test/t1/part-00000-f941438c-359a-4e2e-b27e-1359dc35450f-c000.snappy.parquet
 ```
 
-Verification
-- 1 parquet file contains 1000000 lines and 316 cols
+验证1个parquet文件是100w行, 316列
 
 ```
 scala> val qarq = spark.read.parquet("hdfs://mycluster:9002/simon_test/t1/part-00000-f941438c-359a-4e2e-b27e-1359dc35450f-c000.snappy.parquet")
@@ -181,9 +176,9 @@ scala> qarq.schema.last
 res9: org.apache.spark.sql.types.StructField = StructField(_c315,StringType,true)
 ```
 
-# Performing
+# 执行
 
-The run.sh script
+run.sh脚本
 
 ```
 #!/bin/bash
@@ -218,7 +213,7 @@ $total_lines \
 $cols
 ```
 
-Execute the run.sh to generate 3 tables:
+执行run.sh生成3张表
 ```
 nohup bash run.sh  hdfs://mycluster:9002/simon_test/csv_temp  hdfs://mycluster:9002/simon_test/t1  130000000  315 &
 
@@ -227,8 +222,7 @@ nohup bash run.sh  hdfs://mycluster:9002/simon_test/csv_temp_t2  hdfs://mycluste
 nohup bash run.sh  hdfs://mycluster:9002/simon_test/csv_temp_t3  hdfs://mycluster:9002/simon_test/t3  340000000  21
 ```
 
-3 tables with parquet files 
-- 78G in total
+3张表parquet总大小78G
 
 ```
 [dorisdb@stability01 misc]$ hadoop fs -du -s -h  hdfs://mycluster:9002/simon_test/t2 | head
