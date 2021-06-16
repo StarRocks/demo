@@ -107,7 +107,7 @@ object Bean2DorisDB {
       org.apache.flink.api.common.time.Time.of(10, TimeUnit.SECONDS) // delayInterval
     ))
     // checkpoint options
-    env.enableCheckpointing(1000 * 5)
+    env.enableCheckpointing(1000 * 30)
     env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.AT_LEAST_ONCE)
     env.getCheckpointConfig.setMinPauseBetweenCheckpoints(500)
     env.getCheckpointConfig.setCheckpointTimeout(1000 * 60 * 10)
