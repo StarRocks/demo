@@ -40,7 +40,7 @@ run.sh
 
 flink ui
 
-![06_flink_ui_1](imgs/06_flink_ui_1.png)
+![06_flink_ui_1](../imgs/06_flink_ui_1.png)
 
 ## 验证数据持续导入
 

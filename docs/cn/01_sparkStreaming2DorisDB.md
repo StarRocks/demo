@@ -30,11 +30,11 @@ Created topic "spark_demo1_src".
 ```
 页面里查看：
 
-![01_spark_landoop1](./imgs/01_spark_landoop1.png)
+![01_spark_landoop1](../imgs/01_spark_landoop1.png)
 
 可以看到主题已经被创建，暂时还没有数据：
 
-![01_spark_landoop2](./imgs/01_spark_landoop2.png)
+![01_spark_landoop2](../imgs/01_spark_landoop2.png)
 
 ### 2. 模拟数据
 采用python脚本，模拟生产json数据，通过kafka-console-sonsumer定时打入kafka。
@@ -53,7 +53,7 @@ Sending time data to spark_demo1_src every 2 seconds...
 ```   
 
 landoop内可以看到有数据写入：
-![01_spark_landoop3](./imgs/01_spark_landoop3.png)
+![01_spark_landoop3](../imgs/01_spark_landoop3.png)
 
 ### 2. DDL
 
@@ -79,7 +79,7 @@ PROPERTIES (
 
 IDEA里编译执行 SparkDemo模块的com.dorisdb.spark.SparkStreaming2DorisDB
 
-![01_spark_idea1](./imgs/01_spark_idea1.png)
+![01_spark_idea1](../imgs/01_spark_idea1.png)
 
 ### 4. 验证
 mysql客户端登录Doris进行查询验证
@@ -145,24 +145,24 @@ myzeppelin: aliased to docker run -p 8089:8080  -v /Users/simon/Documents/zep:/o
 ### 2. Zeppelin
 - jdbc配置
 
-![01_spark_zep1](./imgs/01_spark_zep1.png)
+![01_spark_zep1](../imgs/01_spark_zep1.png)
   
 - 创建notebook
 
-![01_spark_zep2](./imgs/01_spark_zep2.png)
+![01_spark_zep2](../imgs/01_spark_zep2.png)
   
 ### 3. 可视化效果
 - 时序柱状图
 
 > 用于实时大屏，刷新页面会看到柱状图逐渐增长
 
-![01_spark_zep3](./imgs/01_spark_zep3.png)
+![01_spark_zep3](../imgs/01_spark_zep3.png)
 
 - 饼图
 
 > 各站点访问占比
 
-![01_spark_zep4](./imgs/01_spark_zep4.png)
+![01_spark_zep4](../imgs/01_spark_zep4.png)
 
 
 # License

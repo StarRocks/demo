@@ -37,7 +37,7 @@ run.sh
 ./demo.jar
 ```
 flink ui
-![05_flink_ui_1](imgs/05_flink_ui_1.png)
+![05_flink_ui_1](../imgs/05_flink_ui_1.png)
 
 
 ## 验证数据持续导入

@@ -84,7 +84,7 @@ PROPERTIES (
 ## 执行程序
 
 ### 将spark-connector加入工程
-![02_spark_idea1](./imgs/02_spark_idea1.png)
+![02_spark_idea1](../imgs/02_spark_idea1.png)
 
 ### 执行
 
@@ -92,7 +92,7 @@ PROPERTIES (
 
 > 读取demo1_spark_tb1经sparkSql炸开list后，写入demo1_spark_tb2：
 
-![02_spark_idea2](./imgs/02_spark_idea2.png)
+![02_spark_idea2](../imgs/02_spark_idea2.png)
 
 ### 检查目标表结果
 
