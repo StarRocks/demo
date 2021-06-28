@@ -107,7 +107,7 @@ public class DorisdbStreamLoad {
     private final static String DORISDB_TABLE = "stream_test";
     private final static String DORISDB_USER = "root";
     private final static String DORISDB_PASSWORD = "xxx";
-    private final static int DORISDB_HTTP_PORT = 8410;
+    private final static int DORISDB_HTTP_PORT = 8030;
 
     private void sendData(String content) throws Exception {
         final String loadUrl = String.format("http://%s:%s/api/%s/%s/_stream_load",
