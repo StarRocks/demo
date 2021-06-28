@@ -8,6 +8,11 @@ to help developers master the development process.
 
 ![banner1](docs/imgs/banner1.png)
 
+# 0. misc demo
+[MiscDemo](MiscDemo) folder involves miscellaneous code implementation in several different languages such as golang, java, nodejs, php, python and so forth.
+- [dorisdb client](MiscDemo/connect/)
+- [stream load](MiscDemo/stream_load/) 
+
 # 1. spark demo
 
 [01_sparkStreaming2DorisDB](docs/01_sparkStreaming2DorisDB.md)
