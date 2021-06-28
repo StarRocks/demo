@@ -17,8 +17,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef SAMPLES_CONNECT_CPP_DORIS_CLIENT_H
-#define SAMPLES_CONNECT_CPP_DORIS_CLIENT_H
+#ifndef SAMPLES_CONNECT_CPP_DORISDB_CLIENT_H
+#define SAMPLES_CONNECT_CPP_DORISDB_CLIENT_H
 
 #include <iostream>
 #include <string>
@@ -27,21 +27,21 @@
 
 using std::string;
 
-class DorisClient {
+class DorisdbClient {
 public:
-    DorisClient();
-    ~DorisClient();
-    // connect to doris
+    DorisdbClient();
+    ~DorisdbClient();
+    // connect to dorisdb
     bool init(const string& host, const string& user, const string& passwd,
-                  const string& db_name, int port, const string& sock);
+              const string& db_name, int port, const string& sock);
     // excute sql
     bool exec(const string& sql);
 private:
     // mysql handle
     MYSQL* _client;
-    // doris result
+    // dorisdb result
     MYSQL_RES* _result;
-    //doris result as row
+    //dorisdb result as row
     MYSQL_ROW _row;
 };
 

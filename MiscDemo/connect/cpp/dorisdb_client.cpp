@@ -19,12 +19,12 @@
 
 /*************************************************************************
 > How to use:
-    1. g++ doris_client.cpp -o doris_client `mysql_config --cflags --libs`
-    2. ./doris_client
+    1. g++ dorisdb_client.cpp -o dorisdb_client `mysql_config --cflags --libs`
+    2. ./dorisdb_client
 
 > What can this demo do:
-    This is a cpp demo for doris client, you can test basic function such as
-    connection, CRUD of your doris. You should install mysql prior to running
+    This is a cpp demo for dorisdb client, you can test basic function such as
+    connection, CRUD of your dorisdb. You should install mysql prior to running
     this demo.
 
 > Supported mysql version: 5.6, 5.7, ..., 8.0
@@ -37,7 +37,7 @@
 
 using std::string;
 
-DorisClient::DorisClient() {
+DorisdbClient::DorisdbClient() {
     //init connection
     _client = mysql_init(NULL);
     if (_client == NULL) {
@@ -45,15 +45,15 @@ DorisClient::DorisClient() {
     }
 }
 
-DorisClient::~DorisClient() {
+DorisdbClient::~DorisdbClient() {
     //close connection
     if (_client != NULL) {
         mysql_close(_client);
     }
 }
 
-bool DorisClient::init(const string& host, const string& user, const string& passwd,
-                      const string& db_name, int port, const string& sock) {
+bool DorisdbClient::init(const string& host, const string& user, const string& passwd,
+                         const string& db_name, int port, const string& sock) {
     // create connection
     _client = mysql_real_connect(_client, host.c_str(), user.c_str(), passwd.c_str(),
             db_name.c_str(), port, sock.c_str(), 0);
@@ -64,7 +64,7 @@ bool DorisClient::init(const string& host, const string& user, const string& pas
     return true;
 }
 
-bool DorisClient::exec(const string& sql) {
+bool DorisdbClient::exec(const string& sql) {
     if (mysql_query(_client, sql.c_str())) {
         std::cout << "Query Error: " << mysql_error(_client);
         return false;
@@ -97,13 +97,13 @@ bool DorisClient::exec(const string& sql) {
 }
 
 int main() {
-    // Doris connection host
+    // Dorisdb connection host
     string host = "127.0.0.1";
-    // Doris connection port
+    // Dorisdb connection port
     int port = 9030;
-    // Doris connection username
+    // Dorisdb connection username
     string user = "root";
-    // Doris connection password
+    // Dorisdb connection password
     string password = "";
     // Local mysql sock address
     string sock_add = "/var/lib/mysql/mysql.sock";
@@ -111,7 +111,7 @@ int main() {
     string database = "cpp_dorisdb";
 
     // init connection
-    DorisClient client;
+    DorisdbClient client;
     std::cout << "init Client" << std::endl;
     client.init(host, user, password, "", port, sock_add);
 
@@ -125,24 +125,24 @@ int main() {
     std::cout << sql_create_database << std::endl;
     client.exec(sql_create_database);
 
-    DorisClient client_new;
-    // connect to doris
+    DorisdbClient client_new;
+    // connect to dorisdb
     client_new.init(host, user, password, database, port, sock_add);
     std::cout << "init new Client" << std::endl;
 
-    // create doris table
+    // create dorisdb table
     string sql_create_table = "CREATE TABLE cpp_dorisdb_table(siteid INT,citycode SMALLINT,pv BIGINT SUM) "\
                             "AGGREGATE KEY(siteid, citycode) DISTRIBUTED BY HASH(siteid) BUCKETS 10 "\
                             "PROPERTIES(\"replication_num\" = \"1\")";
     std::cout << sql_create_table << std::endl;
     client_new.exec(sql_create_table);
 
-    // insert into doris table
+    // insert into dorisdb table
     string sql_insert = "insert into cpp_dorisdb_table values(1, 2, 3), (4,5,6), (1,2,4)";
     std::cout << sql_insert << std::endl;
     client_new.exec(sql_insert);
 
-    // select from doris table
+    // select from dorisdb table
     string sql_select = "select * from cpp_dorisdb_table";
     std::cout << sql_select << std::endl;
     client_new.exec(sql_select);
