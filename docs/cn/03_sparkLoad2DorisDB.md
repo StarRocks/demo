@@ -74,7 +74,7 @@ yarn_client_path=/usr/local/hadoop-2.7.7/bin/yarn
 DorisDB DDL
 
 ```
-CREATE TABLE `doris_demo`.`demo3_spark_tb1` (
+CREATE TABLE `dorisdb_demo`.`demo3_spark_tb1` (
     `k1`  varchar(50) NULL  COMMENT "",
     `v1`  String      NULL  COMMENT ""
 ) ENGINE=OLAP
@@ -115,8 +115,8 @@ PROPERTIES
 启动spark load作业
 
 ```
-USE doris_demo;
-LOAD LABEL doris_demo.label1
+USE dorisdb_demo;
+LOAD LABEL dorisdb_demo.label1
 (
     DATA INFILE("hdfs://mycluster/dorisDB-demo/data/demo3_data1.csv")
     INTO TABLE demo3_spark_tb1
@@ -143,7 +143,7 @@ PROPERTIES
 
 检查导入结果
 ```
-MySQL [doris_demo]> select * from demo3_spark_tb1 limit 5;
+MySQL [dorisdb_demo]> select * from demo3_spark_tb1 limit 5;
 +------+------+
 | k1   | v1   |
 +------+------+
@@ -155,7 +155,7 @@ MySQL [doris_demo]> select * from demo3_spark_tb1 limit 5;
 +------+------+
 5 rows in set (0.18 sec)
 
-MySQL [doris_demo]> select count(1) from demo3_spark_tb1 limit 5;
+MySQL [dorisdb_demo]> select count(1) from demo3_spark_tb1 limit 5;
 +----------+
 | count(1) |
 +----------+
@@ -163,7 +163,7 @@ MySQL [doris_demo]> select count(1) from demo3_spark_tb1 limit 5;
 +----------+
 1 row in set (0.07 sec)
 
-MySQL [doris_demo]> select count(distinct v1) v1 from demo3_spark_tb1 limit 5;
+MySQL [dorisdb_demo]> select count(distinct v1) v1 from demo3_spark_tb1 limit 5;
 +------+
 | v1   |
 +------+
@@ -171,7 +171,7 @@ MySQL [doris_demo]> select count(distinct v1) v1 from demo3_spark_tb1 limit 5;
 +------+
 1 row in set (0.03 sec)
 
-MySQL [doris_demo]> select count(distinct k1) k1 from demo3_spark_tb1 limit 5;
+MySQL [dorisdb_demo]> select count(distinct k1) k1 from demo3_spark_tb1 limit 5;
 +------+
 | k1   |
 +------+
@@ -255,11 +255,11 @@ PROPERTIES (
 );
 
 
-MySQL [doris_demo]> create table demo3_spark_tb2 like demo3_spark_tb1;
+MySQL [dorisdb_demo]> create table demo3_spark_tb2 like demo3_spark_tb1;
 Query OK, 0 rows affected (0.07 sec)
 
 
-MySQL [doris_demo]> CREATE EXTERNAL TABLE hive_t1
+MySQL [dorisdb_demo]> CREATE EXTERNAL TABLE hive_t1
     ->     (
     ->          k1 string,
     ->          v1 string
@@ -278,8 +278,8 @@ Query OK, 0 rows affected (0.03 sec)
 从dorisDB中的Hive外表写入dorisDB内部表
 
 ```
-USE doris_demo;
-LOAD LABEL doris_demo.label2
+USE dorisdb_demo;
+LOAD LABEL dorisdb_demo.label2
 (
     DATA FROM TABLE hive_t1
     INTO TABLE demo3_spark_tb2
@@ -322,7 +322,7 @@ LoadFinishTime: 2021-05-31 21:06:49
 ### 验证导入数据
 
 ```
-MySQL [doris_demo]> select * from demo3_spark_tb2 limit 5;
+MySQL [dorisdb_demo]> select * from demo3_spark_tb2 limit 5;
 +------+------+
 | k1   | v1   |
 +------+------+
@@ -334,7 +334,7 @@ MySQL [doris_demo]> select * from demo3_spark_tb2 limit 5;
 +------+------+
 5 rows in set (0.06 sec)
 
-MySQL [doris_demo]> select count(1) from demo3_spark_tb2 limit 5;
+MySQL [dorisdb_demo]> select count(1) from demo3_spark_tb2 limit 5;
 +----------+
 | count(1) |
 +----------+
@@ -342,7 +342,7 @@ MySQL [doris_demo]> select count(1) from demo3_spark_tb2 limit 5;
 +----------+
 1 row in set (0.03 sec)
 
-MySQL [doris_demo]> select count(distinct k1) k1 from demo3_spark_tb2 limit 5;
+MySQL [dorisdb_demo]> select count(distinct k1) k1 from demo3_spark_tb2 limit 5;
 +------+
 | k1   |
 +------+
@@ -350,7 +350,7 @@ MySQL [doris_demo]> select count(distinct k1) k1 from demo3_spark_tb2 limit 5;
 +------+
 1 row in set (0.02 sec)
 
-MySQL [doris_demo]> select count(distinct v1) v1 from demo3_spark_tb2 limit 5;
+MySQL [dorisdb_demo]> select count(distinct v1) v1 from demo3_spark_tb2 limit 5;
 +------+
 | v1   |
 +------+

@@ -20,7 +20,7 @@ import org.apache.doris.spark._
 
 object SparkConnector2DorisDB {
   // parameters
-  val dorisDbName =  "doris_demo"
+  val dorisDbName =  "dorisdb_demo"
   val tblNameSrc =  "demo1_spark_tb1"
   val tblNameDst =  "demo1_spark_tb2"
   val userName =  "root"

@@ -44,7 +44,7 @@ object Json2DorisDB {
       .map(x => {
         val name = x.getField(0).toString
         val score = x.getField(1).toString.toInt
-        "{\"NAME\": \"" + name + "\", \"SCORE\": \"" + score + "\"}"    // map to json data
+        "{\"name\": \"" + name + "\", \"score\": \"" + score + "\"}"    // map to json data
       })
         .uid("sourceStreamMap-uid").name("sourceStreamMap")
         .setParallelism(1)
@@ -56,21 +56,22 @@ object Json2DorisDB {
           The sink options for this demo:
           - hostname: master1
           - fe http port: 8030
-          - database name: doris_demo
+          - database name: dorisdb_demo
           - table names: demo2_flink_tb1
           - TODO: customize above args to fit your environment.
           */
           DorisSinkOptions.builder()
-            .withProperty("jdbc-url", "jdbc:mysql://master1:9030?doris_demo")
+            .withProperty("jdbc-url", "jdbc:mysql://master1:9030?dorisdb_demo")
             .withProperty("load-url", "master1:8030")
             .withProperty("username", "root")
             .withProperty("password", "")
             .withProperty("table-name", "demo2_flink_tb1")
-            .withProperty("database-name", "doris_demo")
+            .withProperty("database-name", "dorisdb_demo")
             .withProperty("sink.properties.format", "json")
             .withProperty("sink.properties.strip_outer_array", "true")
             .withProperty("sink.properties.row_delimiter","\\x02")      // in case of raw data contains common delimiter like '\n'
             .withProperty("sink.properties.column_separator","\\x01")   // in case of raw data contains common separator like '\t'
+            .withProperty("sink.buffer-flush.interval-ms","5000")
             .build()
       ))
         .uid("sourceSink-uid").name("sourceSink")

@@ -3,7 +3,7 @@
 ## DDL
 
 ```
-MySQL [doris_demo]> CREATE TABLE `doris_demo`.`demo2_flink_tb1` (
+MySQL [dorisdb_demo]> CREATE TABLE `dorisdb_demo`.`demo2_flink_tb1` (
     ->   `NAME` VARCHAR(100) NOT NULL COMMENT "姓名",
     ->   `SCORE` INT(2) NOT NULL COMMENT "得分"
     -> ) ENGINE=OLAP
@@ -26,7 +26,7 @@ IDEA里执行 FlinkDemo模块的[Sql2DorisDB](../FlinkDemo/src/main/scala/com/do
 ## 验证数据持续导入
 
 ```
-MySQL [doris_demo]> select * from demo2_flink_tb1 limit 5;
+MySQL [dorisdb_demo]> select * from demo2_flink_tb1 limit 5;
 +--------+-------+
 | NAME   | SCORE |
 +--------+-------+
@@ -38,7 +38,7 @@ MySQL [doris_demo]> select * from demo2_flink_tb1 limit 5;
 +--------+-------+
 5 rows in set (0.08 sec)
 
-MySQL [doris_demo]> select count(1) from demo2_flink_tb1;
+MySQL [dorisdb_demo]> select count(1) from demo2_flink_tb1;
 +----------+
 | count(1) |
 +----------+
@@ -46,7 +46,7 @@ MySQL [doris_demo]> select count(1) from demo2_flink_tb1;
 +----------+
 1 row in set (0.02 sec)
 
-MySQL [doris_demo]> select sum(score) sc , name from demo2_flink_tb1 group by name;
+MySQL [dorisdb_demo]> select sum(score) sc , name from demo2_flink_tb1 group by name;
 +------+---------+
 | sc   | name    |
 +------+---------+
@@ -56,7 +56,7 @@ MySQL [doris_demo]> select sum(score) sc , name from demo2_flink_tb1 group by na
 +------+---------+
 3 rows in set (0.02 sec)
 
-MySQL [doris_demo]> select sum(score) sc , name from demo2_flink_tb1 group by name;
+MySQL [dorisdb_demo]> select sum(score) sc , name from demo2_flink_tb1 group by name;
 +------+---------+
 | sc   | name    |
 +------+---------+

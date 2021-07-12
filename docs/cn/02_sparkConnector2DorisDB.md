@@ -48,7 +48,7 @@ from demo1_spark_tb0;
 检查写入的数据
 
 ```
-MySQL [doris_demo]> select * from demo1_spark_tb1 limit 5;
+MySQL [dorisdb_demo]> select * from demo1_spark_tb1 limit 5;
 +--------------------------+------------+------+--------+--------------+
 | site                     | date       | hour | minute | uid_list_str |
 +--------------------------+------------+------+--------+--------------+
@@ -97,7 +97,7 @@ PROPERTIES (
 ### 检查目标表结果
 
 ```
-MySQL [doris_demo]> select * from demo1_spark_tb2 limit 5;
+MySQL [dorisdb_demo]> select * from demo1_spark_tb2 limit 5;
 +------+------------+------+--------+---------------------------+
 | uid  | date       | hour | minute | site                      |
 +------+------------+------+--------+---------------------------+

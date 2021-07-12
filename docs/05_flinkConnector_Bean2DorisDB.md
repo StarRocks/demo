@@ -3,13 +3,13 @@
 ## DDL
 
 ```
-MySQL [doris_demo]> CREATE TABLE `doris_demo`.`demo2_flink_tb1` (
-    ->   `NAME` VARCHAR(100) NOT NULL COMMENT "姓名",
-    ->   `SCORE` INT(2) NOT NULL COMMENT "得分"
+MySQL [dorisdb_demo]> CREATE TABLE `dorisdb_demo`.`demo2_flink_tb1` (
+    ->   `name` VARCHAR(100) NOT NULL COMMENT "姓名",
+    ->   `score` INT(2) NOT NULL COMMENT "得分"
     -> ) ENGINE=OLAP
-    -> DUPLICATE KEY(`NAME`)
+    -> DUPLICATE KEY(`name`)
     -> COMMENT "OLAP"
-    -> DISTRIBUTED BY HASH(`NAME`) BUCKETS 3
+    -> DISTRIBUTED BY HASH(`name`) BUCKETS 3
     -> PROPERTIES (
     -> "replication_num" = "1",
     -> "in_memory" = "false",
@@ -43,9 +43,9 @@ flink ui
 ## Verifications
 
 ```
-MySQL [doris_demo]> select * from demo2_flink_tb1 limit 5;
+MySQL [dorisdb_demo]> select * from demo2_flink_tb1 limit 5;
 +--------+-------+
-| NAME   | SCORE |
+| name   | score |
 +--------+-------+
 | lebron |    43 |
 | lebron |    11 |
@@ -55,7 +55,7 @@ MySQL [doris_demo]> select * from demo2_flink_tb1 limit 5;
 +--------+-------+
 5 rows in set (0.08 sec)
 
-MySQL [doris_demo]> select count(1) from demo2_flink_tb1;
+MySQL [dorisdb_demo]> select count(1) from demo2_flink_tb1;
 +----------+
 | count(1) |
 +----------+
@@ -63,7 +63,7 @@ MySQL [doris_demo]> select count(1) from demo2_flink_tb1;
 +----------+
 1 row in set (0.04 sec)
 
-MySQL [doris_demo]> select count(1) from demo2_flink_tb1;
+MySQL [dorisdb_demo]> select count(1) from demo2_flink_tb1;
 +----------+
 | count(1) |
 +----------+

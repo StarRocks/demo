@@ -85,7 +85,7 @@ IDEA里编译执行 SparkDemo模块的com.dorisdb.spark.SparkStreaming2DorisDB
 mysql客户端登录Doris进行查询验证
 
 ```
-MySQL [doris_demo]> select * from demo1_spark_tb0 limit 5;
+MySQL [dorisdb_demo]> select * from demo1_spark_tb0 limit 5;
 +---------------------------+------------+------+--------+------+
 | site                      | date       | hour | minute | uv   |
 +---------------------------+------------+------+--------+------+
@@ -97,7 +97,7 @@ MySQL [doris_demo]> select * from demo1_spark_tb0 limit 5;
 +---------------------------+------------+------+--------+------+
 5 rows in set (0.01 sec)
 
-MySQL [doris_demo]> select count(distinct uv) uv  from demo1_spark_tb0 ;
+MySQL [dorisdb_demo]> select count(distinct uv) uv  from demo1_spark_tb0 ;
 +------+
 | uv   |
 +------+
@@ -105,7 +105,7 @@ MySQL [doris_demo]> select count(distinct uv) uv  from demo1_spark_tb0 ;
 +------+
 1 row in set (0.02 sec)
 
-MySQL [doris_demo]> select site, count(distinct uv) uv  from demo1_spark_tb0 group by site;
+MySQL [dorisdb_demo]> select site, count(distinct uv) uv  from demo1_spark_tb0 group by site;
 +----------------------------+------+
 | site                       | uv   |
 +----------------------------+------+
@@ -114,7 +114,7 @@ MySQL [doris_demo]> select site, count(distinct uv) uv  from demo1_spark_tb0 gro
 | https://docs.dorisdb.com/  |   63 |
 +----------------------------+------+
 
-MySQL [doris_demo]> select site,hour, count(distinct uv) uv  from demo1_spark_tb0 group by site,hour;
+MySQL [dorisdb_demo]> select site,hour, count(distinct uv) uv  from demo1_spark_tb0 group by site,hour;
 +----------------------------+------+------+
 | site                       | hour | uv   |
 +----------------------------+------+------+

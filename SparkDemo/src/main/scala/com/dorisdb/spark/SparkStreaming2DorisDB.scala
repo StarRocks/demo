@@ -31,7 +31,7 @@ object SparkStreaming2DorisDB {
   // parameters
   val topics =  "spark_demo1_src"
   val brokers =  "127.0.0.1:9092"
-  val dorisDbName =  "doris_demo"
+  val dorisDbName =  "dorisdb_demo"
   val tblName =  "demo1_spark_tb0"
   val userName =  "root"
   val password =  ""

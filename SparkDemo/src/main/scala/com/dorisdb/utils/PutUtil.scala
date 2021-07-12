@@ -131,14 +131,14 @@ object PutUtil {
    *    Args for this demo:
    *    - hostname: master1
    *    - fe http port: 8030
-   *    - database name: doris_demo
+   *    - database name: dorisdb_demo
    *    - table names: demo1_dup_tb1 and demo1_agg_tb2
    *    - TODO customize above args to fit your environment.
    */
   def main(args: Array[String]): Unit = {
     // duplicate table1
     // cols: date, hour, minute, name , metric
-    val api = "http://master1:8030/api/doris_demo/demo1_dup_tb1/_stream_load"
+    val api = "http://master1:8030/api/dorisdb_demo/demo1_dup_tb1/_stream_load"
     val payload = "20190903_11_1_tom_130\n20190903_11_2_jerry_838"
     val headers = Map(
       //"label"->"label123"
@@ -150,7 +150,7 @@ object PutUtil {
 
     // agg replace col table2
     // cols: id, name , metric
-    val api2 = "http://master1:8030/api/doris_demo/demo1_agg_tb2/_stream_load"
+    val api2 = "http://master1:8030/api/dorisdb_demo/demo1_agg_tb2/_stream_load"
     val payload2 = "1_tom_313\n1_tom_318"
     val headers2 = Map(
       //"label"->"label123"

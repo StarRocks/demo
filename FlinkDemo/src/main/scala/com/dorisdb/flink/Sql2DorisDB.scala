@@ -59,7 +59,7 @@ object Sql2DorisDB {
     The sink options for this demo:
     - hostname: master1
     - fe http port: 8030
-    - database name: doris_demo
+    - database name: dorisdb_demo
     - table names: demo2_flink_tb1
     - TODO: customize above args to fit your environment.
     */
@@ -70,15 +70,15 @@ object Sql2DorisDB {
         |`SCORE` INT
         |) WITH (
         |'connector' = 'doris',
-        |'jdbc-url'='jdbc:mysql://master1:9030?doris_demo',
+        |'jdbc-url'='jdbc:mysql://master1:9030?dorisdb_demo',
         |'load-url'='master1:8030',
-        |'database-name' = 'doris_demo',
+        |'database-name' = 'dorisdb_demo',
         |'table-name' = 'demo2_flink_tb1',
         |'username' = 'root',
         |'password' = '',
         |'sink.buffer-flush.max-rows' = '1000000',
         |'sink.buffer-flush.max-bytes' = '300000000',
-        |'sink.buffer-flush.interval-ms' = '300000',
+        |'sink.buffer-flush.interval-ms' = '15000',
         |'sink.max-retries' = '3',
         |'sink.properties.row_delimiter' = '\x02',
         |'sink.properties.column_separator' = '\x01',
