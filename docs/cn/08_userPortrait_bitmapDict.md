@@ -41,8 +41,8 @@ insert into hive_dict_t1 values ('k1','u1'),('k2','u2'),('k3','u3'),('k4','u4'),
 -- Hive resource
 CREATE EXTERNAL RESOURCE "hive0"
 PROPERTIES (
-  "type" = "hive", 
-  "hive.metastore.uris" = "thrift://master1:9083"
+    "type" = "hive", 
+    "hive.metastore.uris" = "thrift://master1:9083"
 );
 
 -- Dorisdb internal table
@@ -62,15 +62,17 @@ PROPERTIES (
 
 -- Dorisdb External Hive table
 CREATE EXTERNAL TABLE hive_dict_t1
- (
-      k1 string,
-      uuid string
-  )
+(
+    k1 string,
+    uuid string
+)
 ENGINE=hive
-properties (
- "resource" = "hive0",
- "database" = "default",
- "table" = "hive_dict_t1");
+properties 
+(
+    "resource" = "hive0",
+    "database" = "default",
+    "table" = "hive_dict_t1"
+);
 ```
 
 ## Spark 资源
@@ -84,16 +86,16 @@ Query OK, 0 rows affected (0.04 sec)
 CREATE EXTERNAL RESOURCE "spark1"
 PROPERTIES
 (
-  "type" = "spark",
-  "spark.master" = "yarn",
-  "spark.submit.deployMode" = "cluster",
-  "spark.hadoop.yarn.resourcemanager.ha.enabled" = "true",
-  "spark.hadoop.yarn.resourcemanager.ha.rm-ids" = "rm1,rm2",
-  "spark.hadoop.yarn.resourcemanager.hostname.rm1" = "master1",
-  "spark.hadoop.yarn.resourcemanager.hostname.rm2" = "worker1",
-  "spark.hadoop.fs.defaultFS" = "hdfs://mycluster/",
-  "working_dir" = "hdfs://mycluster/tmp/doris",
-  "broker" = "broker1"
+    "type" = "spark",
+    "spark.master" = "yarn",
+    "spark.submit.deployMode" = "cluster",
+    "spark.hadoop.yarn.resourcemanager.ha.enabled" = "true",
+    "spark.hadoop.yarn.resourcemanager.ha.rm-ids" = "rm1,rm2",
+    "spark.hadoop.yarn.resourcemanager.hostname.rm1" = "master1",
+    "spark.hadoop.yarn.resourcemanager.hostname.rm2" = "worker1",
+    "spark.hadoop.fs.defaultFS" = "hdfs://mycluster/",
+    "working_dir" = "hdfs://mycluster/tmp/doris",
+    "broker" = "broker1"
 );
 ```
 
