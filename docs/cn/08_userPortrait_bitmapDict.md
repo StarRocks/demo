@@ -1,5 +1,16 @@
 # 构建用户画像全局字典
 
+> 目前DorisDB中BITMAP列是使用类库Roaringbitmap实现的，
+> 而Roaringbitmap的输入数据类型只能是整型，
+> 因此如果要在导入流程中实现对于BITMAP列的预计算，
+> 那么就需要将输入数据的类型转换成整型。
+> 
+> 在DorisDB现有的导入流程中，全局字典的数据结构是基于Hive表实现的，保存了原始值到编码值的映射。
+> 在spark load作业中调用bitmap_dict函数，
+> 即可在hive里自动构建全局字典，将字符型映射为整型，从而构建成bitmap数据
+
+> 注意：因为中间会构建临时hive数据，提交的作业要求有hive的写权限。
+
 # 数据准备
 
 ## Hive CLI

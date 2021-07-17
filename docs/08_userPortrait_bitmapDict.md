@@ -1,5 +1,14 @@
 # 08_userPortrait_bitmapDict
 
+> Building Bitmap data in DorisDB uses Roaring Bitmap, which needs INTEGER as INPUT.
+> DorisDB provides a function named bitmap_dict, that can be called in spark-load job, 
+> to map String values to Integer values when loading data to DorisDB. 
+> 
+> Note:
+> When calling function bitmap_dict, some intermediate temp hive tables will be generated automatically.
+> Submitting this job, needs write-privilege for hive tables.
+
+
 # Data preparation
 
 ## Hive CLI
