@@ -59,7 +59,7 @@ class DorisDBClient(object):
         p.wait()
         if p.returncode != 0:
             print """\nLoad to dorisdb failed! LABEL is %s""" % (label)
-        if p.returncode == 0:
+        else:
             print """\nLoad to dorisdb success! LABEL is %s """ % (label)
         return label
 
