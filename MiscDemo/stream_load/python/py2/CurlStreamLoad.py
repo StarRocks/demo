@@ -42,19 +42,20 @@ class DorisDBClient(object):
         label = self.get_label()
         cmd = "curl"
         param_location = "--location-trusted"
-        param_columns = self.columns
-        sep = self.sep
         param_user = "%s:%s" % (self.user, self.password)
         param_file = "%s" % self.filename
-        param_url = "http://%s:%s/api/%s/%s/_stream_load" % (self.host, self.port,
-                                                               self.database,
-                                                               self.table,)
-
-        p = subprocess.Popen([cmd, param_location, "-H", 'columns: %s' %param_columns,
-                                            "-H", "column_separator: %s" %sep,
-                                            "-H", "label: %s" %self.get_label(),
-                                            "-H", "timeout: %d" %self.timeout,
-                                            "-u", param_user, "-T", param_file, param_url])
+        param_url = "http://%s:%s/api/%s/%s/_stream_load" % (
+            self.host, self.port, self.database, self.table
+        )
+        p = subprocess.Popen([
+            cmd, param_location,
+            "-H", 'columns: %s' %self.columns,
+            "-H", "column_separator: %s" %self.sep,
+            "-H", "label: %s" %self.get_label(),
+            "-H", "timeout: %d" %self.timeout,
+            "-u", param_user,
+            "-T", param_file,
+            param_url])
         p.wait()
         if p.returncode != 0:
             print """\nLoad to dorisdb failed! LABEL is %s""" % (label)
