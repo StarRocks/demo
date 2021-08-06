@@ -67,7 +67,9 @@ class DorisDBClient(object):
 if __name__ == '__main__':
 
     """
-    -- stream load demo DDL 
+    -- Stream load Demo with Linux cmd - Curl
+    --
+    -- DorisDB DDL: 
     CREATE TABLE `dorisdb_demo`.`tb1` (
       `k` varchar(65533) NULL COMMENT "",
       `v` varchar(65533) NULL COMMENT ""
