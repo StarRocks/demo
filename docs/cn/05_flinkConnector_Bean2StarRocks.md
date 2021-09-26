@@ -1,9 +1,9 @@
-# 05_flinkConnector_Bean2DorisDB
+# 05_flinkConnector_Bean2StarRocks
 
 ## DDL
 
 ```
-MySQL [dorisdb_demo]> CREATE TABLE `dorisdb_demo`.`demo2_flink_tb1` (
+MySQL [starrocks_demo]> CREATE TABLE `starrocks_demo`.`demo2_flink_tb1` (
     ->   `NAME` VARCHAR(100) NOT NULL COMMENT "姓名",
     ->   `SCORE` INT(2) NOT NULL COMMENT "得分"
     -> ) ENGINE=OLAP
@@ -21,7 +21,7 @@ Query OK, 0 rows affected (0.11 sec)
 ```
 ## 执行程序
 
-1. 可以在IDEA里执行 FlinkDemo模块的[Bean2DorisDB](../FlinkDemo/src/main/scala/com/dorisdb/flink/Bean2DorisDB.scala)
+1. 可以在IDEA里执行 FlinkDemo模块的[Bean2StarRocks](../FlinkDemo/src/main/scala/com/starrocks/flink/Bean2StarRocks.scala)
 2. 也可以打包在server上提交flink作业：
 
 run.sh
@@ -31,7 +31,7 @@ run.sh
 ~/app/flink-1.11.0/bin/flink run \
 -m yarn-cluster \
 --yarnname Demo \
--c com.dorisdb.flink.Demo1 \
+-c com.starrocks.flink.Demo1 \
 -yjm 1048 -ytm 1048 \
 -ys 1 -d  \
 ./demo.jar
@@ -43,7 +43,7 @@ flink ui
 ## 验证数据持续导入
 
 ```
-MySQL [dorisdb_demo]> select * from demo2_flink_tb1 limit 5;
+MySQL [starrocks_demo]> select * from demo2_flink_tb1 limit 5;
 +--------+-------+
 | NAME   | SCORE |
 +--------+-------+
@@ -55,7 +55,7 @@ MySQL [dorisdb_demo]> select * from demo2_flink_tb1 limit 5;
 +--------+-------+
 5 rows in set (0.08 sec)
 
-MySQL [dorisdb_demo]> select count(1) from demo2_flink_tb1;
+MySQL [starrocks_demo]> select count(1) from demo2_flink_tb1;
 +----------+
 | count(1) |
 +----------+
@@ -63,7 +63,7 @@ MySQL [dorisdb_demo]> select count(1) from demo2_flink_tb1;
 +----------+
 1 row in set (0.04 sec)
 
-MySQL [dorisdb_demo]> select count(1) from demo2_flink_tb1;
+MySQL [starrocks_demo]> select count(1) from demo2_flink_tb1;
 +----------+
 | count(1) |
 +----------+

@@ -52,7 +52,7 @@ json   -->   flink-connector --->  StarRocks
 ```
 [flinkConnector_Sql2StarRocks](docs/07_flinkConnector_Sql2StarRocks.md) 
 ```
-flinkSql --> flin-connector -->  StarRocks 
+flinkSql --> flink-connector -->  StarRocks 
 ``` 
 
 ## Chinese wiki

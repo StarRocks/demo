@@ -1,9 +1,9 @@
-# 07_flinkConnector_Sql2DorisDB
+# 07_flinkConnector_Sql2StarRocks
 
 ## DDL
 
 ```
-MySQL [dorisdb_demo]> CREATE TABLE `dorisdb_demo`.`demo2_flink_tb1` (
+MySQL [starrocks_demo]> CREATE TABLE `starrocks_demo`.`demo2_flink_tb1` (
     ->   `name` VARCHAR(100) NOT NULL COMMENT "姓名",
     ->   `score` INT(2) NOT NULL COMMENT "得分"
     -> ) ENGINE=OLAP
@@ -21,12 +21,12 @@ Query OK, 0 rows affected (0.11 sec)
 
 ## Performing
 
-Run [Sql2DorisDB](../FlinkDemo/src/main/scala/com/dorisdb/flink/Sql2DorisDB.scala) directly in IDEA
+Run [Sql2StarRocks](../FlinkDemo/src/main/scala/com/starrocks/flink/Sql2StarRocks.scala) directly in IDEA
 
 ## Verification
 
 ```
-MySQL [dorisdb_demo]> select * from demo2_flink_tb1 limit 5;
+MySQL [starrocks_demo]> select * from demo2_flink_tb1 limit 5;
 +--------+-------+
 | name   | score |
 +--------+-------+
@@ -38,7 +38,7 @@ MySQL [dorisdb_demo]> select * from demo2_flink_tb1 limit 5;
 +--------+-------+
 5 rows in set (0.08 sec)
 
-MySQL [dorisdb_demo]> select count(1) from demo2_flink_tb1;
+MySQL [starrocks_demo]> select count(1) from demo2_flink_tb1;
 +----------+
 | count(1) |
 +----------+
@@ -46,7 +46,7 @@ MySQL [dorisdb_demo]> select count(1) from demo2_flink_tb1;
 +----------+
 1 row in set (0.02 sec)
 
-MySQL [dorisdb_demo]> select sum(score) sc , name from demo2_flink_tb1 group by name;
+MySQL [starrocks_demo]> select sum(score) sc , name from demo2_flink_tb1 group by name;
 +------+---------+
 | sc   | name    |
 +------+---------+
@@ -56,7 +56,7 @@ MySQL [dorisdb_demo]> select sum(score) sc , name from demo2_flink_tb1 group by 
 +------+---------+
 3 rows in set (0.02 sec)
 
-MySQL [dorisdb_demo]> select sum(score) sc , name from demo2_flink_tb1 group by name;
+MySQL [starrocks_demo]> select sum(score) sc , name from demo2_flink_tb1 group by name;
 +------+---------+
 | sc   | name    |
 +------+---------+

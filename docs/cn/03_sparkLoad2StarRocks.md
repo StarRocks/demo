@@ -1,7 +1,7 @@
-# 03_sparkLoad2DorisDB
+# 03_sparkLoad2StarRocks
 
 # 场景描述
-演示使用sparkLoad导入数据到DorisDB
+演示使用sparkLoad导入数据到StarRocks
 
 # 基础环境准备
 
@@ -21,7 +21,7 @@
 export JAVA_HOME=xxxxJAVA_HOME路径
 ```
 
-## DorisDB集群
+## StarRocks集群
 
 ### fe配置
 
@@ -42,7 +42,7 @@ yarn_client_path=/usr/local/hadoop-2.7.7/bin/yarn
 
 # Case1
 
-导入hdfs上的CSV文件到DorisDB
+导入hdfs上的CSV文件到StarRocks
 
 ## 模拟数据
 利用[SparkDemo](../SparkDemo)模块的[gen_wide.py](../SparkDemo/src/main/py/gen_wide.py)数据生成脚本，
@@ -64,17 +64,17 @@ yarn_client_path=/usr/local/hadoop-2.7.7/bin/yarn
 2        7
 3        3
 6        5
-[root@master1 ~]# hadoop fs -mkdir -p  /dorisDB-demo/data
-[root@master1 data]# hadoop fs -put demo3_data1.csv /dorisDB-demo/data/
+[root@master1 ~]# hadoop fs -mkdir -p  /starrocks-demo/data
+[root@master1 data]# hadoop fs -put demo3_data1.csv /starrocks-demo/data/
 
 ```
 
 ## 功能测试
 
-DorisDB DDL
+StarRocks DDL
 
 ```
-CREATE TABLE `dorisdb_demo`.`demo3_spark_tb1` (
+CREATE TABLE `starrocks_demo`.`demo3_spark_tb1` (
     `k1`  varchar(50) NULL  COMMENT "",
     `v1`  String      NULL  COMMENT ""
 ) ENGINE=OLAP
@@ -88,7 +88,7 @@ PROPERTIES (
 );
 ```
 
-在dorisDB创建spark1资源
+在starrocks创建spark1资源
 
 ```
 -- add broker1
@@ -107,7 +107,7 @@ PROPERTIES
   "spark.hadoop.yarn.resourcemanager.hostname.rm1" = "master1",
   "spark.hadoop.yarn.resourcemanager.hostname.rm2" = "worker1",
   "spark.hadoop.fs.defaultFS" = "hdfs://mycluster/",
-  "working_dir" = "hdfs://mycluster/tmp/doris",
+  "working_dir" = "hdfs://mycluster/tmp/starrocks",
   "broker" = "broker1"
 );
 ```
@@ -115,10 +115,10 @@ PROPERTIES
 启动spark load作业
 
 ```
-USE dorisdb_demo;
-LOAD LABEL dorisdb_demo.label1
+USE starrocks_demo;
+LOAD LABEL starrocks_demo.label1
 (
-    DATA INFILE("hdfs://mycluster/dorisDB-demo/data/demo3_data1.csv")
+    DATA INFILE("hdfs://mycluster/starrocks-demo/data/demo3_data1.csv")
     INTO TABLE demo3_spark_tb1
     COLUMNS TERMINATED BY "\t"
     (k1,v1)
@@ -143,7 +143,7 @@ PROPERTIES
 
 检查导入结果
 ```
-MySQL [dorisdb_demo]> select * from demo3_spark_tb1 limit 5;
+MySQL [starrocks_demo]> select * from demo3_spark_tb1 limit 5;
 +------+------+
 | k1   | v1   |
 +------+------+
@@ -155,7 +155,7 @@ MySQL [dorisdb_demo]> select * from demo3_spark_tb1 limit 5;
 +------+------+
 5 rows in set (0.18 sec)
 
-MySQL [dorisdb_demo]> select count(1) from demo3_spark_tb1 limit 5;
+MySQL [starrocks_demo]> select count(1) from demo3_spark_tb1 limit 5;
 +----------+
 | count(1) |
 +----------+
@@ -163,7 +163,7 @@ MySQL [dorisdb_demo]> select count(1) from demo3_spark_tb1 limit 5;
 +----------+
 1 row in set (0.07 sec)
 
-MySQL [dorisdb_demo]> select count(distinct v1) v1 from demo3_spark_tb1 limit 5;
+MySQL [starrocks_demo]> select count(distinct v1) v1 from demo3_spark_tb1 limit 5;
 +------+
 | v1   |
 +------+
@@ -171,7 +171,7 @@ MySQL [dorisdb_demo]> select count(distinct v1) v1 from demo3_spark_tb1 limit 5;
 +------+
 1 row in set (0.03 sec)
 
-MySQL [dorisdb_demo]> select count(distinct k1) k1 from demo3_spark_tb1 limit 5;
+MySQL [starrocks_demo]> select count(distinct k1) k1 from demo3_spark_tb1 limit 5;
 +------+
 | k1   |
 +------+
@@ -183,11 +183,11 @@ MySQL [dorisdb_demo]> select count(distinct k1) k1 from demo3_spark_tb1 limit 5;
 
 # Case2
 
-通过Spark load导入parquet数据到dorisDB
+通过Spark load导入parquet数据到starrocks
 
 - 需要hive外表
 
-- 需要dorisDB外表
+- 需要starrocks外表
 
 ## 模拟数据
 
@@ -196,7 +196,7 @@ MySQL [dorisdb_demo]> select count(distinct k1) k1 from demo3_spark_tb1 limit 5;
 ```
 scala> sc.setLogLevel("ERROR")
 
-scala> val df = spark.read.option("delimiter","\t").csv("hdfs://mycluster/dorisDB-demo/data/demo3_data1.csv").toDF("k1","v1")
+scala> val df = spark.read.option("delimiter","\t").csv("hdfs://mycluster/starrocks-demo/data/demo3_data1.csv").toDF("k1","v1")
 df: org.apache.spark.sql.DataFrame = [k1: string, v1: string]
 
 scala> df.show(5, false)
@@ -211,9 +211,9 @@ scala> df.show(5, false)
 +---+---+
 only showing top 5 rows
 
-scala> df.coalesce(1).write.parquet("hdfs://mycluster/dorisDB-demo/data/demo3_data1.parquet")
+scala> df.coalesce(1).write.parquet("hdfs://mycluster/starrocks-demo/data/demo3_data1.parquet")
 
-scala> spark.read.parquet("hdfs://mycluster/dorisDB-demo/data/demo3_data1.parquet").show(5)
+scala> spark.read.parquet("hdfs://mycluster/starrocks-demo/data/demo3_data1.parquet").show(5)
 +---+---+
 | k1| v1|
 +---+---+
@@ -241,11 +241,11 @@ STORED AS INPUTFORMAT
 OUTPUTFORMAT
  'org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat'
 LOCATION
- 'hdfs://mycluster/dorisDB-demo/data/demo3_data1.parquet'
+ 'hdfs://mycluster/starrocks-demo/data/demo3_data1.parquet'
 TBLPROPERTIES ( 'parquet.compression'='snappy');
 ```
 
-### Doris DDL
+### starrocks DDL
 
 ```
 CREATE EXTERNAL RESOURCE "hive0"
@@ -255,11 +255,11 @@ PROPERTIES (
 );
 
 
-MySQL [dorisdb_demo]> create table demo3_spark_tb2 like demo3_spark_tb1;
+MySQL [starrocks_demo]> create table demo3_spark_tb2 like demo3_spark_tb1;
 Query OK, 0 rows affected (0.07 sec)
 
 
-MySQL [dorisdb_demo]> CREATE EXTERNAL TABLE hive_t1
+MySQL [starrocks_demo]> CREATE EXTERNAL TABLE hive_t1
     ->     (
     ->          k1 string,
     ->          v1 string
@@ -275,11 +275,11 @@ Query OK, 0 rows affected (0.03 sec)
 
 ### Spark load 
 
-从dorisDB中的Hive外表写入dorisDB内部表
+从starrocks中的Hive外表写入starrocks内部表
 
 ```
-USE dorisdb_demo;
-LOAD LABEL dorisdb_demo.label2
+USE starrocks_demo;
+LOAD LABEL starrocks_demo.label2
 (
     DATA FROM TABLE hive_t1
     INTO TABLE demo3_spark_tb2
@@ -322,7 +322,7 @@ LoadFinishTime: 2021-05-31 21:06:49
 ### 验证导入数据
 
 ```
-MySQL [dorisdb_demo]> select * from demo3_spark_tb2 limit 5;
+MySQL [starrocks_demo]> select * from demo3_spark_tb2 limit 5;
 +------+------+
 | k1   | v1   |
 +------+------+
@@ -334,7 +334,7 @@ MySQL [dorisdb_demo]> select * from demo3_spark_tb2 limit 5;
 +------+------+
 5 rows in set (0.06 sec)
 
-MySQL [dorisdb_demo]> select count(1) from demo3_spark_tb2 limit 5;
+MySQL [starrocks_demo]> select count(1) from demo3_spark_tb2 limit 5;
 +----------+
 | count(1) |
 +----------+
@@ -342,7 +342,7 @@ MySQL [dorisdb_demo]> select count(1) from demo3_spark_tb2 limit 5;
 +----------+
 1 row in set (0.03 sec)
 
-MySQL [dorisdb_demo]> select count(distinct k1) k1 from demo3_spark_tb2 limit 5;
+MySQL [starrocks_demo]> select count(distinct k1) k1 from demo3_spark_tb2 limit 5;
 +------+
 | k1   |
 +------+
@@ -350,7 +350,7 @@ MySQL [dorisdb_demo]> select count(distinct k1) k1 from demo3_spark_tb2 limit 5;
 +------+
 1 row in set (0.02 sec)
 
-MySQL [dorisdb_demo]> select count(distinct v1) v1 from demo3_spark_tb2 limit 5;
+MySQL [starrocks_demo]> select count(distinct v1) v1 from demo3_spark_tb2 limit 5;
 +------+
 | v1   |
 +------+
@@ -368,4 +368,4 @@ log/spark_launcher_log/
 
 # License
 
-DorisDB/demo is under the Apache 2.0 license. See the [LICENSE](../LICENSE) file for details.
+StarRocks/demo is under the Apache 2.0 license. See the [LICENSE](../LICENSE) file for details.

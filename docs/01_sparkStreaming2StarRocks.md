@@ -1,4 +1,4 @@
-# 01_sparkStreaming2DorisDB
+# 01_sparkStreaming2StarRocks
 
 ## Demonstration Description
 
@@ -6,7 +6,7 @@ Streaming computing the UV metric for each time period on a realtime Dashboard.
 
 ### DataFlow
 
-> mimic -> Kafka -> spark streaming -> stream load -> dorisDB -> zeppline UI (chart)
+> mimic -> Kafka -> spark streaming -> stream load -> StarRocks -> zeppline UI (chart)
 
 ## Preparations
 
@@ -83,28 +83,28 @@ PROPERTIES (
 
 ### 3. Run the demo 
 
-Compile and run com.dorisdb.spark.SparkStreaming2DorisDB in Module SparkDemo
+Compile and run com.starrocks.spark.SparkStreaming2StarRocks in Module SparkDemo
 
 ![01_spark_idea1](./imgs/01_spark_idea1.png)
 
 ### 4. Verification
 
-Connect to DorisDB via Mysql Client to check the result:
+Connect to StarRocks via Mysql Client to check the result:
 
 ```
-MySQL [dorisdb_demo]> select * from demo1_spark_tb0 limit 5;
+MySQL [starrocks_demo]> select * from demo1_spark_tb0 limit 5;
 +---------------------------+------------+------+--------+------+
 | site                      | date       | hour | minute | uv   |
 +---------------------------+------------+------+--------+------+
-| https://docs.dorisdb.com/ | 2021-05-29 |   14 |     45 | NULL |
-| https://docs.dorisdb.com/ | 2021-05-29 |   14 |     48 | NULL |
-| https://docs.dorisdb.com/ | 2021-05-29 |   15 |     18 | NULL |
-| https://docs.dorisdb.com/ | 2021-05-29 |   15 |     21 | NULL |
-| https://docs.dorisdb.com/ | 2021-05-29 |   15 |     29 | NULL |
+| https://docs.starrocks.com/ | 2021-05-29 |   14 |     45 | NULL |
+| https://docs.starrocks.com/ | 2021-05-29 |   14 |     48 | NULL |
+| https://docs.starrocks.com/ | 2021-05-29 |   15 |     18 | NULL |
+| https://docs.starrocks.com/ | 2021-05-29 |   15 |     21 | NULL |
+| https://docs.starrocks.com/ | 2021-05-29 |   15 |     29 | NULL |
 +---------------------------+------------+------+--------+------+
 5 rows in set (0.01 sec)
 
-MySQL [dorisdb_demo]> select count(distinct uv) uv  from demo1_spark_tb0 ;
+MySQL [starrocks_demo]> select count(distinct uv) uv  from demo1_spark_tb0 ;
 +------+
 | uv   |
 +------+
@@ -112,28 +112,28 @@ MySQL [dorisdb_demo]> select count(distinct uv) uv  from demo1_spark_tb0 ;
 +------+
 1 row in set (0.02 sec)
 
-MySQL [dorisdb_demo]> select site, count(distinct uv) uv  from demo1_spark_tb0 group by site;
+MySQL [starrocks_demo]> select site, count(distinct uv) uv  from demo1_spark_tb0 group by site;
 +----------------------------+------+
 | site                       | uv   |
 +----------------------------+------+
-| https://www.dorisdb.com/   |   71 |
-| https://trial.dorisdb.com/ |   42 |
-| https://docs.dorisdb.com/  |   63 |
+| https://www.starrocks.com/   |   71 |
+| https://trial.starrocks.com/ |   42 |
+| https://docs.starrocks.com/  |   63 |
 +----------------------------+------+
 
-MySQL [dorisdb_demo]> select site,hour, count(distinct uv) uv  from demo1_spark_tb0 group by site,hour;
+MySQL [starrocks_demo]> select site,hour, count(distinct uv) uv  from demo1_spark_tb0 group by site,hour;
 +----------------------------+------+------+
 | site                       | hour | uv   |
 +----------------------------+------+------+
-| https://www.dorisdb.com/   |   14 |    8 |
-| https://www.dorisdb.com/   |   15 |  150 |
-| https://www.dorisdb.com/   |   16 |  258 |
-| https://trial.dorisdb.com/ |   14 |    6 |
-| https://trial.dorisdb.com/ |   15 |  133 |
-| https://docs.dorisdb.com/  |   14 |    4 |
-| https://docs.dorisdb.com/  |   15 |  157 |
-| https://docs.dorisdb.com/  |   16 |  231 |
-| https://trial.dorisdb.com/ |   16 |  228 |
+| https://www.starrocks.com/   |   14 |    8 |
+| https://www.starrocks.com/   |   15 |  150 |
+| https://www.starrocks.com/   |   16 |  258 |
+| https://trial.starrocks.com/ |   14 |    6 |
+| https://trial.starrocks.com/ |   15 |  133 |
+| https://docs.starrocks.com/  |   14 |    4 |
+| https://docs.starrocks.com/  |   15 |  157 |
+| https://docs.starrocks.com/  |   16 |  231 |
+| https://trial.starrocks.com/ |   16 |  228 |
 +----------------------------+------+------+
 9 rows in set (0.01 sec)
 ```
@@ -175,4 +175,4 @@ myzeppelin: aliased to docker run -p 8089:8080  -v /Users/simon/Documents/zep:/o
 
 # License
 
-DorisDB/demo is under the Apache 2.0 license. See the [LICENSE](../LICENSE) file for details.
+StarRocks/demo is under the Apache 2.0 license. See the [LICENSE](../LICENSE) file for details.

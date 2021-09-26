@@ -1,8 +1,8 @@
 # 08_userPortrait_bitmapDict
 
-> Building Bitmap data in DorisDB uses Roaring Bitmap, which needs INTEGER as INPUT.
-> DorisDB provides a function named bitmap_dict, that can be called in spark-load job, 
-> to map String values to Integer values when loading data to DorisDB. 
+> Building Bitmap data in StarRocks uses Roaring Bitmap, which needs INTEGER as INPUT.
+> StarRocks provides a function named bitmap_dict, that can be called in spark-load job, 
+> to map String values to Integer values when loading data to StarRocks. 
 > 
 > Note:
 > When calling function bitmap_dict, some intermediate temp hive tables will be generated automatically.
@@ -31,9 +31,9 @@ insert into hive_dict_t1 values ('k1','u1'),('k2','u2'),('k3','u3'),('k4','u4'),
 ```
 
 
-# DorisDB Directives
+# StarRocks Directives
 
-## DorisDB DDL
+## StarRocks DDL
 
 ```
 -- Hive resource
@@ -43,9 +43,9 @@ PROPERTIES (
     "hive.metastore.uris" = "thrift://master1:9083"
 );
 
--- Dorisdb internal table
-USE dorisdb_demo;
-CREATE TABLE `dorisdb_demo`.`dict_t1` (
+-- StarRocks internal table
+USE starrocks_demo;
+CREATE TABLE `starrocks_demo`.`dict_t1` (
     `k1`  varchar(50) NULL  COMMENT "",
     `uuid`  bitmap  bitmap_union    NULL  COMMENT ""
 ) ENGINE=OLAP
@@ -58,7 +58,7 @@ PROPERTIES (
     "storage_format" = "DEFAULT"
 );
 
--- Dorisdb External Hive table
+-- StarRocks External Hive table
 CREATE EXTERNAL TABLE hive_dict_t1
 (
     k1 string,
@@ -92,7 +92,7 @@ PROPERTIES
     "spark.hadoop.yarn.resourcemanager.hostname.rm1" = "master1",
     "spark.hadoop.yarn.resourcemanager.hostname.rm2" = "worker1",
     "spark.hadoop.fs.defaultFS" = "hdfs://mycluster/",
-    "working_dir" = "hdfs://mycluster/tmp/doris",
+    "working_dir" = "hdfs://mycluster/tmp/starrocks",
     "broker" = "broker1"
 );
 ```
@@ -100,8 +100,8 @@ PROPERTIES
 ## Submit spark  job
 
 ```
-USE dorisdb_demo;
-LOAD LABEL dorisdb_demo.dict_t1
+USE starrocks_demo;
+LOAD LABEL starrocks_demo.dict_t1
 (
     DATA FROM TABLE hive_dict_t1
     INTO TABLE dict_t1
@@ -126,7 +126,7 @@ PROPERTIES
 ## Show load
 
 ```
-MySQL [dorisdb_demo]> show load\G
+MySQL [starrocks_demo]> show load\G
 *************************** 1. row ***************************
          JobId: 26023
          Label: dict_t1
@@ -145,7 +145,7 @@ LoadFinishTime: NULL
     JobDetails: {"Unfinished backends":{},"ScannedRows":0,"TaskNumber":0,"All backends":{},"FileNumber":0,"FileSize":0}
 1 row in set (0.00 sec)
 
-MySQL [dorisdb_demo]> show load\G
+MySQL [starrocks_demo]> show load\G
 *************************** 1. row ***************************
          JobId: 26023
          Label: dict_t1
@@ -178,7 +178,7 @@ LoadFinishTime: 2021-07-15 21:30:24
 - Notes that uuid values  u1, u2, u3 ... were mapped to global unique integer values 1,2,3...
 
 ```
-MySQL [dorisdb_demo]> desc dict_t1;
+MySQL [starrocks_demo]> desc dict_t1;
 +-------+-------------+------+-------+---------+--------------+
 | Field | Type        | Null | Key   | Default | Extra        |
 +-------+-------------+------+-------+---------+--------------+
@@ -187,7 +187,7 @@ MySQL [dorisdb_demo]> desc dict_t1;
 +-------+-------------+------+-------+---------+--------------+
 2 rows in set (0.02 sec)
 
-MySQL [dorisdb_demo]> select k1, bitmap_to_string(uuid) from dict_t1;
+MySQL [starrocks_demo]> select k1, bitmap_to_string(uuid) from dict_t1;
 +------+--------------------------+
 | k1   | bitmap_to_string(`uuid`) |
 +------+--------------------------+
@@ -208,15 +208,15 @@ MySQL [dorisdb_demo]> select k1, bitmap_to_string(uuid) from dict_t1;
 hive (default)> show tables;
 OK
 tab_name
-doris_distinct_key_table_26014_26024
-doris_global_dict_table_26014
-doris_intermediate_hive_table_26014_26024
+starrocks_distinct_key_table_26014_26024
+starrocks_global_dict_table_26014
+starrocks_intermediate_hive_table_26014_26024
 hive_dict_t1
 
 
-hive (default)> select * from doris_distinct_key_table_26014_26024;
+hive (default)> select * from starrocks_distinct_key_table_26014_26024;
 OK
-doris_distinct_key_table_26014_26024.dict_key        doris_distinct_key_table_26014_26024.dict_column
+starrocks_distinct_key_table_26014_26024.dict_key        starrocks_distinct_key_table_26014_26024.dict_column
 u3        uuid
 u4        uuid
 u5        uuid
@@ -225,9 +225,9 @@ u2        uuid
 Time taken: 1.335 seconds, Fetched: 5 row(s)
 
 
-hive (default)> select * from doris_global_dict_table_26014;
+hive (default)> select * from starrocks_global_dict_table_26014;
 OK
-doris_global_dict_table_26014.dict_key        doris_global_dict_table_26014.dict_value        doris_global_dict_table_26014.dict_column
+starrocks_global_dict_table_26014.dict_key        starrocks_global_dict_table_26014.dict_value        starrocks_global_dict_table_26014.dict_column
 u1        1        uuid
 u2        2        uuid
 u3        3        uuid
@@ -236,9 +236,9 @@ u5        5        uuid
 Time taken: 0.143 seconds, Fetched: 5 row(s)
 
 
-hive (default)> select * from doris_intermediate_hive_table_26014_26024;
+hive (default)> select * from starrocks_intermediate_hive_table_26014_26024;
 OK
-doris_intermediate_hive_table_26014_26024.k1        doris_intermediate_hive_table_26014_26024.uuid
+starrocks_intermediate_hive_table_26014_26024.k1        starrocks_intermediate_hive_table_26014_26024.uuid
 k3        3
 k4        4
 k5        5
@@ -249,4 +249,4 @@ Time taken: 0.126 seconds, Fetched: 5 row(s)
 
 ## License
 
-DorisDB/demo is under the Apache 2.0 license. See the [LICENSE](../LICENSE) file for details.
+StarRocks/demo is under the Apache 2.0 license. See the [LICENSE](../LICENSE) file for details.

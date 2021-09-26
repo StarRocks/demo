@@ -48,7 +48,7 @@ hadoop fs -mkdir hdfs://mycluster:9002/simon_test/csv_temp
 Run a spark-shell
 
 ```
-[dorisdb@stability01 bin]$ spark-shell --executor-memory 30g  --driver-memory  30g --executor-cores 5  --driver-cores 5
+[starrocks@stability01 bin]$ spark-shell --executor-memory 30g  --driver-memory  30g --executor-cores 5  --driver-cores 5
 ```
 
 Input ':paste' in Spark-shell REPL environment followed by a 'enter hit',
@@ -115,7 +115,7 @@ and 462.8 M snappy.parquet with 1000000 lines
 will be generated.
 
 ```
-[dorisdb@stability01 ~]$ hadoop fs -du -h hdfs://mycluster:9002/simon_test/csv_temp/*
+[starrocks@stability01 ~]$ hadoop fs -du -h hdfs://mycluster:9002/simon_test/csv_temp/*
 0  hdfs://mycluster:9002/simon_test/csv_temp/_SUCCESS
 38.2 M  hdfs://mycluster:9002/simon_test/csv_temp/part-00000
 38.2 M  hdfs://mycluster:9002/simon_test/csv_temp/part-00001
@@ -151,13 +151,13 @@ will be generated.
 38.2 M  hdfs://mycluster:9002/simon_test/csv_temp/part-00031
 
 
-[dorisdb@stability01 ~]$ hadoop fs -text hdfs://mycluster:9002/simon_test/csv_temp/part-00031 | wc -l
+[starrocks@stability01 ~]$ hadoop fs -text hdfs://mycluster:9002/simon_test/csv_temp/part-00031 | wc -l
 31254
-[dorisdb@stability01 ~]$ echo "31254 * 32 " | bc
+[starrocks@stability01 ~]$ echo "31254 * 32 " | bc
 1000128
 
 
-[dorisdb@stability01 ~]$ hadoop fs -du -h hdfs://mycluster:9002/simon_test/t1/*
+[starrocks@stability01 ~]$ hadoop fs -du -h hdfs://mycluster:9002/simon_test/t1/*
 0  hdfs://mycluster:9002/simon_test/t1/_SUCCESS
 128 M  hdfs://mycluster:9002/simon_test/t1/_temporary/0
 462.8 M  hdfs://mycluster:9002/simon_test/t1/part-00000-f37b44ee-73b5-4d33-afe0-0efe23396e90-c000.snappy.parquet
@@ -196,7 +196,7 @@ cols=$4
 hadoop fs -mkdir -p $csv_temp
 
 spark-submit --name ParqGen \
---class com.dorisdb.spark.ParqGen \
+--class com.starrocks.spark.ParqGen \
 --conf spark.serializer=org.apache.spark.serializer.KryoSerializer \
 --conf spark.sql.inMemoryColumnarStorage.compressed=true \
 --conf spark.speculation=false  \
@@ -210,7 +210,7 @@ spark-submit --name ParqGen \
 --conf spark.sql.sources.partitionColumnTypeInference.enabled=false  \
 --conf spark.driver.extraJavaOptions='-XX:+UseG1GC'  \
 --conf spark.memory.fraction=0.6 \
-/home/disk1/dorisdb/misc/SparkParqGen.jar \
+/home/disk1/starrocks/misc/SparkParqGen.jar \
 $csv_temp \
 $pq_path \
 $total_lines \
@@ -231,18 +231,18 @@ nohup bash run.sh  hdfs://mycluster:9002/simon_test/csv_temp_t3  hdfs://mycluste
 - 78G in total
 
 ```
-[dorisdb@stability01 misc]$ hadoop fs -du -s -h  hdfs://mycluster:9002/simon_test/t2 | head
+[starrocks@stability01 misc]$ hadoop fs -du -s -h  hdfs://mycluster:9002/simon_test/t2 | head
 15.1 G  hdfs://mycluster:9002/simon_test/t2
-[dorisdb@stability01 misc]$ hadoop fs -du -s -h  hdfs://mycluster:9002/simon_test/t1 | head
+[starrocks@stability01 misc]$ hadoop fs -du -s -h  hdfs://mycluster:9002/simon_test/t1 | head
 53.3 G  hdfs://mycluster:9002/simon_test/t1
-[dorisdb@stability01 misc]$ hadoop fs -du -s -h  hdfs://mycluster:9002/simon_test/t3 | head
+[starrocks@stability01 misc]$ hadoop fs -du -s -h  hdfs://mycluster:9002/simon_test/t3 | head
 9.8 G  hdfs://mycluster:9002/simon_test/t3
 
-[dorisdb@stability01 misc]$ echo "15.1 + 53.3 + 9.8" |bc
+[starrocks@stability01 misc]$ echo "15.1 + 53.3 + 9.8" |bc
 78.2
 ```
 
-DorisDB DDL
+StarRocks DDL
 ```
 -- cols = 316
 create table t1
@@ -768,4 +768,4 @@ distributed by hash(_c0) buckets 30
 
 # License
 
-DorisDB/demo is under the Apache 2.0 license. See the [LICENSE](../LICENSE) file for details.
+StarRocks/demo is under the Apache 2.0 license. See the [LICENSE](../LICENSE) file for details.

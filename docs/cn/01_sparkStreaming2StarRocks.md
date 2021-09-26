@@ -1,10 +1,10 @@
-# 01_sparkStreaming2DorisDB
+# 01_sparkStreaming2StarRocks
 
 ## 场景描述
 通过流式计算，满足实时大屏上，当日各时段uv柱状趋势图的实时增长效果
 数据流向
 
-> mimic -> Kafka -> spark streaming -> stream load -> dorisDB -> zeppline UI (趋势图)
+> mimic -> Kafka -> spark streaming -> stream load -> StarRocks -> zeppline UI (趋势图)
 
 ## 基础环境准备
 
@@ -77,27 +77,27 @@ PROPERTIES (
 
 ### 3. 执行程序 
 
-IDEA里编译执行 SparkDemo模块的com.dorisdb.spark.SparkStreaming2DorisDB
+IDEA里编译执行 SparkDemo模块的com.starsocks.spark.SparkStreaming2StarRocks
 
 ![01_spark_idea1](../imgs/01_spark_idea1.png)
 
 ### 4. 验证
-mysql客户端登录Doris进行查询验证
+mysql客户端登录StarRocks进行查询验证
 
 ```
-MySQL [dorisdb_demo]> select * from demo1_spark_tb0 limit 5;
+MySQL [starsocks_demo]> select * from demo1_spark_tb0 limit 5;
 +---------------------------+------------+------+--------+------+
 | site                      | date       | hour | minute | uv   |
 +---------------------------+------------+------+--------+------+
-| https://docs.dorisdb.com/ | 2021-05-29 |   14 |     45 | NULL |
-| https://docs.dorisdb.com/ | 2021-05-29 |   14 |     48 | NULL |
-| https://docs.dorisdb.com/ | 2021-05-29 |   15 |     18 | NULL |
-| https://docs.dorisdb.com/ | 2021-05-29 |   15 |     21 | NULL |
-| https://docs.dorisdb.com/ | 2021-05-29 |   15 |     29 | NULL |
+| https://docs.starsocks.com/ | 2021-05-29 |   14 |     45 | NULL |
+| https://docs.starsocks.com/ | 2021-05-29 |   14 |     48 | NULL |
+| https://docs.starsocks.com/ | 2021-05-29 |   15 |     18 | NULL |
+| https://docs.starsocks.com/ | 2021-05-29 |   15 |     21 | NULL |
+| https://docs.starsocks.com/ | 2021-05-29 |   15 |     29 | NULL |
 +---------------------------+------------+------+--------+------+
 5 rows in set (0.01 sec)
 
-MySQL [dorisdb_demo]> select count(distinct uv) uv  from demo1_spark_tb0 ;
+MySQL [starsocks_demo]> select count(distinct uv) uv  from demo1_spark_tb0 ;
 +------+
 | uv   |
 +------+
@@ -105,28 +105,28 @@ MySQL [dorisdb_demo]> select count(distinct uv) uv  from demo1_spark_tb0 ;
 +------+
 1 row in set (0.02 sec)
 
-MySQL [dorisdb_demo]> select site, count(distinct uv) uv  from demo1_spark_tb0 group by site;
+MySQL [starsocks_demo]> select site, count(distinct uv) uv  from demo1_spark_tb0 group by site;
 +----------------------------+------+
 | site                       | uv   |
 +----------------------------+------+
-| https://www.dorisdb.com/   |   71 |
-| https://trial.dorisdb.com/ |   42 |
-| https://docs.dorisdb.com/  |   63 |
+| https://www.starsocks.com/   |   71 |
+| https://trial.starsocks.com/ |   42 |
+| https://docs.starsocks.com/  |   63 |
 +----------------------------+------+
 
-MySQL [dorisdb_demo]> select site,hour, count(distinct uv) uv  from demo1_spark_tb0 group by site,hour;
+MySQL [starsocks_demo]> select site,hour, count(distinct uv) uv  from demo1_spark_tb0 group by site,hour;
 +----------------------------+------+------+
 | site                       | hour | uv   |
 +----------------------------+------+------+
-| https://www.dorisdb.com/   |   14 |    8 |
-| https://www.dorisdb.com/   |   15 |  150 |
-| https://www.dorisdb.com/   |   16 |  258 |
-| https://trial.dorisdb.com/ |   14 |    6 |
-| https://trial.dorisdb.com/ |   15 |  133 |
-| https://docs.dorisdb.com/  |   14 |    4 |
-| https://docs.dorisdb.com/  |   15 |  157 |
-| https://docs.dorisdb.com/  |   16 |  231 |
-| https://trial.dorisdb.com/ |   16 |  228 |
+| https://www.starsocks.com/   |   14 |    8 |
+| https://www.starsocks.com/   |   15 |  150 |
+| https://www.starsocks.com/   |   16 |  258 |
+| https://trial.starsocks.com/ |   14 |    6 |
+| https://trial.starsocks.com/ |   15 |  133 |
+| https://docs.starsocks.com/  |   14 |    4 |
+| https://docs.starsocks.com/  |   15 |  157 |
+| https://docs.starsocks.com/  |   16 |  231 |
+| https://trial.starsocks.com/ |   16 |  228 |
 +----------------------------+------+------+
 9 rows in set (0.01 sec)
 ```
@@ -167,4 +167,4 @@ myzeppelin: aliased to docker run -p 8089:8080  -v /Users/simon/Documents/zep:/o
 
 # License
 
-DorisDB/demo is under the Apache 2.0 license. See the [LICENSE](../LICENSE) file for details.
+StarRocks/demo is under the Apache 2.0 license. See the [LICENSE](../LICENSE) file for details.

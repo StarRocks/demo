@@ -1,23 +1,23 @@
-# 02_sparkConnector2DorisDB
+# 02_sparkConnector2StarRocks
 
 ##  Description
 
-- Read DorisDB table via spark-connector
+- Read StarRocks table via spark-connector
 - ETL in Spark: Explode data to multiple lines
-- Write results into another DorisDB table
+- Write results into another StarRocks table
 
 
 ### DataFlow
 
-> dorisDB(bitmap table) -> spark-connector -> sparkSql ETL -> dorisDB(uid details table)
+> StarRocks(bitmap table) -> spark-connector -> sparkSql ETL -> StarRocks(uid details table)
 
 ## Preparations
 
 ### prepare datas
 
 > - demo2 re-use the data in demo1
-> - uv field in demo1_spark_tb0 is bitmap type（refer to  [01_sparkStreaming2DorisDB](./01_sparkStreaming2DorisDB.md)  ）,
-> - convert bitmap type to string_list and sink to DorisDB table demo1_spark_tb1
+> - uv field in demo1_spark_tb0 is bitmap type（refer to  [01_sparkStreaming2StarRocks](./01_sparkStreaming2StarRocks.md)  ）,
+> - convert bitmap type to string_list and sink to StarRocks table demo1_spark_tb1
 
 
 #### Source Data table DDL
@@ -51,15 +51,15 @@ from demo1_spark_tb0;
 Verify the result
 
 ```
-MySQL [dorisdb_demo]> select * from demo1_spark_tb1 limit 5;
+MySQL [starrocks_demo]> select * from demo1_spark_tb1 limit 5;
 +--------------------------+------------+------+--------+--------------+
 | site                     | date       | hour | minute | uid_list_str |
 +--------------------------+------------+------+--------+--------------+
-| https://www.dorisdb.com/ | 2021-05-29 |   14 |     47 | 5282         |
-| https://www.dorisdb.com/ | 2021-05-29 |   14 |     51 | 3157,7582    |
-| https://www.dorisdb.com/ | 2021-05-29 |   14 |     55 | 2395,8287    |
-| https://www.dorisdb.com/ | 2021-05-29 |   14 |     58 | 7021         |
-| https://www.dorisdb.com/ | 2021-05-29 |   14 |     59 | 1041,9393    |
+| https://www.starrocks.com/ | 2021-05-29 |   14 |     47 | 5282         |
+| https://www.starrocks.com/ | 2021-05-29 |   14 |     51 | 3157,7582    |
+| https://www.starrocks.com/ | 2021-05-29 |   14 |     55 | 2395,8287    |
+| https://www.starrocks.com/ | 2021-05-29 |   14 |     58 | 7021         |
+| https://www.starrocks.com/ | 2021-05-29 |   14 |     59 | 1041,9393    |
 +--------------------------+------------+------+--------+--------------+
 5 rows in set (0.01 sec)
 ```
@@ -91,7 +91,7 @@ PROPERTIES (
 
 ### Run the demo
 
-Compile and run com.dorisdb.spark.SparkConnector2DorisDB
+Compile and run com.starrocks.spark.SparkConnector2StarRocks
 
 > read table demo1_spark_tb1 -> sparkSql explodes to string list -> sink to demo1_spark_tb2
 
@@ -100,19 +100,19 @@ Compile and run com.dorisdb.spark.SparkConnector2DorisDB
 ### Verification
 
 ```
-MySQL [dorisdb_demo]> select * from demo1_spark_tb2 limit 5;
+MySQL [starrocks_demo]> select * from demo1_spark_tb2 limit 5;
 +------+------------+------+--------+---------------------------+
 | uid  | date       | hour | minute | site                      |
 +------+------------+------+--------+---------------------------+
-|   10 | 2021-05-29 |   16 |     52 | https://docs.dorisdb.com/ |
-|   17 | 2021-05-29 |   16 |     38 | https://www.dorisdb.com/  |
-|   18 | 2021-05-29 |   15 |     30 | https://www.dorisdb.com/  |
-|   18 | 2021-05-29 |   16 |     58 | https://www.dorisdb.com/  |
-|   20 | 2021-05-29 |   16 |     34 | https://docs.dorisdb.com/ |
+|   10 | 2021-05-29 |   16 |     52 | https://docs.starrocks.com/ |
+|   17 | 2021-05-29 |   16 |     38 | https://www.starrocks.com/  |
+|   18 | 2021-05-29 |   15 |     30 | https://www.starrocks.com/  |
+|   18 | 2021-05-29 |   16 |     58 | https://www.starrocks.com/  |
+|   20 | 2021-05-29 |   16 |     34 | https://docs.starrocks.com/ |
 +------+------------+------+--------+---------------------------+
 5 rows in set (0.02 sec)
 ```
 
 # License
 
-DorisDB/demo is under the Apache 2.0 license. See the [LICENSE](../LICENSE) file for details.
+StarRocks/demo is under the Apache 2.0 license. See the [LICENSE](../LICENSE) file for details.

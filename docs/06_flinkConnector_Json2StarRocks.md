@@ -1,9 +1,9 @@
-# 06_flinkConnector_Json2DorisDB
+# 06_flinkConnector_Json2StarRocks
 
 ## DDL
 
 ```
-MySQL [dorisdb_demo]> CREATE TABLE `dorisdb_demo`.`demo2_flink_tb1` (
+MySQL [starrocks_demo]> CREATE TABLE `starrocks_demo`.`demo2_flink_tb1` (
     ->   `name` VARCHAR(100) NOT NULL COMMENT "姓名",
     ->   `score` INT(2) NOT NULL COMMENT "得分"
     -> ) ENGINE=OLAP
@@ -21,7 +21,7 @@ Query OK, 0 rows affected (0.11 sec)
 
 ## Performing
 
-1. Run [Json2DorisDB](../FlinkDemo/src/main/scala/com/dorisdb/flink/Json2DorisDB.scala) directly in IDEA;
+1. Run [Json2StarRocks](../FlinkDemo/src/main/scala/com/starrocks/flink/Json2StarRocks.scala) directly in IDEA;
 2. or package a jar and submit to flink-server;
 
 > run.sh
@@ -32,7 +32,7 @@ Query OK, 0 rows affected (0.11 sec)
 ~/app/flink-1.11.0/bin/flink run \
 -m yarn-cluster \
 --yarnname Demo \
--c com.dorisdb.flink.Demo2 \
+-c com.starrocks.flink.Demo2 \
 -yjm 1048 -ytm 1048 \
 -ys 1 -d  \
 ./demo.jar
@@ -45,7 +45,7 @@ flink ui
 ## Verification
 
 ```
-MySQL [dorisdb_demo]> select * from demo2_flink_tb1 limit 5;
+MySQL [starrocks_demo]> select * from demo2_flink_tb1 limit 5;
 +--------+-------+
 | NAME   | SCORE |
 +--------+-------+
@@ -57,7 +57,7 @@ MySQL [dorisdb_demo]> select * from demo2_flink_tb1 limit 5;
 +--------+-------+
 5 rows in set (0.08 sec)
 
-MySQL [dorisdb_demo]> select count(1) from demo2_flink_tb1;
+MySQL [starrocks_demo]> select count(1) from demo2_flink_tb1;
 +----------+
 | count(1) |
 +----------+
@@ -65,7 +65,7 @@ MySQL [dorisdb_demo]> select count(1) from demo2_flink_tb1;
 +----------+
 1 row in set (0.04 sec)
 
-MySQL [dorisdb_demo]> select sum(score) sc , name from demo2_flink_tb1 group by name;
+MySQL [starrocks_demo]> select sum(score) sc , name from demo2_flink_tb1 group by name;
 +------+---------+
 | sc   | name    |
 +------+---------+
@@ -75,7 +75,7 @@ MySQL [dorisdb_demo]> select sum(score) sc , name from demo2_flink_tb1 group by 
 +------+---------+
 3 rows in set (0.03 sec)
 
-MySQL [dorisdb_demo]> select sum(score) sc , name from demo2_flink_tb1 group by name;
+MySQL [starrocks_demo]> select sum(score) sc , name from demo2_flink_tb1 group by name;
 +------+---------+
 | sc   | name    |
 +------+---------+
@@ -85,7 +85,7 @@ MySQL [dorisdb_demo]> select sum(score) sc , name from demo2_flink_tb1 group by 
 +------+---------+
 3 rows in set (0.02 sec)
 
-MySQL [dorisdb_demo]> select sum(score) sc , name from demo2_flink_tb1 group by name;
+MySQL [starrocks_demo]> select sum(score) sc , name from demo2_flink_tb1 group by name;
 +------+---------+
 | sc   | name    |
 +------+---------+
