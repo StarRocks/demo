@@ -21,12 +21,12 @@ under the License.
 
 
 # How to use:
-    1. g++ dorisdb_client.cpp -o dorisdb_client `mysql_config --cflags --libs`
-    2. ./dorisdb_client
+    1. g++ starrocks_client.cpp -o starrocks_client `mysql_config --cflags --libs`
+    2. ./starrocks_client
 
 # What can this demo do:
-    This is a cpp demo for dorisdb client, you can test basic function such as
-    connection, CRUD of your dorisdb. You should install mysql prior to running
+    This is a cpp demo for starrocks client, you can test basic function such as
+    connection, CRUD of your starrocks. You should install mysql prior to running
     this demo.
 
 # Supported mysql version: 5.6, 5.7, ..., 8.0

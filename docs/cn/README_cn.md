@@ -1,7 +1,7 @@
 
-# DorisDB Demo cn
+# StarRocks Demo cn
 
-[![license](../imgs/dorisdb.svg)](LICENSE)
+[![license](../imgs/StarRocks.svg)](LICENSE)
 
 本项目旨在提供完整的代码，帮助开发者快速了解各种场景的开发方法。
 
@@ -9,28 +9,28 @@
 
 # 1. spark demo
 
-[sparkStreaming2DorisDB](01_sparkStreaming2DorisDB.md)
+[sparkStreaming2StarRocks](01_sparkStreaming2StarRocks.md)
 
-用spark streaming消费Kafka数据，通过stream load接口实时导入dorisdb
+用spark streaming消费Kafka数据，通过stream load接口实时导入StarRocks
 
 ``` 
-kafka -> spark streaming -> stream load API-> DorisDB 
+kafka -> spark streaming -> stream load API-> StarRocks 
 ```
  
-[sparkConnector2DorisDB](02_sparkConnector2DorisDB.md)  
+[sparkConnector2StarRocks](02_sparkConnector2StarRocks.md)  
 
-用spark connector读取dorisdb数据
-
-```
-DorisDB -> spark-connector -> etl -> stream load API ->  DorisDB
-```
-
-[sparkLoad2DorisDB](03_sparkLoad2DorisDB.md)
-
-用Spark load导入数据到dorisdb
+用spark connector读取StarRocks数据
 
 ```
-Hive  -----> spark load -> spark etl ->   broker load  ->  DorisDB 
+StarRocks -> spark-connector -> etl -> stream load API ->  StarRocks
+```
+
+[sparkLoad2StarRocks](03_sparkLoad2StarRocks.md)
+
+用Spark load导入数据到StarRocks
+
+```
+Hive  -----> spark load -> spark etl ->   broker load  ->  StarRocks 
 ```
 [sparkGenParquet](04_sparkGenParquet.md)
 
@@ -43,24 +43,24 @@ parquet生成器
 用spark load导入时，构建用户画像-全局字典
 
 ```
-Hive  -----> spark load (uuid=bitmap_dict(uuid))  ->  DorisDB 
+Hive  -----> spark load (uuid=bitmap_dict(uuid))  ->  StarRocks 
 ```
 
 # 2. flink demo
 
-[flinkConnector_Bean2DorisDB](05_flinkConnector_Bean2DorisDB.md)
+[flinkConnector_Bean2StarRocks](05_flinkConnector_Bean2StarRocks.md)
 ```
-bean --->   flink-connector --->  DorisDB 
+bean --->   flink-connector --->  StarRocks 
 ```
-[flinkConnector_Json2DorisDB](06_flinkConnector_Json2DorisDB.md) 
+[flinkConnector_Json2StarRocks](06_flinkConnector_Json2StarRocks.md) 
 ```
-json   -->   flink-connector --->  DorisDB
+json   -->   flink-connector --->  StarRocks
 ```
-[flinkConnector_Sql2DorisDB](07_flinkConnector_Sql2DorisDB.md) 
+[flinkConnector_Sql2StarRocks](07_flinkConnector_Sql2StarRocks.md) 
 ```
-flinkSql --> flin-connector -->  DorisDB 
+flinkSql --> flin-connector -->  StarRocks 
 ``` 
 
 ## License
 
-DorisDB/demo is under the Apache 2.0 license. See the [LICENSE](./LICENSE) file for details.
+StarRocks/demo is under the Apache 2.0 license. See the [LICENSE](./LICENSE) file for details.

@@ -1,5 +1,5 @@
 /**
-Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -33,16 +33,16 @@ public class Client {
         //password is empty by default
         String password = "";
 
-        //connect to dorisdb
+        //connect to starrocks
         Connection conn = null;
         try {
             conn = getConn(host, port, user, password, "");
         } catch (Exception e) {
-            System.out.println("connect to dorisdb failed");
+            System.out.println("connect to starrocks failed");
             e.printStackTrace();
             return;
         }
-        System.out.println("connect to dorisdb successfully");
+        System.out.println("connect to starrocks successfully");
 
         //create statement
         Statement stmt = null;

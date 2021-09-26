@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-# Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import subprocess
 import time
 
 
-class DorisDBClient(object):
+class StarRocksClient(object):
 
     def __init__(self, host, port, database, columns, sep,
                 username, password, filename, table, timeout):
@@ -58,9 +58,9 @@ class DorisDBClient(object):
             param_url])
         p.wait()
         if p.returncode != 0:
-            print """\nLoad to dorisdb failed! LABEL is %s""" % (label)
+            print """\nLoad to starrocks failed! LABEL is %s""" % (label)
         else:
-            print """\nLoad to dorisdb success! LABEL is %s """ % (label)
+            print """\nLoad to starrocks success! LABEL is %s """ % (label)
         return label
 
 
@@ -69,8 +69,8 @@ if __name__ == '__main__':
     """
     -- Stream load Demo with Linux cmd - Curl
     --
-    -- DorisDB DDL: 
-    CREATE TABLE `dorisdb_demo`.`tb1` (
+    -- StarRocks DDL: 
+    CREATE TABLE `starrocks_demo`.`tb1` (
       `k` varchar(65533) NULL COMMENT "",
       `v` varchar(65533) NULL COMMENT ""
     ) ENGINE=OLAP
@@ -85,10 +85,10 @@ if __name__ == '__main__':
     """
 
     # load job 1
-    client1 = DorisDBClient(
+    client1 = StarRocksClient(
         host="master1",
         port="8030",
-        database="dorisdb_demo",
+        database="starrocks_demo",
         username="root",
         password="",
         filename="/tmp/test.csv",    # data from local file /tmp/test.csv, usage: python CurlStreamLoad.py
@@ -102,10 +102,10 @@ if __name__ == '__main__':
     time.sleep(1)
 
     # load job 2
-    client2 = DorisDBClient(
+    client2 = StarRocksClient(
         host="master1",
         port="8030",
-        database="dorisdb_demo",
+        database="starrocks_demo",
         username="root",
         password="",
         filename="-",                  # data from stdin, usage: echo 'k1,v1\nk2,v2'| python CurlStreamLoad.py

@@ -1,7 +1,7 @@
 #!/bin/python
 # -*- coding: utf-8 -*-
 """
-# Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ def main():
         "Expect": "100-continue",
     }
     payload = '''k1,v1\nk2,v2\nk3,v3'''
-    database = 'dorisdb_demo'
+    database = 'starrocks_demo'
     tablename = 'tb1'
     api = 'http://master1:8030/api/%s/%s/_stream_load' % (database, tablename)
     session = LoadSession()

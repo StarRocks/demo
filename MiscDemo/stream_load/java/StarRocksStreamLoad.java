@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+// Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 //
 // Licensed to the Apache Software Foundation (ASF) under one
 // or more contributor license agreements.  See the NOTICE file
@@ -31,7 +31,7 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 /**
- * This class is a java demo for dorisdb stream load
+ * This class is a java demo for starrocks stream load
  *
  * The pom.xml dependency:
  *
@@ -43,7 +43,7 @@ import java.nio.charset.StandardCharsets;
  *
  * How to use:
  *
- * 1 create a table in dorisdb with any mysql client
+ * 1 create a table in starrocks with any mysql client
  *
  * CREATE TABLE `stream_test` (
  *   `id` bigint(20) COMMENT "",
@@ -54,7 +54,7 @@ import java.nio.charset.StandardCharsets;
  * DISTRIBUTED BY HASH(`id`) BUCKETS 20;
  *
  *
- * 2 change the Dorisdb cluster, db, user config in this class
+ * 2 change the StarRocks cluster, db, user config in this class
  *
  * 3 run this class, you should see the following output:
  *
@@ -101,7 +101,7 @@ import java.nio.charset.StandardCharsets;
  * 3 when the response statusCode is 200, that doesn't mean your stream load is ok, there may be still
  *   some stream problem unless you see the output with 'ok' message
  */
-public class DorisdbStreamLoad {
+public class StarRocksStreamLoad {
     private final static String DORISDB_HOST = "xxx.com";
     private final static String DORISDB_DB = "test";
     private final static String DORISDB_TABLE = "stream_test";
@@ -141,7 +141,7 @@ public class DorisdbStreamLoad {
                     loadResult = EntityUtils.toString(response.getEntity());
                 }
                 final int statusCode = response.getStatusLine().getStatusCode();
-                // statusCode 200 just indicates that dorisdb be service is ok, not stream load
+                // statusCode 200 just indicates that starrocks be service is ok, not stream load
                 // you should see the output content to find whether stream load is success
                 if (statusCode != 200) {
                     throw new IOException(
@@ -174,7 +174,7 @@ public class DorisdbStreamLoad {
         stringBuilder.deleteCharAt(stringBuilder.length() - 1);
 
         String loadData = stringBuilder.toString();
-        DorisdbStreamLoad dorisdbStreamLoad = new DorisdbStreamLoad();
-        dorisdbStreamLoad.sendData(loadData);
+        StarRocksStreamLoad starrocksStreamLoad = new StarRocksStreamLoad();
+        starrocksStreamLoad.sendData(loadData);
     }
 }

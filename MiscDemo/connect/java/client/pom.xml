@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -27,7 +27,7 @@ under the License.
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.apache</groupId>
-    <artifactId>dorisdb-client</artifactId>
+    <artifactId>starrocks-client</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+// Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 //
 // Licensed to the Apache Software Foundation (ASF) under one
 // or more contributor license agreements.  See the NOTICE file
@@ -17,8 +17,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#ifndef SAMPLES_CONNECT_CPP_DORISDB_CLIENT_H
-#define SAMPLES_CONNECT_CPP_DORISDB_CLIENT_H
+#ifndef SAMPLES_CONNECT_CPP_STARROCKS_CLIENT_H
+#define SAMPLES_CONNECT_CPP_STARROCKS_CLIENT_H
 
 #include <iostream>
 #include <string>
@@ -27,11 +27,11 @@
 
 using std::string;
 
-class DorisdbClient {
+class StarRocksClient {
 public:
-    DorisdbClient();
-    ~DorisdbClient();
-    // connect to dorisdb
+    StarRocksClient();
+    ~StarRocksClient();
+    // connect to starrocks
     bool init(const string& host, const string& user, const string& passwd,
               const string& db_name, int port, const string& sock);
     // excute sql
@@ -39,9 +39,9 @@ public:
 private:
     // mysql handle
     MYSQL* _client;
-    // dorisdb result
+    // starrocks result
     MYSQL_RES* _result;
-    //dorisdb result as row
+    //starrocks result as row
     MYSQL_ROW _row;
 };
 

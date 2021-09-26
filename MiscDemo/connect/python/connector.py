@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 """
-Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -31,13 +31,13 @@ config = {
     "charset": "utf8"
 }
 
-# connect to dorisdb
+# connect to starrocks
 try:
     cnx = mysql.connector.connect(**config)
 except mysql.connector.Error as err:
-    print("connect to dorisdb failed. {}".format(err))
+    print("connect to starrocks failed. {}".format(err))
     exit(1)
-print("connect to dorisdb successfully")
+print("connect to starrocks successfully")
 
 cursor = cnx.cursor()
 

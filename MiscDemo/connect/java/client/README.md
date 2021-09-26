@@ -1,5 +1,5 @@
 <!--
-Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -24,7 +24,7 @@ under the License.
 	2. java -jar client.jar
 
 # What can this demo do:
-	This is a java demo for dorisdb client, you can test basic function such as
-	connection, CRUD of your dorisdb. You should install maven prior to run
+	This is a java demo for starrocks client, you can test basic function such as
+	connection, CRUD of your starrocks. You should install maven prior to run
 	this demo.
 

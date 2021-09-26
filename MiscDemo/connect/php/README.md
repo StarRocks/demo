@@ -1,5 +1,5 @@
 <!--
-Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -24,6 +24,6 @@ under the License.
 	2. php should enable mysqli extension
 
 # What can this demo do:
-	This is a php demo for dorisdb client, you can test basic function such as
-	connection, CRUD of your dorisdb.
+	This is a php demo for starrocks client, you can test basic function such as
+	connection, CRUD of your starrocks.
 

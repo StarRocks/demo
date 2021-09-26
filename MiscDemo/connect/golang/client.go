@@ -1,5 +1,5 @@
 /**
-Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -34,17 +34,17 @@ func main() {
 	password := ""
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/", user, password, host, port)
 
-	//connect to dorisdb
+	//connect to starrocks
 	driver, err := sql.Open("mysql", dsn)
 	if err != nil {
 		fmt.Printf("open mysql driver failed, error[%v]\n", err)
 		return
 	}
 	if err := driver.Ping(); err != nil {
-		fmt.Printf("ping dorisdb failed, error[%v]\n", err)
+		fmt.Printf("ping starrocks failed, error[%v]\n", err)
 		return
 	}
-	fmt.Printf("connect to dorisdb successfully\n")
+	fmt.Printf("connect to starrocks successfully\n")
 
 	//create database
 	if _, err := driver.Exec("CREATE DATABASE IF NOT EXISTS  db_test"); err != nil {
@@ -82,7 +82,7 @@ func main() {
 	//query data
 	rows, err := driver.Query("SELECT * FROM table_test")
 	if err != nil {
-		fmt.Printf("query data from dorisdb failed, error[%v]\n", err)
+		fmt.Printf("query data from starrocks failed, error[%v]\n", err)
 		return
 	}
 	for rows.Next() {

@@ -1,5 +1,5 @@
 /**
-Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -21,7 +21,7 @@ with the License.  You may obtain a copy of the License at
 
 var mysql = require("mysql");
 
-//connect to dorisdb
+//connect to starrocks
 var conn = mysql.createConnection({
 	host: "127.0.0.1",
 	user: "root",
@@ -31,9 +31,9 @@ var conn = mysql.createConnection({
 });
 conn.connect(function(err){
 	if (err) {
-		console.log("connect to dorisdb failed: " + err);
+		console.log("connect to starrocks failed: " + err);
 	} else {
-		console.log("connect to dorisdb successfully");
+		console.log("connect to starrocks successfully");
 	}
 });
 
