@@ -1,5 +1,5 @@
 #!/bin/python
-# Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ def genUid(s = 10000):
     return random.randint(1,s)
 
 def getSite():
-    site_scope = ['https://www.dorisdb.com/', 'https://trial.dorisdb.com/', 'https://docs.dorisdb.com/']
+    site_scope = ['https://www.starrocks.com/', 'https://trial.starrocks.com/', 'https://docs.starrocks.com/']
     idx = random.randint(0,len(site_scope) -1 )
     return site_scope[idx]
 
@@ -30,7 +30,7 @@ def getTm():
     return long(time.time() + delay_jitter * chance)
 
 """
-{uid:1, site: https://www.dorisdb.com/, time: 1621410635}
+{uid:1, site: https://www.starrocks.com/, time: 1621410635}
 """
 def gen():
     data = """{ "uid":%d, "site": "%s", "time": %s } """ % (genUid(), getSite(), getTm())

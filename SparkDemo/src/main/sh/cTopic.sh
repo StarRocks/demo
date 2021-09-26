@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ name=$2
 partitions=$3
 case $action in
         "create")
-        docker exec -it $id kafka-topics --create --if-not-exists --partitions ${partitions:=4} --topic  "${name:=dorisDB_t1_src}"  --zookeeper  localhost:2181  --replication-factor 1
+        docker exec -it $id kafka-topics --create --if-not-exists --partitions ${partitions:=4} --topic  "${name:=starrocks_t1_src}"  --zookeeper  localhost:2181  --replication-factor 1
         ;;
         "delete")
         docker exec -it $id kafka-topics --delete --topic  $name  --zookeeper  localhost:2181

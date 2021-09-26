@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ interval=$1
 lines=$2
 topic=$3
 
-echo "Sending time data to ${topic:=dorisDB_t1_src} every ${interval:=15} seconds..."
+echo "Sending time data to ${topic:=starrocks_t1_src} every ${interval:=15} seconds..."
 while true ; do
-  python demo1_data_gen.py  $lines| docker exec -i $id  kafka-console-producer --topic "${topic:=dorisDB_t1_src}" --broker-list  localhost:9092
+  python demo1_data_gen.py  $lines| docker exec -i $id  kafka-console-producer --topic "${topic:=starrocks_t1_src}" --broker-list  localhost:9092
   sleep "${interval:=15}"
 done

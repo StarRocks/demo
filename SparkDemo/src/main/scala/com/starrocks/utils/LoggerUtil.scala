@@ -1,0 +1,35 @@
+// Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.starrocks.utils
+
+import org.apache.log4j.{Level, Logger}
+import org.apache.spark.internal.Logging
+
+object LoggerUtil extends Logging {
+  def setSparkLogLevels(level:Level = Level.WARN) {
+    val log4jInitialized = Logger.getRootLogger.getAllAppenders.hasMoreElements
+    if (!log4jInitialized) {
+      logInfo(s"Setting log level to [${level.toString}] for Spark")
+      Logger.getRootLogger.setLevel(level)
+    }
+  }
+
+  def warn(str:String): Unit ={
+    logWarning(str)
+  }
+
+  def error(str:String): Unit ={
+    logError(str)
+  }
+}

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2020 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
+# Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ master=yarn
 cols=400
 loop=6  # pow(2, loop  ), 2^6 = 64
 
-source /home/disk1/dorisdb/.bashrc
+source /home/disk1/starrocks/.bashrc
 spark-submit --name ParqGen \
---class com.dorisdb.spark.ParqGen \
+--class com.starrocks.spark.ParqGen \
 --conf spark.serializer=org.apache.spark.serializer.KryoSerializer \
 --conf spark.sql.inMemoryColumnarStorage.compressed=true \
 --conf spark.speculation=false  \
@@ -40,7 +40,7 @@ spark-submit --name ParqGen \
 --conf spark.driver.extraJavaOptions='-XX:+UseG1GC'  \
 --conf spark.executor.extraJavaOptions='-XX:+UseG1GC'  \
 --conf spark.memory.fraction=0.6 \
-/home/disk1/dorisdb/jars/SparkParqGen.v3.jar \
+/home/disk1/starrocks/jars/SparkParqGen.v3.jar \
 $sinkBuckets \
 $pqPath \
 $bucketsLines \
