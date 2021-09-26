@@ -102,19 +102,19 @@ import java.nio.charset.StandardCharsets;
  *   some stream problem unless you see the output with 'ok' message
  */
 public class StarRocksStreamLoad {
-    private final static String DORISDB_HOST = "xxx.com";
-    private final static String DORISDB_DB = "test";
-    private final static String DORISDB_TABLE = "stream_test";
-    private final static String DORISDB_USER = "root";
-    private final static String DORISDB_PASSWORD = "xxx";
-    private final static int DORISDB_HTTP_PORT = 8030;
+    private final static String STARROCKS_HOST = "xxx.com";
+    private final static String STARROCKS_DB = "test";
+    private final static String STARROCKS_TABLE = "stream_test";
+    private final static String STARROCKS_USER = "root";
+    private final static String STARROCKS_PASSWORD = "xxx";
+    private final static int STARROCKS_HTTP_PORT = 8030;
 
     private void sendData(String content) throws Exception {
         final String loadUrl = String.format("http://%s:%s/api/%s/%s/_stream_load",
-                DORISDB_HOST,
-                DORISDB_HTTP_PORT,
-                DORISDB_DB,
-                DORISDB_TABLE);
+                STARROCKS_HOST,
+                STARROCKS_HTTP_PORT,
+                STARROCKS_DB,
+                STARROCKS_TABLE);
 
         final HttpClientBuilder httpClientBuilder = HttpClients
                 .custom()
@@ -129,7 +129,7 @@ public class StarRocksStreamLoad {
             HttpPut put = new HttpPut(loadUrl);
             StringEntity entity = new StringEntity(content, "UTF-8");
             put.setHeader(HttpHeaders.EXPECT, "100-continue");
-            put.setHeader(HttpHeaders.AUTHORIZATION, basicAuthHeader(DORISDB_USER, DORISDB_PASSWORD));
+            put.setHeader(HttpHeaders.AUTHORIZATION, basicAuthHeader(STARROCKS_USER, STARROCKS_PASSWORD));
             // the label header is optional, not necessary
             // use label header can ensure at most once semantics
             put.setHeader("label", "39c25a5c-7000-496e-a98e-348a264c81de");

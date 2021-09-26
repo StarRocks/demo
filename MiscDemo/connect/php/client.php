@@ -30,12 +30,12 @@ $password = "";
 $database = "db_test";
 $port = 9030;
 
-# connect to doris
+# connect to StarRocks
 $conn = new mysqli($host, $user, $password, "", $port);
 if ($conn->connect_errno) {
-	echo "<p> connect to doris failed. " . $conn->connect_errno . "</p>";
+	echo "<p> connect to StarRocks failed. " . $conn->connect_errno . "</p>";
 }
-echo "<p> connect to doris successfully </p>";
+echo "<p> connect to StarRocks successfully </p>";
 
 # create database
 $sql = "CREATE DATABASE IF NOT EXISTS " . $database;
