@@ -53,7 +53,7 @@ topic is empty by far:
 Result: Random generation of integers up to 10 every 2s and  send to topic spark_demo1_src.
 
 ```
-#bash  ../sh/genData.sh 2 10 spark_demo1_src                                                                      Usage: ../sh/genData.sh topicName  interval
+SparkDemo/src/main/sh# bash  genData.sh 2 10 spark_demo1_src                                                                      Usage: ../sh/genData.sh topicName  interval
 Sending time data to spark_demo1_src every 2 seconds...
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ```   
@@ -93,16 +93,16 @@ Connect to StarRocks via Mysql Client to check the result:
 
 ```
 MySQL [starrocks_demo]> select * from demo1_spark_tb0 limit 5;
-+---------------------------+------------+------+--------+------+
-| site                      | date       | hour | minute | uv   |
-+---------------------------+------------+------+--------+------+
-| https://docs.starrocks.com/ | 2021-05-29 |   14 |     45 | NULL |
-| https://docs.starrocks.com/ | 2021-05-29 |   14 |     48 | NULL |
-| https://docs.starrocks.com/ | 2021-05-29 |   15 |     18 | NULL |
-| https://docs.starrocks.com/ | 2021-05-29 |   15 |     21 | NULL |
-| https://docs.starrocks.com/ | 2021-05-29 |   15 |     29 | NULL |
-+---------------------------+------------+------+--------+------+
-5 rows in set (0.01 sec)
++-----------------------------+------------+------+--------+------+
+| site                        | date       | hour | minute | uv   |
++-----------------------------+------------+------+--------+------+
+| https://docs.starrocks.com/ | 2021-09-27 |    9 |     40 | NULL |
+| https://docs.starrocks.com/ | 2021-09-27 |    9 |     43 | NULL |
+| https://docs.starrocks.com/ | 2021-09-27 |    9 |     58 | NULL |
+| https://docs.starrocks.com/ | 2021-09-27 |   10 |     18 | NULL |
+| https://docs.starrocks.com/ | 2021-09-27 |   10 |     24 | NULL |
++-----------------------------+------------+------+--------+------+
+5 rows in set (0.06 sec)
 
 MySQL [starrocks_demo]> select count(distinct uv) uv  from demo1_spark_tb0 ;
 +------+

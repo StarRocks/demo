@@ -53,10 +53,9 @@ Simulate csv file with 10000 lines, 2 cols and upload to hdfs
 
 
 ```
-[root@master1 data]# python data_wide.py 10000 2 > demo3_data1.csv
-[root@master1 data]# grep ^[0-9] demo3_data1.csv | wc -l
-10000
-[root@master1 data]# head demo3_data1.csv
+# on laptop
+SparkDemo/src/main/py ]# python gen_wide.py 10000 2 > demo3_data1.csv
+SparkDemo/src/main/py ]# head demo3_data1.csv
 1        10
 9        5
 8        8
@@ -67,7 +66,11 @@ Simulate csv file with 10000 lines, 2 cols and upload to hdfs
 2        7
 3        3
 6        5
+SparkDemo/src/main/py ]# scp demo3_data1.csv root@master1:~/data/
+
+# on server
 [root@master1 ~]# hadoop fs -mkdir -p  /starrocks-demo/data
+[root@master1 ~]# cd ~/data
 [root@master1 data]# hadoop fs -put demo3_data1.csv /starrocks-demo/data/
 
 ```
@@ -95,8 +98,8 @@ Create spark1 resource in starrocks:
 
 ```
 -- add broker1
-MySQL [(none)]> ALTER SYSTEM ADD BROKER broker1 "master1:8000";
-Query OK, 0 rows affected (0.04 sec)
+ALTER SYSTEM ADD BROKER broker1 "master1:8000";
+
 
 -- yarn HA cluster mode
 CREATE EXTERNAL RESOURCE "spark1"
@@ -260,23 +263,18 @@ PROPERTIES (
   "hive.metastore.uris" = "thrift://master1:9083"
 );
 
+CREATE TABLE demo3_spark_tb2 like demo3_spark_tb1;
 
-MySQL [starrocks_demo]> create table demo3_spark_tb2 like demo3_spark_tb1;
-Query OK, 0 rows affected (0.07 sec)
-
-
-MySQL [starrocks_demo]> CREATE EXTERNAL TABLE hive_t1
-    ->     (
-    ->          k1 string,
-    ->          v1 string
-    ->      )
-    ->  ENGINE=hive
-    ->  properties (
-    ->     "resource" = "hive0",
-    ->     "database" = "default",
-    ->     "table" = "t1");
-Query OK, 0 rows affected (0.03 sec)
-
+CREATE EXTERNAL TABLE hive_t1
+     (
+          k1 string,
+          v1 string
+      )
+  ENGINE=hive
+  properties (
+     "resource" = "hive0",
+     "database" = "default",
+     "table" = "t1");
 ```
 
 ### Spark load 
@@ -306,8 +304,8 @@ PROPERTIES
 show load
 
 ```
-*************************** 9. row ***************************
-         JobId: 14039
+*************************** 3. row ***************************
+         JobId: 12023
          Label: label2
          State: FINISHED
       Progress: ETL:100%; LOAD:100%
@@ -315,14 +313,14 @@ show load
        EtlInfo: unselected.rows=0; dpp.abnorm.ALL=0; dpp.norm.ALL=10000
       TaskInfo: cluster:spark1; timeout(s):3600; max_filter_ratio:0.2
       ErrorMsg: NULL
-    CreateTime: 2021-05-31 21:05:45
-  EtlStartTime: 2021-05-31 21:06:12
- EtlFinishTime: 2021-05-31 21:06:46
- LoadStartTime: 2021-05-31 21:06:46
-LoadFinishTime: 2021-05-31 21:06:49
-           URL: http://worker1:20888/proxy/application_1622453682723_0025/
-    JobDetails: {"Unfinished backends":{"00000000-0000-0000-0000-000000000000":[]},"ScannedRows":9999,"TaskNumber":1,"All backends":{"00000000-0000-0000-0000-000000000000":[-1]},"FileNumber":0,"FileSize":0}
-9 rows in set (0.00 sec)
+    CreateTime: 2021-09-27 15:01:10
+  EtlStartTime: 2021-09-27 15:01:27
+ EtlFinishTime: 2021-09-27 15:02:02
+ LoadStartTime: 2021-09-27 15:02:02
+LoadFinishTime: 2021-09-27 15:02:03
+           URL: http://worker1:20888/proxy/application_1632723836409_0002/
+    JobDetails: {"Unfinished backends":{"00000000-0000-0000-0000-000000000000":[]},"ScannedRows":10000,"TaskNumber":1,"All backends":{"00000000-0000-0000-0000-000000000000":[-1]},"FileNumber":0,"FileSize":0}
+3 rows in set (0.00 sec)
 ```
 
 ### Verification

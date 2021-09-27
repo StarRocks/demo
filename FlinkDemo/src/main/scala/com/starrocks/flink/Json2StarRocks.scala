@@ -65,7 +65,7 @@ object Json2StarRocks {
             .withProperty("load-url", "master1:8030")
             .withProperty("username", "root")
             .withProperty("password", "")
-            .withProperty("table-name", "demo2_flink_tb1")
+            .withProperty("table-name", "demo2_flink_tb2")
             .withProperty("database-name", "starrocks_demo")
             .withProperty("sink.properties.format", "json")
             .withProperty("sink.properties.strip_outer_array", "true")

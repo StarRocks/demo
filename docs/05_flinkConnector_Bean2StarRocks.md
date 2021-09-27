@@ -3,20 +3,19 @@
 ## DDL
 
 ```
-MySQL [starrocks_demo]> CREATE TABLE `starrocks_demo`.`demo2_flink_tb1` (
-    ->   `name` VARCHAR(100) NOT NULL COMMENT "姓名",
-    ->   `score` INT(2) NOT NULL COMMENT "得分"
-    -> ) ENGINE=OLAP
-    -> DUPLICATE KEY(`name`)
-    -> COMMENT "OLAP"
-    -> DISTRIBUTED BY HASH(`name`) BUCKETS 3
-    -> PROPERTIES (
-    -> "replication_num" = "1",
-    -> "in_memory" = "false",
-    -> "storage_format" = "V2"
-    -> );
-Query OK, 0 rows affected (0.11 sec)
-
+USE starrocks_demo;
+CREATE TABLE `starrocks_demo`.`demo2_flink_tb1` (
+   `name` VARCHAR(100) NOT NULL COMMENT "name",
+   `score` INT(2) NOT NULL COMMENT "score"
+) ENGINE=OLAP
+    DUPLICATE KEY(`name`)
+    COMMENT "OLAP"
+    DISTRIBUTED BY HASH(`name`) BUCKETS 3
+    PROPERTIES (
+    "replication_num" = "1",
+    "in_memory" = "false",
+    "storage_format" = "V2"
+);
 
 ```
 ## Performing
@@ -31,10 +30,10 @@ Query OK, 0 rows affected (0.11 sec)
 ~/app/flink-1.11.0/bin/flink run \
 -m yarn-cluster \
 --yarnname Demo \
--c com.starrocks.flink.Demo1 \
+-c com.starrocks.flink.Bean2StarRocks \
 -yjm 1048 -ytm 1048 \
 -ys 1 -d  \
-./demo.jar
+./StarRocks.jar
 ```
 flink ui
 ![05_flink_ui_1](imgs/05_flink_ui_1.png)
@@ -44,16 +43,14 @@ flink ui
 
 ```
 MySQL [starrocks_demo]> select * from demo2_flink_tb1 limit 5;
-+--------+-------+
-| name   | score |
-+--------+-------+
-| lebron |    43 |
-| lebron |    11 |
-| lebron |    42 |
-| lebron |    96 |
-| kobe   |    29 |
-+--------+-------+
-5 rows in set (0.08 sec)
++---------+-------+
+| name    | score |
++---------+-------+
+| lebron  |    37 |
+| kobe    |    48 |
+| stephen |    36 |
++---------+-------+
+3 rows in set (0.01 sec)
 
 MySQL [starrocks_demo]> select count(1) from demo2_flink_tb1;
 +----------+

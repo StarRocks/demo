@@ -52,15 +52,15 @@ Verify the result
 
 ```
 MySQL [starrocks_demo]> select * from demo1_spark_tb1 limit 5;
-+--------------------------+------------+------+--------+--------------+
-| site                     | date       | hour | minute | uid_list_str |
-+--------------------------+------------+------+--------+--------------+
-| https://www.starrocks.com/ | 2021-05-29 |   14 |     47 | 5282         |
-| https://www.starrocks.com/ | 2021-05-29 |   14 |     51 | 3157,7582    |
-| https://www.starrocks.com/ | 2021-05-29 |   14 |     55 | 2395,8287    |
-| https://www.starrocks.com/ | 2021-05-29 |   14 |     58 | 7021         |
-| https://www.starrocks.com/ | 2021-05-29 |   14 |     59 | 1041,9393    |
-+--------------------------+------------+------+--------+--------------+
++-----------------------------+------------+------+--------+--------------+
+| site                        | date       | hour | minute | uid_list_str |
++-----------------------------+------------+------+--------+--------------+
+| https://docs.starrocks.com/ | 2021-09-27 |    9 |     40 | 9855,9978    |
+| https://docs.starrocks.com/ | 2021-09-27 |    9 |     41 | 3503         |
+| https://docs.starrocks.com/ | 2021-09-27 |    9 |     43 | 9414,9970    |
+| https://docs.starrocks.com/ | 2021-09-27 |    9 |     45 | 5902         |
+| https://docs.starrocks.com/ | 2021-09-27 |    9 |     46 | 5827,6470    |
++-----------------------------+------------+------+--------+--------------+
 5 rows in set (0.01 sec)
 ```
 
@@ -87,7 +87,15 @@ PROPERTIES (
 ## Performing
 
 ### add spark-connector jar into the project
-![02_spark_idea1](./imgs/02_spark_idea1.png)
+```xml
+<dependency>
+    <groupId>com.starrocks.connector</groupId>
+    <artifactId>spark</artifactId>
+    <version>1.0.0</version>
+    <scope>system</scope>
+    <systemPath>${project.basedir}/src/main/resources/starrocks-spark2_2.11-1.0.0.jar</systemPath>
+</dependency>
+```
 
 ### Run the demo
 
@@ -101,16 +109,16 @@ Compile and run com.starrocks.spark.SparkConnector2StarRocks
 
 ```
 MySQL [starrocks_demo]> select * from demo1_spark_tb2 limit 5;
-+------+------------+------+--------+---------------------------+
-| uid  | date       | hour | minute | site                      |
-+------+------------+------+--------+---------------------------+
-|   10 | 2021-05-29 |   16 |     52 | https://docs.starrocks.com/ |
-|   17 | 2021-05-29 |   16 |     38 | https://www.starrocks.com/  |
-|   18 | 2021-05-29 |   15 |     30 | https://www.starrocks.com/  |
-|   18 | 2021-05-29 |   16 |     58 | https://www.starrocks.com/  |
-|   20 | 2021-05-29 |   16 |     34 | https://docs.starrocks.com/ |
-+------+------------+------+--------+---------------------------+
-5 rows in set (0.02 sec)
++------+------------+------+--------+------------------------------+
+| uid  | date       | hour | minute | site                         |
++------+------------+------+--------+------------------------------+
+|   18 | 2021-09-27 |   10 |     49 | https://www.starrocks.com/   |
+|   20 | 2021-09-27 |   10 |     42 | https://trial.starrocks.com/ |
+|   65 | 2021-09-27 |   10 |     44 | https://trial.starrocks.com/ |
+|   80 | 2021-09-27 |   10 |     41 | https://www.starrocks.com/   |
+|   97 | 2021-09-27 |   11 |     27 | https://trial.starrocks.com/ |
++------+------------+------+--------+------------------------------+
+5 rows in set (0.15 sec)
 ```
 
 # License

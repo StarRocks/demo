@@ -53,10 +53,7 @@ json   -->   flink-connector --->  StarRocks
 [flinkConnector_Sql2StarRocks](docs/07_flinkConnector_Sql2StarRocks.md) 
 ```
 flinkSql --> flink-connector -->  StarRocks 
-``` 
-
-## Chinese wiki
--> [Wiki list](docs/cn/README_cn.md) 
+```
 
 ## License
 

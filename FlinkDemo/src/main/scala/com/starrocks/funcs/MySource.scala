@@ -19,7 +19,7 @@ import org.apache.flink.types.Row
 import scala.util.Random
 
 /**
-  * 自定义数据源
+  * customised source
   */
 class MySource extends SourceFunction[Row]{
 

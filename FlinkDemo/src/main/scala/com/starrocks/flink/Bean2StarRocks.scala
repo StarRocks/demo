@@ -59,8 +59,8 @@ object Bean2StarRocks {
         StarRocksSink.sink(
           // the table structure
           TableSchema.builder()
-            .field("NAME", DataTypes.VARCHAR(20))
-            .field("SCORE", DataTypes.INT())
+            .field("name", DataTypes.VARCHAR(20))
+            .field("score", DataTypes.INT())
             .build(),
 
           /*

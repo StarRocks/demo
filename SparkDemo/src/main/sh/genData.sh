@@ -21,6 +21,6 @@ topic=$3
 
 echo "Sending time data to ${topic:=starrocks_t1_src} every ${interval:=15} seconds..."
 while true ; do
-  python demo1_data_gen.py  $lines| docker exec -i $id  kafka-console-producer --topic "${topic:=starrocks_t1_src}" --broker-list  localhost:9092
+  python ../py/demo1_data_gen.py  $lines| docker exec -i $id  kafka-console-producer --topic "${topic:=starrocks_t1_src}" --broker-list  localhost:9092
   sleep "${interval:=15}"
 done

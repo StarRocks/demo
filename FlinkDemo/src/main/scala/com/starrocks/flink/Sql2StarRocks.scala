@@ -49,7 +49,7 @@ object Sql2StarRocks {
         .uid("sourceStream-uid").name("sourceStream")
         .setParallelism(1)
 
-    val sourceTable = streamTableEnv.fromDataStream(source,'NAME,'SCORE)
+    val sourceTable = streamTableEnv.fromDataStream(source,'name,'score)
     streamTableEnv.createTemporaryView("sourceTable",sourceTable)
 
     /*
@@ -63,14 +63,14 @@ object Sql2StarRocks {
     streamTableEnv.executeSql(
       """
         |CREATE TABLE testTable(
-        |`NAME` VARCHAR,
-        |`SCORE` INT
+        |`name` VARCHAR,
+        |`score` INT
         |) WITH (
         |'connector' = 'starrocks',
         |'jdbc-url'='jdbc:mysql://master1:9030?starrocksdb_demo',
         |'load-url'='master1:8030',
-        |'database-name' = 'starrocksdb_demo',
-        |'table-name' = 'demo2_flink_tb1',
+        |'database-name' = 'starrocks_demo',
+        |'table-name' = 'demo2_flink_tb3',
         |'username' = 'root',
         |'password' = '',
         |'sink.buffer-flush.max-rows' = '1000000',
@@ -93,7 +93,7 @@ object Sql2StarRocks {
 
     streamTableEnv.executeSql(
       """
-        |insert into testTable select `NAME`,`SCORE` from sourceTable
+        |insert into testTable select `name`,`score` from sourceTable
       """.stripMargin)
 
 

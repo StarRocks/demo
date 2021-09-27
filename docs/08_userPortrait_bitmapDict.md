@@ -8,6 +8,31 @@
 > When calling function bitmap_dict, some intermediate temp hive tables will be generated automatically.
 > Submitting this job, needs write-privilege for hive tables.
 
+# Configurations
+
+- Configure soft links pointing to hadoop xml files
+
+- Bouncing your fe and be services to enable these configs
+
+```bash
+[root@master1 conf]# pwd
+/data/app/StarRocks-1.18.3/be/conf
+[root@master1 conf]# ll
+总用量 8
+-rw-r--r-- 1 1007 1007 2187 9月  27 14:33 be.conf
+-rw-r--r-- 1 1007 1007  952 9月  26 10:15 hadoop_env.sh
+lrwxrwxrwx 1 root root   48 9月  27 14:28 hdfs-site.xml -> /usr/local/hadoop-2.7.7/etc/hadoop/hdfs-site.xml
+lrwxrwxrwx 1 root root   51 9月  27 16:10 hive-site.xml -> /usr/local/apache-hive-3.1.1-bin/conf/hive-site.xml
+lrwxrwxrwx 1 root root   48 9月  27 14:28 yarn-site.xml -> /usr/local/hadoop-2.7.7/etc/hadoop/yarn-site.xml
+[root@master1 conf]# ll ../../fe/conf/
+总用量 8
+-rw-rw-r-- 1 1007 1007 2530 9月  27 14:21 fe.conf
+-rw-rw-r-- 1 1007 1007  952 9月  26 10:15 hadoop_env.sh
+lrwxrwxrwx 1 root root   48 9月  27 14:28 hdfs-site.xml -> /usr/local/hadoop-2.7.7/etc/hadoop/hdfs-site.xml
+lrwxrwxrwx 1 root root   51 9月  27 16:09 hive-site.xml -> /usr/local/apache-hive-3.1.1-bin/conf/hive-site.xml
+lrwxrwxrwx 1 root root   48 9月  27 14:28 yarn-site.xml -> /usr/local/hadoop-2.7.7/etc/hadoop/yarn-site.xml
+```
+
 
 # Data preparation
 
@@ -128,26 +153,26 @@ PROPERTIES
 ```
 MySQL [starrocks_demo]> show load\G
 *************************** 1. row ***************************
-         JobId: 26023
+         JobId: 13003
          Label: dict_t1
-         State: PENDING
-      Progress: ETL:0%; LOAD:0%
+         State: ETL
+      Progress: ETL:10%; LOAD:0%
           Type: SPARK
        EtlInfo: NULL
       TaskInfo: cluster:spark1; timeout(s):3600; max_filter_ratio:0.2
       ErrorMsg: NULL
-    CreateTime: 2021-07-15 21:28:19
-  EtlStartTime: NULL
+    CreateTime: 2021-09-27 16:22:01
+  EtlStartTime: 2021-09-27 16:22:14
  EtlFinishTime: NULL
  LoadStartTime: NULL
 LoadFinishTime: NULL
-           URL: NULL
+           URL: http://worker1:20888/proxy/application_1632723836409_0007/
     JobDetails: {"Unfinished backends":{},"ScannedRows":0,"TaskNumber":0,"All backends":{},"FileNumber":0,"FileSize":0}
-1 row in set (0.00 sec)
+1 rows in set (0.01 sec)
 
 MySQL [starrocks_demo]> show load\G
 *************************** 1. row ***************************
-         JobId: 26023
+         JobId: 13003
          Label: dict_t1
          State: FINISHED
       Progress: ETL:100%; LOAD:100%
@@ -155,23 +180,16 @@ MySQL [starrocks_demo]> show load\G
        EtlInfo: unselected.rows=0; dpp.abnorm.ALL=0; dpp.norm.ALL=5
       TaskInfo: cluster:spark1; timeout(s):3600; max_filter_ratio:0.2
       ErrorMsg: NULL
-    CreateTime: 2021-07-15 21:28:19
-  EtlStartTime: 2021-07-15 21:28:46
- EtlFinishTime: 2021-07-15 21:30:20
- LoadStartTime: 2021-07-15 21:30:20
-LoadFinishTime: 2021-07-15 21:30:24
-           URL: http://worker1:20888/proxy/application_1626355110687_0002/
+    CreateTime: 2021-09-27 16:22:01
+  EtlStartTime: 2021-09-27 16:22:14
+ EtlFinishTime: 2021-09-27 16:23:41
+ LoadStartTime: 2021-09-27 16:23:41
+LoadFinishTime: 2021-09-27 16:23:42
+           URL: http://worker1:20888/proxy/application_1632723836409_0007/
     JobDetails: {"Unfinished backends":{"00000000-0000-0000-0000-000000000000":[]},"ScannedRows":5,"TaskNumber":1,"All backends":{"00000000-0000-0000-0000-000000000000":[-1]},"FileNumber":0,"FileSize":0}
-1 row in set (0.04 sec)
+1 rows in set (0.01 sec)
 ```
 
-## Yarn job
-
-![yarnJob](imgs/08_bitmap_dict_1.png)
-
-## Spark job
-
-![sparkJob](imgs/08_bitmap_dict_2.png)
 
 ## Verification
 
@@ -202,50 +220,12 @@ MySQL [starrocks_demo]> select k1, bitmap_to_string(uuid) from dict_t1;
 
 # FYI 
 
-- hive temp tables are generated automatically
+hive temp tables with below keywords will be generated automatically;
 
-```
-hive (default)> show tables;
-OK
-tab_name
-starrocks_distinct_key_table_26014_26024
-starrocks_global_dict_table_26014
-starrocks_intermediate_hive_table_26014_26024
-hive_dict_t1
+- the one with `_global_dict_table_` keyword holds uuid globally which shouldn't be dropped;
 
+- other ones are intermediate, with `_distinct_key_table_` and `_intermediate_hive_table_`, can be cleaned manually 
 
-hive (default)> select * from starrocks_distinct_key_table_26014_26024;
-OK
-starrocks_distinct_key_table_26014_26024.dict_key        starrocks_distinct_key_table_26014_26024.dict_column
-u3        uuid
-u4        uuid
-u5        uuid
-u1        uuid
-u2        uuid
-Time taken: 1.335 seconds, Fetched: 5 row(s)
-
-
-hive (default)> select * from starrocks_global_dict_table_26014;
-OK
-starrocks_global_dict_table_26014.dict_key        starrocks_global_dict_table_26014.dict_value        starrocks_global_dict_table_26014.dict_column
-u1        1        uuid
-u2        2        uuid
-u3        3        uuid
-u4        4        uuid
-u5        5        uuid
-Time taken: 0.143 seconds, Fetched: 5 row(s)
-
-
-hive (default)> select * from starrocks_intermediate_hive_table_26014_26024;
-OK
-starrocks_intermediate_hive_table_26014_26024.k1        starrocks_intermediate_hive_table_26014_26024.uuid
-k3        3
-k4        4
-k5        5
-k1        1
-k2        2
-Time taken: 0.126 seconds, Fetched: 5 row(s)
-```
 
 ## License
 
