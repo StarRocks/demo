@@ -67,7 +67,7 @@ object Sql2StarRocks {
         |`score` INT
         |) WITH (
         |'connector' = 'starrocks',
-        |'jdbc-url'='jdbc:mysql://master1:9030?starrocksdb_demo',
+        |'jdbc-url'='jdbc:mysql://master1:9030/starrocksdb_demo',
         |'load-url'='master1:8030',
         |'database-name' = 'starrocks_demo',
         |'table-name' = 'demo2_flink_tb3',

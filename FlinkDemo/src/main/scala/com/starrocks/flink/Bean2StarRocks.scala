@@ -72,7 +72,7 @@ object Bean2StarRocks {
           - TODO: customize above args to fit your environment.
           */
           StarRocksSinkOptions.builder()
-            .withProperty("jdbc-url", "jdbc:mysql://master1:9030?starrocks_demo")
+            .withProperty("jdbc-url", "jdbc:mysql://master1:9030/starrocks_demo")
             .withProperty("load-url", "master1:8030")
             .withProperty("username", "root")
             .withProperty("password", "")
