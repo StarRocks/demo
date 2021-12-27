@@ -18,14 +18,12 @@
 [root@master1 conf]# pwd
 /data/app/StarRocks-1.18.3/be/conf
 [root@master1 conf]# ll
-总用量 8
 -rw-r--r-- 1 1007 1007 2187 9月  27 14:33 be.conf
 -rw-r--r-- 1 1007 1007  952 9月  26 10:15 hadoop_env.sh
 lrwxrwxrwx 1 root root   48 9月  27 14:28 hdfs-site.xml -> /usr/local/hadoop-2.7.7/etc/hadoop/hdfs-site.xml
 lrwxrwxrwx 1 root root   51 9月  27 16:10 hive-site.xml -> /usr/local/apache-hive-3.1.1-bin/conf/hive-site.xml
 lrwxrwxrwx 1 root root   48 9月  27 14:28 yarn-site.xml -> /usr/local/hadoop-2.7.7/etc/hadoop/yarn-site.xml
 [root@master1 conf]# ll ../../fe/conf/
-总用量 8
 -rw-rw-r-- 1 1007 1007 2530 9月  27 14:21 fe.conf
 -rw-rw-r-- 1 1007 1007  952 9月  26 10:15 hadoop_env.sh
 lrwxrwxrwx 1 root root   48 9月  27 14:28 hdfs-site.xml -> /usr/local/hadoop-2.7.7/etc/hadoop/hdfs-site.xml
