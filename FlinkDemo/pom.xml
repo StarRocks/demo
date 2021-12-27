@@ -85,6 +85,13 @@
             <scope>${scope.mode}</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-java</artifactId>
+            <version>${flink.version}</version>
+            <scope>${scope.mode}</scope>
+        </dependency>
+             
         <!-- https://mvnrepository.com/artifact/com.alibaba.blink/flink-streaming-scala -->
         <dependency>
             <groupId>org.apache.flink</groupId>
