@@ -35,7 +35,7 @@ public class MySourceJava implements SourceFunction<Row> {
             for(String ele : eleList){
             ctx.collect(Row.of(ele, new Integer(random.nextInt())));
             }
-            // 休眠 5s，发送下一次数据
+            // collects every 5s
             Thread.sleep(5000);
         }
     }

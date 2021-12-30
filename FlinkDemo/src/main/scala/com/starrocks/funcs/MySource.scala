@@ -32,7 +32,7 @@ class MySource extends SourceFunction[Row]{
       for(ele <- eleList){
         ctx.collect(Row.of(ele,Int.box(Random.nextInt(100))))
       }
-      // 休眠 5s，发送下一次数据
+      // collects every 5s
       Thread.sleep(5000)
     }
   }
