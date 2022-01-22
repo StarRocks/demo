@@ -33,11 +33,9 @@ def main():
     Stream load Demo with Standard Lib requests
     """
     username, password = 'root', ''
-    secret = username + ":" + password
-    bs = "Basic %s" % str(base64.b64encode(secret.encode("utf-8")))
     headers={
         "Content-Type":  "text/html; charset=UTF-8",
-        "Authorization": bs,            # 'Basic cm9vdDo='
+        #"Content-Type":  "application/octet-stream",  # file upload
         "connection": "keep-alive",
         "max_filter_ratio": "0.2",
         "columns": "k,v",
@@ -49,7 +47,9 @@ def main():
     tablename = 'tb1'
     api = 'http://master1:8030/api/%s/%s/_stream_load' % (database, tablename)
     session = LoadSession()
+    session.auth = (username, password)
     response = session.put(url=api, headers=headers, data=payload)
+    #response = session.put(url=api, headers=headers, data= open("a.csv","rb")) # file upload
     print(response.json())
 
 
