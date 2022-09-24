@@ -6,7 +6,7 @@
 This project provides a bunch of code examples in relevant occasions,
 to help developers master the development process.
 
-![banner1](https://github.com/StarRocks/starrocks/blob/main/new_banner.png)
+![banner1](https://github.com/StarRocks/demo/blob/master/docs/imgs/new_banner.png)
 
 # 0. misc demo
 [MiscDemo](MiscDemo) folder involves miscellaneous code implementation in several different languages such as golang, java, nodejs, php, python and so forth.
