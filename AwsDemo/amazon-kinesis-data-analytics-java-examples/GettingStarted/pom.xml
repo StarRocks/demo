@@ -57,7 +57,7 @@
         <dependency>
             <groupId>com.starrocks</groupId>
             <artifactId>flink-connector-starrocks</artifactId>
-            <version>1.2.3_flink-1.15</version>
+            <version>1.2.6_flink-1.15</version>
         </dependency>
     </dependencies>
 

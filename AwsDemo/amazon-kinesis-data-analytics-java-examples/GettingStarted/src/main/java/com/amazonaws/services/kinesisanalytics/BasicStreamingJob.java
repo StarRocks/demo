@@ -98,12 +98,12 @@ public class BasicStreamingJob {
         }
 
         StarRocksSinkOptions.Builder builder = StarRocksSinkOptions.builder()
-                .withProperty("jdbc-url", outputProperties.getProperty("jdbc-url", "jdbc:mysql://172.31.0.2:9030"))
-                .withProperty("load-url", outputProperties.getProperty("load-url", "172.31.1.2:8040"))
+                .withProperty("jdbc-url", outputProperties.getProperty("jdbc-url", "jdbc:mysql://xxxxxxxx.cloud-app.celerdata.com:9030"))
+                .withProperty("load-url", outputProperties.getProperty("load-url", "https://xxxxxxxx.cloud-app.celerdata.com"))
                 .withProperty("username", outputProperties.getProperty("username", "admin"))
                 .withProperty("password", outputProperties.getProperty("password", "123456"))
-                .withProperty("table-name", outputProperties.getProperty("table-name", "users"))
-                .withProperty("database-name", outputProperties.getProperty("database-name", "test_db"))
+                .withProperty("database-name", outputProperties.getProperty("database-name", "example_db"))
+                .withProperty("table-name", outputProperties.getProperty("table-name", "stock"))
                 .withProperty("sink.properties.format", "json")
                 .withProperty("sink.properties.jsonpaths", "[\"event_time\", \"ticker\", \"price\"]")
                 // .withProperty("sink.properties.columns", "event_time, ticker, price")
