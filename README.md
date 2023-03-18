@@ -1,5 +1,5 @@
 
-# StarRocks Demo
+# StarRocks Demo / Proof of Value
 
 [![license](docs/imgs/starrocks.svg)](LICENSE)
 
