@@ -1,0 +1,89 @@
+version: "3"
+services:
+  starrocks-fe:
+    image: starrocks/fe-ubuntu:2.5.4
+    hostname: starrocks-fe
+    container_name: starrocks-fe
+    user: root
+    command:
+      /opt/starrocks/fe/bin/start_fe.sh
+    ports:
+      - 8030:8030
+      - 9020:9020
+      - 9030:9030
+    healthcheck:
+      test: 'mysql -uroot -h10.5.0.2 -P 9030 -e "show frontends\G" |grep "Alive: true"'
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+#      - fe.conf:/opt/starrocks/fe/conf/fe.conf
+      - ./starrocks/starrocks-fe/meta:/opt/starrocks/fe/meta
+      - ./starrocks/fe/log:/opt/starrocks/fe/log
+    networks:
+      network:
+        ipv4_address: 10.5.0.2
+
+  starrocks-be:
+    image: starrocks/be-ubuntu:2.5.4
+    command:
+      - /bin/bash
+      - -c
+      - |
+        sleep 15s; mysql --connect-timeout 2 -h starrocks-fe -P9030 -uroot -e "alter system add backend \"starrocks-be:9050\";"
+        /opt/starrocks/be/bin/start_be.sh
+    ports:
+      - 8040:8040
+    hostname: starrocks-be
+    container_name: starrocks-be
+    user: root
+    depends_on:
+      - starrocks-fe
+    healthcheck:
+      test: 'mysql -uroot -h10.5.0.2 -P 9030 -e "show backends\G" |grep "Alive: true"'
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+#      - be.conf:/opt/starrocks/be/conf/be.conf
+      - ./starrocks/starrocks-be/storage:/opt/starrocks/be/storage
+      - ./starrocks/starrocks-be/log:/opt/starrocks/be/log
+    networks:
+      network:
+        ipv4_address: 10.5.0.3
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.2
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      network:
+        ipv4_address: 10.5.0.4
+
+
+  kafka:
+      image: confluentinc/cp-kafka:7.3.2
+      container_name: broker
+      ports:
+        - 9092:9092
+      depends_on:
+        - zookeeper
+      environment:
+        KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+        KAFKA_LISTENERS: INTERNAL://0.0.0.0:9094,OUTSIDE://0.0.0.0:9092
+        KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker:9094,OUTSIDE://localhost:9092
+        KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,OUTSIDE:PLAINTEXT
+        KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      networks:
+        network:
+         ipv4_address: 10.5.0.5
+
+networks:
+  network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1

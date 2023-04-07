@@ -1,0 +1,99 @@
+version: "3"
+services:
+  minio:
+    container_name: starrocks-minio
+    image: minio/minio:latest
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "9001:9001"
+      - "9000:9000"
+    volumes:
+      - starrocks-miniodata:/minio_data
+    entrypoint: sh
+    command: '-c ''mkdir -p /minio_data/starrocks && minio server /minio_data --console-address ":9001"'''
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      network:
+        ipv4_address: 10.5.0.6
+
+  starrocks-fe:
+    image: starrocks/fe-ubuntu:3.0.0-rc01
+    hostname: starrocks-fe
+    container_name: starrocks-fe
+    user: root
+    command: >
+      bash -c "echo run_mode=shared_data >> /opt/starrocks/fe/conf/fe.conf &&
+      echo cloud_native_meta_port=6090 >> /opt/starrocks/fe/conf/fe.conf &&
+      echo aws_s3_path=starrocks >> /opt/starrocks/fe/conf/fe.conf &&
+      echo aws_s3_endpoint=minio:9000 >> /opt/starrocks/fe/conf/fe.conf &&
+      echo aws_s3_use_instance_profile=false >> /opt/starrocks/fe/conf/fe.conf &&
+      echo aws_s3_access_key=minioadmin >> /opt/starrocks/fe/conf/fe.conf &&
+      echo aws_s3_secret_key=minioadmin >> /opt/starrocks/fe/conf/fe.conf &&
+      sh /opt/starrocks/fe/bin/start_fe.sh"
+    ports:
+      - 8030:8030
+      - 9020:9020
+      - 9030:9030
+    healthcheck:
+      test: 'mysql -uroot -h10.5.0.2 -P 9030 -e "show frontends\G" |grep "Alive: true"'
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      - minio
+    volumes:
+      # - ./starrocks/starrocks-fe/conf:/opt/starrocks/fe/conf
+      - starrocks-fe-meta:/opt/starrocks/fe/meta
+      - starrocks-fe-log:/opt/starrocks/fe/log
+    networks:
+      network:
+        ipv4_address: 10.5.0.2
+
+  starrocks-be:
+    image: starrocks/be-ubuntu:3.0.0-rc01
+    command:
+      - /bin/bash
+      - -c
+      - |
+        sleep 15s; echo starlet_port = 8167 >> /opt/starrocks/be/conf/be.conf;
+        mysql --connect-timeout 2 -h starrocks-fe -P9030 -uroot -e "alter system add backend \"starrocks-be:9050\";"
+        /opt/starrocks/be/bin/start_be.sh
+    ports:
+      - 8040:8040
+    hostname: starrocks-be
+    container_name: starrocks-be
+    user: root
+    depends_on:
+      - starrocks-fe
+      - minio
+    healthcheck:
+      test: 'mysql -uroot -h10.5.0.2 -P 9030 -e "show backends\G" |grep "Alive: true"'
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+#      - be.conf:/opt/starrocks/be/conf/be.conf
+#      - starrocks-be-storage:/opt/starrocks/be/storage
+      - starrocks-be-log:/opt/starrocks/be/log
+    networks:
+      network:
+        ipv4_address: 10.5.0.3
+volumes:
+#  starrocks-be-storage:
+  starrocks-be-log:
+  starrocks-fe-meta:
+  starrocks-fe-log:
+  starrocks-miniodata:
+networks:
+  network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
