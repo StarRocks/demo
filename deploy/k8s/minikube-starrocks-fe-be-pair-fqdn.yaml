@@ -13,12 +13,13 @@
 # ```mermaid
 # stateDiagram
 #   state MiniKubeCluster {
-#      fe_deployment --> fe_service
-#      be_deployment --> be_service
-#      be_service --> fe_service
-#    }
-#  fe_service --> ExternalApp
-# ```
+#       fe_deployment --> fe_service
+#       be_deployment --> be_service
+#       be_deployment --> fe_deployment
+#       fe_deployment --> be_deployment
+#     }
+#   fe_service --> ExternalApp
+#  ```
 # 
 # ## Usage
 # 
