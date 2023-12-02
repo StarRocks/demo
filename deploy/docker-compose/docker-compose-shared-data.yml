@@ -9,8 +9,6 @@ services:
     ports:
       - "9001:9001"
       - "9000:9000"
-    # volumes:
-      # - starrocks-miniodata:/minio_data
     entrypoint: sh
     command: '-c ''mkdir -p /minio_data/starrocks && minio server /minio_data --console-address ":9001"'''
     networks:
@@ -42,10 +40,6 @@ services:
       retries: 3
     depends_on:
       - minio
-    # volumes:
-      # - ./starrocks/starrocks-fe/conf:/opt/starrocks/fe/conf
-      # - starrocks-fe-meta:/opt/starrocks/fe/meta
-      # - starrocks-fe-log:/opt/starrocks/fe/log
     networks:
       network:
         ipv4_address: 10.5.0.2
@@ -56,7 +50,7 @@ services:
       - /bin/bash
       - -c
       - |
-        sleep 15s; echo starlet_port = 8167 >> /opt/starrocks/cn/conf/cn.conf;
+        sleep 15s;
         mysql --connect-timeout 2 -h starrocks-fe -P9030 -uroot -e "ALTER SYSTEM ADD COMPUTE NODE \"starrocks-cn:9050\";"
         /opt/starrocks/cn/bin/start_cn.sh
     ports:
@@ -72,19 +66,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    # volumes:
-      # - be.conf:/opt/starrocks/be/conf/be.conf
-      # - starrocks-be-storage:/opt/starrocks/be/storage
-      # - starrocks-cn-log:/opt/starrocks/cn/log
     networks:
       network:
         ipv4_address: 10.5.0.3
-# volumes:
-  # starrocks-be-storage:
-  # starrocks-cn-log:
-  # starrocks-fe-meta:
-  # starrocks-fe-log:
-  # starrocks-miniodata:
 networks:
   network:
     driver: bridge
