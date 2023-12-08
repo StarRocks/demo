@@ -31,7 +31,11 @@ services:
       - /bin/bash
       - -c
       - |
-        sleep 15s;
+        echo "# Enable data cache"  >> /opt/starrocks/be/conf/be.conf
+        echo "block_cache_enable = true"  >> /opt/starrocks/be/conf/be.conf
+        echo "block_cache_mem_size = 536870912" >> /opt/starrocks/be/conf/be.conf
+        echo "block_cache_disk_size = 1073741824" >> /opt/starrocks/be/conf/be.conf
+        sleep 15s
         mysql --connect-timeout 2 -h starrocks-fe -P 9030 -u root -e "ALTER SYSTEM ADD BACKEND \"starrocks-be:9050\";"
         /opt/starrocks/be/bin/start_be.sh
     ports:
