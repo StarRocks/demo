@@ -28,7 +28,7 @@ services:
       echo aws_s3_endpoint=minio:9000 >> /opt/starrocks/fe/conf/fe.conf &&
       echo aws_s3_use_instance_profile=false >> /opt/starrocks/fe/conf/fe.conf &&
       echo cloud_native_storage_type=S3 >> /opt/starrocks/fe/conf/fe.conf &&
-      echo aws_s3_use_aws_sdk_default_behavior=false >> /opt/starrocks/fe/conf/fe.conf &&
+      echo aws_s3_use_aws_sdk_default_behavior=true >> /opt/starrocks/fe/conf/fe.conf &&
       sh /opt/starrocks/fe/bin/start_fe.sh"
     ports:
       - 8030:8030
