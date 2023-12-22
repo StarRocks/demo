@@ -13,6 +13,11 @@ services:
       # - starrocks-miniodata:/minio_data
     entrypoint: sh
     command: '-c ''mkdir -p /minio_data/starrocks && minio server /minio_data --console-address ":9001"'''
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       network:
         ipv4_address: 10.5.0.6
@@ -22,14 +27,17 @@ services:
     hostname: starrocks-fe
     container_name: starrocks-fe
     user: root
-    command: >
-      bash -c "echo run_mode=shared_data >> /opt/starrocks/fe/conf/fe.conf &&
-      echo aws_s3_path=starrocks >> /opt/starrocks/fe/conf/fe.conf &&
-      echo aws_s3_endpoint=minio:9000 >> /opt/starrocks/fe/conf/fe.conf &&
-      echo aws_s3_use_instance_profile=false >> /opt/starrocks/fe/conf/fe.conf &&
-      echo cloud_native_storage_type=S3 >> /opt/starrocks/fe/conf/fe.conf &&
-      echo aws_s3_use_aws_sdk_default_behavior=true >> /opt/starrocks/fe/conf/fe.conf &&
-      sh /opt/starrocks/fe/bin/start_fe.sh"
+    command:
+      - /bin/bash
+      - -c
+      - |
+        echo run_mode=shared_data >> /opt/starrocks/fe/conf/fe.conf
+        echo aws_s3_path=starrocks >> /opt/starrocks/fe/conf/fe.conf
+        echo aws_s3_endpoint=minio:9000 >> /opt/starrocks/fe/conf/fe.conf
+        echo aws_s3_use_instance_profile=false >> /opt/starrocks/fe/conf/fe.conf
+        echo cloud_native_storage_type=S3 >> /opt/starrocks/fe/conf/fe.conf
+        echo aws_s3_use_aws_sdk_default_behavior=true >> /opt/starrocks/fe/conf/fe.conf
+        /opt/starrocks/fe/bin/start_fe.sh
     ports:
       - 8030:8030
       - 9020:9020
