@@ -10,8 +10,6 @@ services:
     ports:
       - "9001:9001"
       - "9000:9000"
-    # volumes:
-      # - starrocks-miniodata:/minio_data
     entrypoint: sh
     command: '-c ''mkdir -p /minio_data/starrocks && minio server /minio_data --console-address ":9001"'''
     healthcheck:
@@ -24,6 +22,11 @@ services:
         ipv4_address: 10.5.0.6
 
   minio_mc:
+    # This service is short lived, it does this:
+    # - starts up
+    # - checks to see if the MinIO service `minio` is ready
+    # - creates a MinIO Access Key that the StarRocks services will use
+    # - exits
     image: minio/mc:latest
     entrypoint:
       - sh
@@ -84,10 +87,6 @@ services:
       retries: 3
     depends_on:
       - minio
-    # volumes:
-      # - ./starrocks/starrocks-fe/conf:/opt/starrocks/fe/conf
-      # - starrocks-fe-meta:/opt/starrocks/fe/meta
-      # - starrocks-fe-log:/opt/starrocks/fe/log
     networks:
       network:
         ipv4_address: 10.5.0.2
@@ -114,19 +113,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    # volumes:
-      # - be.conf:/opt/starrocks/be/conf/be.conf
-      # - starrocks-be-storage:/opt/starrocks/be/storage
-      # - starrocks-cn-log:/opt/starrocks/cn/log
     networks:
       network:
         ipv4_address: 10.5.0.3
-# volumes:
-  # starrocks-be-storage:
-  # starrocks-cn-log:
-  # starrocks-fe-meta:
-  # starrocks-fe-log:
-  # starrocks-miniodata:
+
 networks:
   network:
     driver: bridge
