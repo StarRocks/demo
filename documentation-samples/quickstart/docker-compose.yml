@@ -36,7 +36,10 @@ services:
         done
 
         mc alias set myminio http://minio:9000 miniouser miniopassword
-        mc admin user svcacct add --access-key CCCCCCC --secret-key BBBBBBBBBBBBBBB myminio miniouser
+        mc admin user svcacct add --access-key AAAAAAAAAAAAAAAAAAAA \
+        --secret-key BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB \
+        myminio \
+        miniouser
     depends_on:
       - minio
     networks:
@@ -52,12 +55,25 @@ services:
       - /bin/bash
       - -c
       - |
-        echo run_mode=shared_data >> /opt/starrocks/fe/conf/fe.conf
-        echo aws_s3_path=starrocks >> /opt/starrocks/fe/conf/fe.conf
-        echo aws_s3_endpoint=minio:9000 >> /opt/starrocks/fe/conf/fe.conf
-        echo aws_s3_use_instance_profile=false >> /opt/starrocks/fe/conf/fe.conf
-        echo cloud_native_storage_type=S3 >> /opt/starrocks/fe/conf/fe.conf
-        echo aws_s3_use_aws_sdk_default_behavior=true >> /opt/starrocks/fe/conf/fe.conf
+        echo "# enable shared data, set storage type, set endpoint" >> /opt/starrocks/fe/conf/fe.conf
+        echo "run_mode = shared_data" >> /opt/starrocks/fe/conf/fe.conf
+        echo "cloud_native_storage_type = S3" >> /opt/starrocks/fe/conf/fe.conf
+        echo "aws_s3_endpoint = minio:9000" >> /opt/starrocks/fe/conf/fe.conf
+
+        echo "# set the path in MinIO" >> /opt/starrocks/fe/conf/fe.conf
+        echo "aws_s3_path = starrocks" >> /opt/starrocks/fe/conf/fe.conf
+
+        echo "# credentials for MinIO object read/write" >> /opt/starrocks/fe/conf/fe.conf
+        echo "aws_s3_access_key = AAAAAAAAAAAAAAAAAAAA" >> /opt/starrocks/fe/conf/fe.conf
+        echo "aws_s3_secret_key = BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB" >> /opt/starrocks/fe/conf/fe.conf
+        echo "aws_s3_use_instance_profile = false" >> /opt/starrocks/fe/conf/fe.conf
+        echo "aws_s3_use_aws_sdk_default_behavior = false" >> /opt/starrocks/fe/conf/fe.conf
+
+        echo "# Set this to false if you do not want default" >> /opt/starrocks/fe/conf/fe.conf
+        echo "# storage created in the object storage using" >> /opt/starrocks/fe/conf/fe.conf
+        echo "# the details provided above" >> /opt/starrocks/fe/conf/fe.conf
+        echo "enable_load_volume_from_conf = true" >> /opt/starrocks/fe/conf/fe.conf
+
         /opt/starrocks/fe/bin/start_fe.sh
     ports:
       - 8030:8030
