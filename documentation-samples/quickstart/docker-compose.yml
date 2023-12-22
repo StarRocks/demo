@@ -48,7 +48,7 @@ services:
         ipv4_address: 10.5.0.7
 
   starrocks-fe:
-    image: starrocks/fe-ubuntu:3.1-latest
+    image: starrocks/fe-ubuntu:3.2-latest
     hostname: starrocks-fe
     container_name: starrocks-fe
     user: root
@@ -92,7 +92,7 @@ services:
         ipv4_address: 10.5.0.2
 
   starrocks-cn:
-    image: starrocks/cn-ubuntu:3.1-latest
+    image: starrocks/cn-ubuntu:3.2-latest
     command:
       - /bin/bash
       - -c
