@@ -23,8 +23,9 @@ under the License.
 # How to use:
 
 - for Go 1.11 or higher
-	1. go build
-	2. ./client
+ 1. go mod download github.com/go-sql-driver/mysql
+ 2. go build
+ 3. ./client
 
 - before Go 1.11
 	1. copy client.go to your GOPATH/src
