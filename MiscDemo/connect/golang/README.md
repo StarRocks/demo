@@ -21,11 +21,12 @@ under the License.
 
 
 # How to use:
-=====for Go 1.11 or higher
+
+- for Go 1.11 or higher
 	1. go build
 	2. ./client
 
-=====before Go 1.11
+- before Go 1.11
 	1. copy client.go to your GOPATH/src
 	2. go get -u github.com/go-sql-driver/mysql
 	3. go build
