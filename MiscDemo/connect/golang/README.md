@@ -21,19 +21,48 @@ under the License.
 
 
 # How to use:
+> Tip
+>
+> Make sure that StarRocks is running and available on port 9030 with no root password, or edit `client.go`. This demo creates a database, loads data, queries the data, and drops the database. Take a look at `client.go` before you run it in case there is a conflict with existing data.
 
-- for Go 1.11 or higher
- 1. go mod download github.com/go-sql-driver/mysql
- 2. go build
- 3. ./client
+## for Go 1.11 or higher
+ 1. Get the go-sql-driver for MySQL
+    
+    ```bash
+    go mod download github.com/go-sql-driver/mysql
+    ```
+    
+ 2. Build
+    ```bash
+    go build
+    ```
+    
+ 3. Run the demo
+    
+    ```bash
+    ./client
+    ```
+### Expected output:
 
-- before Go 1.11
+```plaintext
+connect to starrocks successfully
+create database successfully
+set db context successfully
+create table successfully
+insert data successfully
+1	2	7
+4	5	6
+query data successfully
+drop database successfully
+```
+
+## before Go 1.11
 	1. copy client.go to your GOPATH/src
 	2. go get -u github.com/go-sql-driver/mysql
 	3. go build
 	4. ./client
 
-# What can this demo do:
+## What can this demo do:
 	This is a golang demo for starrocks client, you can test basic function such as
 	connection, CRUD of your starrocks.
 
