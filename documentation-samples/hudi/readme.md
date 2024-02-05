@@ -1,4 +1,4 @@
-### Demo of StarRocks using Hudi External Catalog on S3 + HMS
+### Demo of StarRocks using Hudi External Catalog on MinIO + HMS
 
 1. Start the environment
 
