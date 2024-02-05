@@ -4,7 +4,7 @@
 
 `docker-compose up`
 
-2. Create the S3 bucket for Apache Hudi files
+2. Create the bucket for Apache Hudi files
 
 Go to http://localhost:9000/ and login with admin:password and create the bucket `huditest`
 
