@@ -123,6 +123,7 @@ services:
 
   spark-hudi:
     image: 'ghcr.io/trinodb/testing/spark3-hudi:latest'
+    platform: linux/amd64
     hostname: spark-hudi 
     depends_on:
       hive-metastore:
