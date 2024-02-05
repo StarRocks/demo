@@ -2,7 +2,7 @@
 
 1. Start the environment
 
-`docker-compose up`
+`docker compose up --detach --wait --wait-timeout 60`
 
 2. Create the bucket for Apache Hudi files
 
