@@ -130,12 +130,20 @@ services:
         condition: service_healthy
       minio:
         condition: service_started
+    ports:
+      - 4041:4041
+      - 4042:4042
+      - 4043:4043
     volumes:
       - ./conf/spark-defaults.conf:/spark-3.2.1-bin-hadoop3.2/conf/spark-defaults.conf:ro
       - ./conf/core-site.xml:/spark-3.2.1-bin-hadoop3.2/conf/core-site.xml:ro
+      - ./conf/hadoop-metrics2-s3a-file-system.properties:/spark-3.2.1-bin-hadoop3.2/conf/hadoop-metrics2-s3a-file-system.properties:ro
+      - ./conf/hadoop-metrics2-hbase.properties:/spark-3.2.1-bin-hadoop3.2/conf/hadoop-metrics2-hbase.properties:ro
+      - ./conf/hudi-defaults.conf:/etc/hudi/conf/hudi-defaults.conf:ro
     environment:
       MINIO_ACCESS_KEY: admin
       MINIO_SECRET_KEY: password
+      HUDI_CONF_DIR: /etc/hudi/conf
 
 volumes:
   hive-metastore-postgresql:
