@@ -135,6 +135,7 @@ services:
     volumes:
       - ./conf/spark-defaults.conf:/spark-3.2.1-bin-hadoop3.2/conf/spark-defaults.conf:ro
       - ./conf/core-site.xml:/spark-3.2.1-bin-hadoop3.2/conf/core-site.xml:ro
+      - ./conf/hadoop-metrics2-s3a-file-system.properties:/spark-3.2.1-bin-hadoop3.2/conf/hadoop-metrics2-s3a-file-system.properties:ro
     environment:
       MINIO_ACCESS_KEY: admin
       MINIO_SECRET_KEY: password
