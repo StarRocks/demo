@@ -145,9 +145,6 @@ services:
       MINIO_SECRET_KEY: password
       HUDI_CONF_DIR: /etc/hudi/conf
 
-volumes:
-  hive-metastore-postgresql:
-
 networks:
   default:
      name: hudi
