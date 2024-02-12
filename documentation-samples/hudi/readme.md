@@ -28,31 +28,33 @@ val schema = StructType( Array(
                  StructField("id", StringType, true)
              ))
 
-val rowData= Seq(Row("Java", "20000", "a"), 
-               Row("Python", "100000", "b"), 
+val rowData= Seq(Row("Java", "20000", "a"),
+               Row("Python", "100000", "b"),
                Row("Scala", "3000", "c"))
 
 
 val df = spark.createDataFrame(rowData,schema)
 
+val databaseName = "hudi_sample"
 val tableName = "hudi_coders_hive"
 val basePath = "s3a://huditest/hudi_coders"
 
 df.write.format("hudi").
-  option(TABLE_NAME, tableName).
+  option(org.apache.hudi.config.HoodieWriteConfig.TABLE_NAME, tableName).
   option(RECORDKEY_FIELD_OPT_KEY, "id").
   option(PARTITIONPATH_FIELD_OPT_KEY, "language").
   option(PRECOMBINE_FIELD_OPT_KEY, "users").
   option("hoodie.datasource.write.hive_style_partitioning", "true").
   option("hoodie.datasource.hive_sync.enable", "true").
   option("hoodie.datasource.hive_sync.mode", "hms").
-  option("hoodie.datasource.hive_sync.database", "default").
+  option("hoodie.datasource.hive_sync.database", databaseName).
   option("hoodie.datasource.hive_sync.table", tableName).
   option("hoodie.datasource.hive_sync.partition_fields", "language").
   option("hoodie.datasource.hive_sync.partition_extractor_class", "org.apache.hudi.hive.MultiPartKeysValueExtractor").
   option("hoodie.datasource.hive_sync.metastore.uris", "thrift://hive-metastore:9083").
   mode(Overwrite).
   save(basePath)
+System.exit(0)
 ```
 
 4. Have StarRocks connect to Hudi on S3
@@ -79,7 +81,7 @@ PROPERTIES
 
 set catalog hudi_catalog_hms;
 show databases;
-use default;
+use hudi_sample;
 show tables;
 select * from hudi_coders_hive;
 ```
@@ -87,11 +89,11 @@ select * from hudi_coders_hive;
 Output
 ```
 StarRocks > show tables;
-+-------------------+
-| Tables_in_default |
-+-------------------+
-| hudi_coders_hive  |
-+-------------------+
++-----------------------+
+| Tables_in_hudi_sample |
++-----------------------+
+| hudi_coders_hive      |
++-----------------------+
 1 row in set (0.00 sec)
 
 StarRocks > select * from hudi_coders_hive;
