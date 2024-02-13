@@ -17,9 +17,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      network:
-        ipv4_address: 10.5.0.6
 
   minio_mc:
     # This service is short lived, it does this:
@@ -43,9 +40,6 @@ services:
         miniouser
     depends_on:
       - minio
-    networks:
-      network:
-        ipv4_address: 10.5.0.7
 
   starrocks-fe:
     image: starrocks/fe-ubuntu:3.2-latest
@@ -81,15 +75,12 @@ services:
       - 9020:9020
       - 9030:9030
     healthcheck:
-      test: 'mysql -uroot -h10.5.0.2 -P 9030 -e "show frontends\G" |grep "Alive: true"'
+      test: 'mysql -u root -h starrocks-fe -P 9030 -e "show frontends\G" |grep "Alive: true"'
       interval: 10s
       timeout: 5s
       retries: 3
     depends_on:
       - minio
-    networks:
-      network:
-        ipv4_address: 10.5.0.2
 
   starrocks-cn:
     image: starrocks/cn-ubuntu:3.2-latest
@@ -109,18 +100,7 @@ services:
       - starrocks-fe
       - minio
     healthcheck:
-      test: 'mysql -uroot -h10.5.0.2 -P 9030 -e "SHOW COMPUTE NODES\G" |grep "Alive: true"'
+      test: 'mysql -u root -h starrocks-fe -P 9030 -e "SHOW COMPUTE NODES\G" |grep "Alive: true"'
       interval: 10s
       timeout: 5s
       retries: 3
-    networks:
-      network:
-        ipv4_address: 10.5.0.3
-
-networks:
-  network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 10.5.0.0/16
-          gateway: 10.5.0.1
