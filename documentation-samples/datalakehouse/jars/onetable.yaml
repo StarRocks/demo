@@ -1,0 +1,9 @@
+sourceFormat: HUDI
+targetFormats:
+  - DELTA
+  - ICEBERG
+datasets:
+  -
+    tableBasePath: s3://huditest/hudi-dataset/people  # replace this with gs://path/to/hudi-dataset/people if your data is in GCS. 
+    tableName: people
+    partitionSpec: city:VALUE

@@ -121,7 +121,7 @@ Validate the number of entries in user_behavior and item tables.
 
 5. Clean up
 
-No not run this until you're done with the tutorial.
+Do not run this until you're done with the tutorial.
 ```
 drop catalog hudi_catalog_hms;
 ```
