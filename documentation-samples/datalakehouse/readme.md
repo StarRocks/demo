@@ -119,7 +119,7 @@ select count(*) from item;
 ```
 Validate the number of entries in user_behavior and item tables.
 
-5. Use Onetable.dev to generate Iceberg and Delta Lake metadata
+5. [Optional] Use Onetable.dev to generate Iceberg and Delta Lake metadata
 
 Follow the instruction at https://onetable.dev/docs/setup/.   After runninng the maven command, it'll generate the utilities-0.1.0-SNAPSHOT-bundled.jar in `onetable/utilities/target/`.   Copy that jar file into the spark container.  To help with the copy, I've already mapped jars to <spark_container>/spark-3.2.1-bin-hadoop3.2/auxjars in the docker-compose yml. 
 
@@ -178,7 +178,7 @@ CREATE TABLE delta_db.user_behavior USING DELTA LOCATION 's3://huditest/hudi_eco
 CREATE TABLE delta_db.item USING DELTA LOCATION 's3://huditest/hudi_ecommerce_item';
 ```
 
-6. Connect to Iceberg
+6. [Optional] Connect to Iceberg
 
 Add the Iceberg External Catalog
 ```
@@ -202,7 +202,7 @@ use iceberg_db;
 show tables;
 ```
 
-7. Connect to Delta Lake
+7. [Optional] Connect to Delta Lake
 
 Add the Delta Lake External Catalog
 ```
