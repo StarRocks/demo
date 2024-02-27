@@ -4,6 +4,8 @@ targetFormats:
   - ICEBERG
 datasets:
   -
-    tableBasePath: s3://huditest/hudi-dataset/people  # replace this with gs://path/to/hudi-dataset/people if your data is in GCS. 
-    tableName: people
-    partitionSpec: city:VALUE
+    tableBasePath: s3://huditest/hudi_ecommerce_item 
+    tableName: item
+  -
+    tableBasePath: s3://huditest/hudi_ecommerce_user_behavior
+    tableName: user_behavior
