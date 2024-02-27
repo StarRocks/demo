@@ -89,6 +89,8 @@ services:
       - -c
       - |
         sleep 15s;
+        ulimit -u 65535;
+        ulimit -n 65535;
         mysql --connect-timeout 2 -h starrocks-fe -P9030 -uroot -e "ALTER SYSTEM ADD COMPUTE NODE \"starrocks-cn:9050\";"
         /opt/starrocks/cn/bin/start_cn.sh
     ports:
