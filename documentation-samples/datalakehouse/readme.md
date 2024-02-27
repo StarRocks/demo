@@ -1,7 +1,6 @@
 # Retail eCommerce Funnel Analysis Demo with 1 million members and 87 million record dataset using StarRocks | Demo of StarRocks using Hudi, Iceberg, Delta Lake External Catalog on MinIO + HMS + OneTable.dev
 
-![Screenshot 2024-02-21 at 11 41 42 AM](https://github.com/alberttwong/demo/assets/749093/5755c88b-ab77-4c35-9308-62b667112b34)
-
+![Screenshot 2024-02-27 at 9 00 26 AM](https://github.com/alberttwong/demo/assets/749093/d62334e9-2f5a-42ae-82e6-bfb8c3abde22)
 
 ## Environment Setup
 
