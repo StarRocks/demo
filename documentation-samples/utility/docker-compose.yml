@@ -58,12 +58,11 @@ services:
       timeout: 5s
       retries: 5
 
+  # `mc` is a CLI for MinIO. Use this container to run any `mc` commands.
+  # example, "docker compose exec minio_mc mc admin user svcacct add ..."
+  # The entrypoint below gives an example setting the alias `myminio` and
+  # adding a key AAAA... with a secret BBB...
   minio_mc:
-    # This service is short lived, it does this:
-    # - starts up
-    # - checks to see if the MinIO service `minio` is ready
-    # - creates a MinIO Access Key that the StarRocks services will use
-    # - exits
     image: minio/mc:latest
     entrypoint:
       - sh
@@ -78,6 +77,8 @@ services:
         --secret-key BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB \
         myminio \
         miniouser
+    command: sh
+    tty: true
     depends_on:
       minio:
         condition: service_healthy
