@@ -1,7 +1,6 @@
-# Retail eCommerce Funnel Analysis Demo with 1 million members and 87 million record dataset using StarRocks | Demo of StarRocks using Hudi External Catalog on MinIO + HMS
+# Retail eCommerce Funnel Analysis Demo with 1 million members and 87 million record dataset using StarRocks | Demo of StarRocks using Hudi, Iceberg, Delta Lake External Catalog on MinIO + HMS + OneTable.dev
 
-![Screenshot 2024-02-21 at 11 41 42 AM](https://github.com/alberttwong/demo/assets/749093/5755c88b-ab77-4c35-9308-62b667112b34)
-
+![Screenshot 2024-02-27 at 9 00 26 AM](https://github.com/alberttwong/demo/assets/749093/d62334e9-2f5a-42ae-82e6-bfb8c3abde22)
 
 ## Environment Setup
 
@@ -119,11 +118,120 @@ select count(*) from item;
 ```
 Validate the number of entries in user_behavior and item tables.
 
-5. Clean up
+5. [Optional] Use Onetable.dev to generate Iceberg and Delta Lake metadata
 
-No not run this until you're done with the tutorial.
+Follow the instruction at https://onetable.dev/docs/setup/.   After runninng the maven command, it'll generate the utilities-0.1.0-SNAPSHOT-bundled.jar in `onetable/utilities/target/`.   Copy that jar file into the spark container.  To help with the copy, I've already mapped jars to <spark_container>/spark-3.2.1-bin-hadoop3.2/auxjars in the docker-compose yml. 
+
+ > [!IMPORTANT]  
+>  You have to compile the onetable code right now to get the 600+ meg utilities-0.1.0-SNAPSHOT-bundled.jar file.   They're working on making it smaller but right now, there is no other option.
+
+Run the onetable utility to generate the open table format metadata.  Details are in the onetable.yaml.
+```
+export AWS_ACCESS_KEY_ID=admin
+export AWS_SECRET_ACCESS_KEY=password
+cd /spark-3.2.1-bin-hadoop3.2/auxjars
+java -jar utilities-0.1.0-SNAPSHOT-bundled.jar --datasetConfig onetable.yaml
+```
+
+Run spark-sql with Iceberg configs
+```
+yum install -y python3
+spark-sql --packages org.apache.iceberg:iceberg-spark-runtime-3.2_2.12:1.2.1 \
+--conf "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions" \
+--conf "spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkSessionCatalog" \
+--conf "spark.sql.catalog.spark_catalog.type=hive" \
+--conf "spark.sql.catalog.hive_prod=org.apache.iceberg.spark.SparkCatalog" \
+--conf "spark.sql.catalog.hive_prod.type=hive"
+```
+
+Register the Iceberg files into HMS
+```
+CREATE SCHEMA iceberg_db LOCATION 's3://warehouse/';
+
+CALL hive_prod.system.register_table(
+   table => 'hive_prod.iceberg_db.user_behavior',
+   metadata_file => 's3://huditest/hudi_ecommerce_user_behavior/metadata/v2.metadata.json'
+);
+
+CALL hive_prod.system.register_table(
+   table => 'hive_prod.iceberg_db.item',
+   metadata_file => 's3://huditest/hudi_ecommerce_item/metadata/v2.metadata.json'
+);
+```
+
+Run spark-sql with Delta Lake configs
+```
+yum install -y python3
+spark-sql --packages io.delta:delta-core_2.12:2.0.0 \
+--conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" \
+--conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" \
+--conf "spark.sql.catalogImplementation=hive"
+```
+
+Register the Delta Lake files into HMS
+```
+CREATE SCHEMA delta_db LOCATION 's3://warehouse/';
+
+CREATE TABLE delta_db.user_behavior USING DELTA LOCATION 's3://huditest/hudi_ecommerce_user_behavior';
+
+CREATE TABLE delta_db.item USING DELTA LOCATION 's3://huditest/hudi_ecommerce_item';
+```
+
+6. [Optional] Connect to Iceberg
+
+Add the Iceberg External Catalog
+```
+CREATE EXTERNAL CATALOG iceberg_catalog_hms
+PROPERTIES
+(
+    "type" = "iceberg",
+    "iceberg.catalog.type" = "hive",
+    "hive.metastore.uris" = "thrift://hive-metastore:9083",
+    "aws.s3.use_instance_profile" = "false",
+    "aws.s3.access_key" = "admin",
+    "aws.s3.secret_key" = "password",
+    "aws.s3.region" = "us-east-1",
+    "aws.s3.enable_ssl" = "false",
+    "aws.s3.enable_path_style_access" = "true",
+    "aws.s3.endpoint" = "http://minio:9000"
+);
+set catalog iceberg_catalog_hms;
+show databases;
+use iceberg_db;
+show tables;
+```
+
+7. [Optional] Connect to Delta Lake
+
+Add the Delta Lake External Catalog
+```
+CREATE EXTERNAL CATALOG deltalake_catalog_hms
+PROPERTIES
+(
+    "type" = "deltalake",
+    "hive.metastore.type" = "hive",
+    "hive.metastore.uris" = "thrift://hive-metastore:9083",
+    "aws.s3.use_instance_profile" = "false",
+    "aws.s3.access_key" = "admin",
+    "aws.s3.secret_key" = "password",
+    "aws.s3.region" = "us-east-1",
+    "aws.s3.enable_ssl" = "false",
+    "aws.s3.enable_path_style_access" = "true",
+    "aws.s3.endpoint" = "http://minio:9000"
+);
+set catalog deltalake_catalog_hms;
+show databases;
+use delta_db;
+show tables;
+```
+
+X. Clean up
+
+Do not run this until you're done with the tutorial.
 ```
 drop catalog hudi_catalog_hms;
+drop catalog iceberg_catalog_hms
+drop catalog deltalake_catalog_hms;
 ```
 
 # About the Scenario
