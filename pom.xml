@@ -11,6 +11,7 @@
     <modules>
         <module>SparkDemo</module>
         <module>FlinkDemo</module>
+        <module>BitMapDemo</module>
     </modules>
 
 
