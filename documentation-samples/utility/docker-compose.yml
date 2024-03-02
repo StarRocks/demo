@@ -64,22 +64,12 @@ services:
   # adding a key AAAA... with a secret BBB...
   minio_mc:
     image: minio/mc:latest
-    entrypoint:
-      - sh
-      - -c
-      - |
-        until mc ls minio > /dev/null 2>&1; do
-          sleep 0.5
-        done
-
-        mc alias set myminio http://minio:9000 miniouser miniopassword
-        mc admin user svcacct add --access-key AAAAAAAAAAAAAAAAAAAA \
-        --secret-key BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB \
-        myminio \
-        miniouser
-    command: sh
-    tty: true
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://minio:9000 miniouser miniopassword;
+      mc admin user svcacct add --access-key AAAAAAAAAAAAAAAAAAAA --secret-key BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB myminio miniouser;
+      tail -f /dev/null
+      "
     depends_on:
       minio:
         condition: service_healthy
-
