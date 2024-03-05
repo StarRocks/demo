@@ -13,7 +13,7 @@ Go to http://localhost:9000/ and login with admin:password and create the bucket
 
 3. Run the Spark Scala code to insert data
 
-Log into the spark-hudi container.   Run `/spark-3.2.1-bin-hadoop3.2/bin/spark-shell`.  Execute
+Log into the spark-hudi container.   Run `/spark-3.2.1-bin-hadoop3.2/bin/spark-shell`.  Please note that there are spark defaults already set via conf files and run the following to set additional spark configs. Execute
 
 ```
 import org.apache.spark.sql.functions._
