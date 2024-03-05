@@ -1,5 +1,9 @@
 ### Demo of StarRocks using Delta Lake External Catalog on MinIO + HMS
 
+![StarRocks Technical Overview](https://github.com/StarRocks/demo/assets/749093/aec4ee69-8b1c-49f4-814d-b90ad4a06f70)
+![Screenshot 2024-03-04 at 4 15 00 PM](https://github.com/StarRocks/demo/assets/749093/38899ca4-d5e8-4b40-befa-878fb71d63d5)
+
+
 1. Start the environment
 
 `docker compose up --detach --wait --wait-timeout 60`
