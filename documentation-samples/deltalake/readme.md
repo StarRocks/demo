@@ -3,6 +3,11 @@
 ![StarRocks Technical Overview](https://github.com/StarRocks/demo/assets/749093/aec4ee69-8b1c-49f4-814d-b90ad4a06f70)
 ![Screenshot 2024-03-04 at 4 15 00 PM](https://github.com/StarRocks/demo/assets/749093/38899ca4-d5e8-4b40-befa-878fb71d63d5)
 
+> [!NOTE]  
+>  We have more a more complex example/tutorial at https://github.com/StarRocks/demo/tree/master/documentation-samples/datalakehouse that shows you writing Hudi and then using Onetable.dev to convert Hudi into Apache Iceberg and Delta Lake and then querying the all 3 open table format types in StarRocks.
+
+> [!IMPORTANT]  
+>  Ensure that "Use Rosetta for x86/amd64 emulation on Apple Silicon" is enabled on your Docker Desktop.  You can find this setting in Setting -> General. 
 
 1. Start the environment
 
