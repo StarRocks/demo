@@ -10,7 +10,7 @@ Go to http://localhost:9000/ and login with admin:password and create the bucket
 
 3. Run the Spark SQL code to insert data
 
-Log into the spark container. There are spark defaults already set and run the following to set additional spark configs.  
+Log into the spark container. Please note that there are spark defaults already set via conf files and run the following to set additional spark configs.
 
 ```
 yum install -y python3
