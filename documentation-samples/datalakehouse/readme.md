@@ -25,7 +25,7 @@ Upload the 2 parquet files to the bucket `warehouse`.
 
 Log into the spark-hudi container.   
 
-Run `bash` to remove the older Hudi 0.11 library and use the Hudi 0.14.1
+Run `bash` to remove the older Hudi 0.11 library and use the Hudi 0.14.1.  Please note that there are spark defaults already set via conf files and run the following to set additional spark configs.
 ```
 rm -f /spark-3.2.1-bin-hadoop3.2/jars/hudi-spark3-bundle_2.12-0.11.1.jar
 export SPARK_VERSION=3.2
