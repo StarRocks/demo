@@ -1,8 +1,7 @@
 ### Demo of StarRocks using Hudi External Catalog on MinIO + HMS
 
 ![StarRocks Technical Overview](https://github.com/StarRocks/demo/assets/749093/b3262af7-ab7b-4c0a-b69c-1aa89cf1d30a)
-![Uploading Screenshot 2024-03-04 at 4.15.00 PM.png…]()
-
+![Screenshot 2024-03-04 at 4 15 00 PM](https://github.com/StarRocks/demo/assets/749093/a64cbdcd-cfef-46f1-9598-b049345965ad)
 
 > [!NOTE]  
 >  We have more a more complex example/tutorial at https://github.com/StarRocks/demo/tree/master/documentation-samples/datalakehouse that shows you writing Hudi and then using Onetable.dev to convert Hudi into Apache Iceberg and Delta Lake and then querying the all 3 open table format types in StarRocks.
