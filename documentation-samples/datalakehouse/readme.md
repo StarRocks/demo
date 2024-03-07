@@ -7,12 +7,10 @@
 > [!IMPORTANT]  
 >  Ensure that "Use Rosetta for x86/amd64 emulation on Apple Silicon" is enabled on your Docker Desktop.  You can find this setting in Setting -> General. 
 
+> [!IMPORTANT]  
+>  Set the memory in Docker Desktop. Setting -> Resources -> Memory Limit should we set at least 16GB.
 
 ## Environment Setup
-
-0. Set the memory in Docker Desktop
-
-Setting -> Resources -> Memory Limit should we set at least 16GB.
 
 1. Start the environment
 
