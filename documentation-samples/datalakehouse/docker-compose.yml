@@ -28,6 +28,8 @@ services:
       - /bin/bash
       - -c
       - |
+        ulimit -u 65535;
+        ulimit -n 65535;
         echo "# Enable data cache"  >> /opt/starrocks/be/conf/be.conf
         echo "block_cache_enable = true"  >> /opt/starrocks/be/conf/be.conf
         echo "block_cache_mem_size = 536870912" >> /opt/starrocks/be/conf/be.conf
