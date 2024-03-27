@@ -131,10 +131,8 @@ Follow the instruction at https://onetable.dev/docs/setup/.   After runninng the
 
 Run the onetable utility to generate the open table format metadata.  Details are in the onetable.yaml.
 ```
-export AWS_ACCESS_KEY_ID=admin
-export AWS_SECRET_ACCESS_KEY=password
 cd /spark-3.2.1-bin-hadoop3.2/auxjars
-java -jar utilities-0.1.0-SNAPSHOT-bundled.jar --datasetConfig onetable.yaml
+java -jar utilities-0.1.0-SNAPSHOT-bundled.jar --datasetConfig onetable.yaml -p ../conf/core-site.xml
 ```
 
 Run spark-sql with Iceberg configs
