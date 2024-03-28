@@ -124,7 +124,7 @@ Validate the number of entries in user_behavior and item tables.
 
 5. [Optional] Use Onetable.dev to generate Iceberg and Delta Lake metadata
 
-Follow the instruction at https://onetable.dev/docs/setup/.   After runninng the maven command, it'll generate the utilities-0.1.0-SNAPSHOT-bundled.jar in `onetable/utilities/target/`.   Copy that jar file into the spark container.  To help with the copy, I've already mapped jars to <spark_container>/spark-3.2.1-bin-hadoop3.2/auxjars in the docker-compose yml. 
+Follow the instruction at https://onetable.dev/docs/setup/.   After running the maven `mvn install -DskipTests` command, it'll generate the utilities-0.1.0-SNAPSHOT-bundled.jar in `onetable/utilities/target/`.   Copy that jar file into the spark container.  To help with the copy, I've already mapped jars to <spark_container>/spark-3.2.1-bin-hadoop3.2/auxjars in the docker-compose yml. 
 
  > [!IMPORTANT]  
 >  You have to compile the onetable code right now to get the 600+ meg utilities-0.1.0-SNAPSHOT-bundled.jar file.   They're working on making it smaller but right now, there is no other option.
