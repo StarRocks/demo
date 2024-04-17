@@ -148,6 +148,71 @@ services:
       MINIO_SECRET_KEY: password
       HUDI_CONF_DIR: /etc/hudi/conf
 
+  postgresql:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: example
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      postgresql:
+        condition: service_started
+
+  zookeeper:
+    image: quay.io/debezium/zookeeper:2.5
+    ports:
+      - 2181:2181
+      - 2888:2888
+      - 3888:3888
+    healthcheck:
+      test: bash -c "exec 6<> /dev/tcp/localhost/2181"
+
+  kafka:
+    image: quay.io/debezium/kafka:2.5
+    ports:
+      - 9092:9092
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+     - ZOOKEEPER_CONNECT=zookeeper:2181
+    healthcheck:
+      test: /kafka/bin/kafka-cluster.sh cluster-id --bootstrap-server kafka:9092 || exit 1
+      interval: 1s
+      timeout: 60s
+      retries: 60
+
+  connect:
+    image: quay.io/debezium/connect:2.5
+    ports: 
+      - 8083:8083
+    environment:
+      - BOOTSTRAP_SERVERS=kafka:9092
+      - GROUP_ID=1
+      - CONFIG_STORAGE_TOPIC=my_connect_configs
+      - OFFSET_STORAGE_TOPIC=my_connect_offsets
+      - STATUS_STORAGE_TOPIC=my_source_connect_statuses
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  starrocks-toolkit:
+    image: atwong/starrocks-tool-box
+    hostname: starrocks-toolkit
+    volumes:
+      - ./srtooldata:/home/data
+    entrypoint: >
+      /bin/sh -c "
+      tail -f /dev/null
+      "
+
 networks:
   default:
      name: hudi
