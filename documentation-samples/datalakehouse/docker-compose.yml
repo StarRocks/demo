@@ -142,19 +142,22 @@ services:
       - ./conf/hadoop-metrics2-s3a-file-system.properties:/spark-3.2.1-bin-hadoop3.2/conf/hadoop-metrics2-s3a-file-system.properties:ro
       - ./conf/hadoop-metrics2-hbase.properties:/spark-3.2.1-bin-hadoop3.2/conf/hadoop-metrics2-hbase.properties:ro
       - ./conf/hudi-defaults.conf:/etc/hudi/conf/hudi-defaults.conf:ro
-      - ./jars:/spark-3.2.1-bin-hadoop3.2/auxjars
+      - ./sparkjars:/spark-3.2.1-bin-hadoop3.2/auxjars
     environment:
       MINIO_ACCESS_KEY: admin
       MINIO_SECRET_KEY: password
       HUDI_CONF_DIR: /etc/hudi/conf
 
   postgresql:
-    image: postgres
+    image: quay.io/debezium/postgres:16
     restart: always
     environment:
-      POSTGRES_PASSWORD: example
-    volumes:
-      - ./pgdata:/var/lib/postgresql/data
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+#    volumes:
+#      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
 
   adminer:
     image: adminer
@@ -199,19 +202,27 @@ services:
       - CONFIG_STORAGE_TOPIC=my_connect_configs
       - OFFSET_STORAGE_TOPIC=my_connect_offsets
       - STATUS_STORAGE_TOPIC=my_source_connect_statuses
+      - CONNECT_PLUGIN_PATH=/kafka/connect,/opt/connectors
     depends_on:
       kafka:
         condition: service_healthy
+    volumes:
+      - ./kafkaconnectorsjar:/opt/connectors
 
   starrocks-toolkit:
     image: atwong/starrocks-tool-box
     hostname: starrocks-toolkit
     volumes:
       - ./srtooldata:/home/data
-    entrypoint: >
+    entrypoint: > 
       /bin/sh -c "
-      tail -f /dev/null
+      mysql -P 9030 -h starrocks-fe -u root -e \"create database demo\";
+      mysql -P 9030 -h starrocks-fe -u root -e \"ADMIN SET FRONTEND CONFIG ('default_replication_num' = '1');\";
+      tail -f /dev/null;
       "
+    depends_on:
+      starrocks-fe:
+        condition: service_healthy
 
 networks:
   default:

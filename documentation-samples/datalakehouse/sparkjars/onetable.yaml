@@ -1,0 +1,11 @@
+sourceFormat: HUDI
+targetFormats:
+  - DELTA
+  - ICEBERG
+datasets:
+  -
+    tableBasePath: s3://huditest/hudi_ecommerce_item 
+    tableName: item
+  -
+    tableBasePath: s3://huditest/hudi_ecommerce_user_behavior
+    tableName: user_behavior
