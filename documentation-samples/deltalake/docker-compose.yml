@@ -147,6 +147,21 @@ services:
       MINIO_SECRET_KEY: password
       HUDI_CONF_DIR: /etc/hudi/conf
 
+  starrocks-toolkit:
+    image: atwong/starrocks-tool-box
+    hostname: starrocks-toolkit
+    volumes:
+      - ./srtooldata:/home/data
+    entrypoint: > 
+      /bin/sh -c "
+      mysql -P 9030 -h starrocks-fe -u root -e \"create database demo\";
+      mysql -P 9030 -h starrocks-fe -u root -e \"ADMIN SET FRONTEND CONFIG ('default_replication_num' = '1');\";
+      tail -f /dev/null;
+      "
+    depends_on:
+      starrocks-fe:
+        condition: service_healthy
+
 networks:
   default:
      name: starrocks 
