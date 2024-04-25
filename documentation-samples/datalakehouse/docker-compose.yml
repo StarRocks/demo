@@ -137,12 +137,12 @@ services:
       - 4042:4042
       - 4043:4043
     volumes:
-      - ./conf/spark-defaults.conf:/spark-3.2.1-bin-hadoop3.2/conf/spark-defaults.conf:ro
-      - ./conf/core-site.xml:/spark-3.2.1-bin-hadoop3.2/conf/core-site.xml:ro
-      - ./conf/hadoop-metrics2-s3a-file-system.properties:/spark-3.2.1-bin-hadoop3.2/conf/hadoop-metrics2-s3a-file-system.properties:ro
-      - ./conf/hadoop-metrics2-hbase.properties:/spark-3.2.1-bin-hadoop3.2/conf/hadoop-metrics2-hbase.properties:ro
-      - ./conf/hudi-defaults.conf:/etc/hudi/conf/hudi-defaults.conf:ro
-      - ./sparkjars:/spark-3.2.1-bin-hadoop3.2/auxjars
+      - ./spark-conf/spark-defaults.conf:/spark-3.2.1-bin-hadoop3.2/conf/spark-defaults.conf:ro
+      - ./spark-conf/core-site.xml:/spark-3.2.1-bin-hadoop3.2/conf/core-site.xml:ro
+      - ./spark-conf/hadoop-metrics2-s3a-file-system.properties:/spark-3.2.1-bin-hadoop3.2/conf/hadoop-metrics2-s3a-file-system.properties:ro
+      - ./spark-conf/hadoop-metrics2-hbase.properties:/spark-3.2.1-bin-hadoop3.2/conf/hadoop-metrics2-hbase.properties:ro
+      - ./spark-conf/hudi-defaults.conf:/etc/hudi/conf/hudi-defaults.conf:ro
+      - ./spark-jars:/spark-3.2.1-bin-hadoop3.2/auxjars
     environment:
       MINIO_ACCESS_KEY: admin
       MINIO_SECRET_KEY: password
@@ -169,7 +169,7 @@ services:
         condition: service_started
 
   zookeeper:
-    image: quay.io/debezium/zookeeper:2.5
+    image: quay.io/debezium/zookeeper:2.6
     ports:
       - 2181:2181
       - 2888:2888
@@ -178,36 +178,45 @@ services:
       test: bash -c "exec 6<> /dev/tcp/localhost/2181"
 
   kafka:
-    image: quay.io/debezium/kafka:2.5
+    image: quay.io/debezium/kafka:2.6
     ports:
       - 9092:9092
+      - 29094:29094
     depends_on:
       zookeeper:
         condition: service_healthy
     environment:
-     - ZOOKEEPER_CONNECT=zookeeper:2181
+      ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: LISTENER_BOB://kafka:29092,LISTENER_FRED://kafka:9092,LISTENER_ALICE://kafka:29094
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_BOB://kafka:29092,LISTENER_FRED://localhost:9092,LISTENER_ALICE://never-gonna-give-you-up:29094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_BOB:PLAINTEXT,LISTENER_FRED:PLAINTEXT,LISTENER_ALICE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_BOB
     healthcheck:
-      test: /kafka/bin/kafka-cluster.sh cluster-id --bootstrap-server kafka:9092 || exit 1
+      test: /kafka/bin/kafka-cluster.sh cluster-id --bootstrap-server kafka:29092 || exit 1
       interval: 1s
       timeout: 60s
       retries: 60
 
   connect:
-    image: quay.io/debezium/connect:2.5
+    image: quay.io/debezium/connect:2.6
     ports: 
       - 8083:8083
+      - 5005:5005
     environment:
-      - BOOTSTRAP_SERVERS=kafka:9092
+      - BOOTSTRAP_SERVERS=kafka:29092
       - GROUP_ID=1
       - CONFIG_STORAGE_TOPIC=my_connect_configs
       - OFFSET_STORAGE_TOPIC=my_connect_offsets
       - STATUS_STORAGE_TOPIC=my_source_connect_statuses
       - CONNECT_PLUGIN_PATH=/kafka/connect,/opt/connectors
+      - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n"
+#      - KAFKA_DEBUG=y
+#      - DEBUG_SUSPEND_FLAG=y
     depends_on:
       kafka:
         condition: service_healthy
     volumes:
-      - ./kafkaconnectorsjar:/opt/connectors
+      - ./kafka-connect-connectors-jar:/opt/connectors
 
   starrocks-toolkit:
     image: atwong/starrocks-tool-box
@@ -226,4 +235,4 @@ services:
 
 networks:
   default:
-     name: hudi
+     name: lakehouse
