@@ -187,6 +187,7 @@ services:
         condition: service_healthy
     environment:
       ZOOKEEPER_CONNECT: zookeeper:2181
+# KAFKA LISTENERS ENV allow you to connect from host machine using localhost:9092 while docker compose kafka uses kafka:29092
       KAFKA_LISTENERS: LISTENER_BOB://kafka:29092,LISTENER_FRED://kafka:9092,LISTENER_ALICE://kafka:29094
       KAFKA_ADVERTISED_LISTENERS: LISTENER_BOB://kafka:29092,LISTENER_FRED://localhost:9092,LISTENER_ALICE://never-gonna-give-you-up:29094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_BOB:PLAINTEXT,LISTENER_FRED:PLAINTEXT,LISTENER_ALICE:PLAINTEXT
@@ -209,7 +210,10 @@ services:
       - OFFSET_STORAGE_TOPIC=my_connect_offsets
       - STATUS_STORAGE_TOPIC=my_source_connect_statuses
       - CONNECT_PLUGIN_PATH=/kafka/connect,/opt/connectors
+#      - CONNECT_LOG4J_LOGGERS=TRACE,stdout
+#      - LOG_LEVEL=DEBUG
       - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n"
+# KAFKA_DEBUG=y doesn't bind to all hostnames so you have to use JAVA_TOOL_OPTIONS
 #      - KAFKA_DEBUG=y
 #      - DEBUG_SUSPEND_FLAG=y
     depends_on:
@@ -217,6 +221,8 @@ services:
         condition: service_healthy
     volumes:
       - ./kafka-connect-connectors-jar:/opt/connectors
+      - /Users/atwong/sandbox/debezium-connector-jdbc/target/debezium-connector-jdbc:/kafka/connect/debezium-connector-jdbc
+#      ./kafka-conf/log4j.properties:/kafka/config/log4j.properties:ro
 
   starrocks-toolkit:
     image: atwong/starrocks-tool-box
@@ -226,7 +232,7 @@ services:
     entrypoint: > 
       /bin/sh -c "
       mysql -P 9030 -h starrocks-fe -u root -e \"create database demo\";
-      mysql -P 9030 -h starrocks-fe -u root -e \"ADMIN SET FRONTEND CONFIG ('default_replication_num' = '1');\";
+      mysql -P 9030 -h starrocks-fe -u root -e \"ADMIN SET FRONTEND CONFIG ('default_replication_num' = '1')\";
       tail -f /dev/null;
       "
     depends_on:
