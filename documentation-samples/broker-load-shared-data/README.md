@@ -82,7 +82,7 @@ From a command shell in the `demo/documentation-samples/broker-load-shared-data/
 python gen.py 5
 ```
 
-```json
+```plaintext
 b'{ "uid": 6926, "site": "https://docs.starrocks.io/", "vtime": 1718034793 } '
 b'{ "uid": 3303, "site": "https://www.starrocks.io/product/community", "vtime": 1718034793 } '
 b'{ "uid": 227, "site": "https://docs.starrocks.io/", "vtime": 1718034243 } '
