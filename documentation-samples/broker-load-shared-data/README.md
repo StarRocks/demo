@@ -113,3 +113,33 @@ select * from example_tbl2;
 +------+--------------------------------------------+------------+
 5 rows in set (0.07 sec)
 ```
+
+```SQL
+SHOW ROUTINE LOAD\G
+```
+
+```SQL
+*************************** 1. row ***************************
+                  Id: 10075
+                Name: example_tbl2_test2
+          CreateTime: 2024-06-10 15:53:30
+           PauseTime: NULL
+             EndTime: NULL
+              DbName: sr_hub
+           TableName: example_tbl2
+               State: RUNNING
+      DataSourceType: KAFKA
+      CurrentTaskNum: 1
+       JobProperties: {"partitions":"*","partial_update":"false","columnToColumnExpr":"*","maxBatchIntervalS":"10","partial_update_mode":"null","whereExpr":"*","dataFormat":"json","timezone":"Etc/UTC","format":"json","log_rejected_record_num":"0","taskTimeoutSecond":"60","json_root":"","maxFilterRatio":"1.0","strict_mode":"false","jsonpaths":"[\"$.uid\",\"$.site\",\"$.vtime\"]","taskConsumeSecond":"15","desireTaskConcurrentNum":"5","maxErrorNum":"0","strip_outer_array":"false","currentTaskConcurrentNum":"1","maxBatchRows":"200000"}
+DataSourceProperties: {"topic":"test2","currentKafkaPartitions":"0","brokerList":"redpanda:29092"}
+    CustomProperties: {"group.id":"example_tbl2_test2_9ce0e896-a17f-43ff-86e1-5e413c7baabf"}
+           Statistic: {"receivedBytes":392,"errorRows":0,"committedTaskNum":1,"loadedRows":5,"loadRowsRate":0,"abortedTaskNum":0,"totalRows":5,"unselectedRows":0,"receivedBytesRate":0,"taskExecuteTimeMs":535}
+            Progress: {"0":"9"}
+   TimestampProgress: {"0":"1718034896098"}
+ReasonOfStateChanged:
+        ErrorLogUrls:
+         TrackingSQL:
+            OtherMsg: [2024-06-10 16:08:02] [task id: cbd7a02a-1a94-4fab-b5fe-e6dffda8861a] [txn id: -1] there is no new data in kafka, wait for 10 seconds to schedule again
+LatestSourcePosition: {"0":"10"}
+1 row in set (0.01 sec)
+```
