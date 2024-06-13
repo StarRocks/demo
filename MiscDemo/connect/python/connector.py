@@ -88,7 +88,7 @@ except mysql.connector.Error as err:
 print("query data successfully")
 print("siteid\tcitycode\tpv")
 for (siteid, citycode, pv) in cursor:
-    print("{}\t{}\t{}").format(siteid, citycode, pv)
+    print("{}\t{}\t{}".format(siteid, citycode, pv))
 
 # drop database
 try:
