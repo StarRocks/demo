@@ -39,7 +39,8 @@ services:
         myminio \
         miniouser
     depends_on:
-      - minio
+        minio:
+          condition: service_healthy
 
   starrocks-fe:
     image: starrocks/fe-ubuntu:3.2-latest
@@ -80,7 +81,8 @@ services:
       timeout: 5s
       retries: 3
     depends_on:
-      - minio
+        minio:
+            condition: service_healthy
 
   starrocks-cn:
     image: starrocks/cn-ubuntu:3.2-latest
