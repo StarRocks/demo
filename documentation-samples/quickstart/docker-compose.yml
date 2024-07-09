@@ -69,7 +69,7 @@ services:
         echo "# the details provided above" >> /opt/starrocks/fe/conf/fe.conf
         echo "enable_load_volume_from_conf = true" >> /opt/starrocks/fe/conf/fe.conf
 
-        /opt/starrocks/fe/bin/start_fe.sh
+        /opt/starrocks/fe/bin/start_fe.sh --host_type FQDN
     ports:
       - 8030:8030
       - 9020:9020
