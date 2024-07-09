@@ -39,7 +39,8 @@ services:
         myminio \
         miniouser
     depends_on:
-      - minio
+        minio:
+          condition: service_healthy
 
   starrocks-fe:
     image: starrocks/fe-ubuntu:3.2-latest
@@ -69,7 +70,7 @@ services:
         echo "# the details provided above" >> /opt/starrocks/fe/conf/fe.conf
         echo "enable_load_volume_from_conf = true" >> /opt/starrocks/fe/conf/fe.conf
 
-        /opt/starrocks/fe/bin/start_fe.sh
+        /opt/starrocks/fe/bin/start_fe.sh --host_type FQDN
     ports:
       - 8030:8030
       - 9020:9020
@@ -80,7 +81,8 @@ services:
       timeout: 5s
       retries: 3
     depends_on:
-      - minio
+        minio:
+            condition: service_healthy
 
   starrocks-cn:
     image: starrocks/cn-ubuntu:3.2-latest
