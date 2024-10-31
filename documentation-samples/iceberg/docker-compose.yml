@@ -6,7 +6,7 @@ services:
     container_name: starrocks-fe
     user: root
     command: |
-      sh /opt/starrocks/fe/bin/start_fe.sh --host_type FQDN
+      bash /opt/starrocks/fe/bin/start_fe.sh --host_type FQDN
     ports:
       - 8030:8030
       - 9020:9020
@@ -37,7 +37,7 @@ services:
         echo "block_cache_disk_size = 1073741824" >> /opt/starrocks/be/conf/be.conf
         sleep 15s
         mysql --connect-timeout 2 -h starrocks-fe -P 9030 -u root -e "ALTER SYSTEM ADD BACKEND \"starrocks-be:9050\";"
-        /opt/starrocks/be/bin/start_be.sh
+        bash /opt/starrocks/be/bin/start_be.sh
     ports:
       - 8040:8040
     hostname: starrocks-be
