@@ -1,14 +1,12 @@
-version: "3"
-
 services:
 
   starrocks-fe:
-    image: starrocks/fe-ubuntu:3.2-latest
+    image: starrocks/fe-ubuntu:3.3.5
     hostname: starrocks-fe
     container_name: starrocks-fe
     user: root
     command: |
-      sh /opt/starrocks/fe/bin/start_fe.sh
+      sh /opt/starrocks/fe/bin/start_fe.sh --host_type FQDN
     ports:
       - 8030:8030
       - 9020:9020
@@ -26,7 +24,7 @@ services:
       retries: 3
 
   starrocks-be:
-    image: starrocks/be-ubuntu:3.2-latest
+    image: starrocks/be-ubuntu:3.3.5
     command:
       - /bin/bash
       - -c
@@ -54,9 +52,11 @@ services:
       retries: 3
     networks:
       iceberg_net:
+    environment:
+      - HOST_TYPE=FQDN
 
   spark-iceberg:
-    image: tabulario/spark-iceberg
+    image: tabulario/spark-iceberg:3.5.1_1.5.0
     container_name: spark-iceberg
     build: spark/
     networks:
@@ -77,7 +77,7 @@ services:
       - 10000:10000
       - 10001:10001
   rest:
-    image: tabulario/iceberg-rest
+    image: tabulario/iceberg-rest:1.6.0
     container_name: iceberg-rest
     networks:
       iceberg_net:
@@ -93,7 +93,7 @@ services:
       - CATALOG_IO__IMPL=org.apache.iceberg.aws.s3.S3FileIO
       - CATALOG_S3_ENDPOINT=http://minio:9000
   minio:
-    image: minio/minio
+    image: minio/minio:RELEASE.2024-10-29T16-01-48Z
     container_name: minio
     environment:
       - MINIO_ROOT_USER=admin
@@ -110,7 +110,7 @@ services:
   mc:
     depends_on:
       - minio
-    image: minio/mc
+    image: minio/mc:RELEASE.2024-10-29T15-34-59Z
     container_name: mc
     networks:
       iceberg_net:
