@@ -19,7 +19,7 @@ services:
     volumes:
        - singleton_fe0_data:/opt/starrocks/fe/meta
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9030"]
+      test: ["CMD", "curl", "-f", "http://root:@localhost:8030"]
       interval: 5s
       timeout: 5s
       retries: 30
@@ -39,7 +39,9 @@ services:
     ports:
       - "8040:8040"
     depends_on:
-      - starrocks-fe-0
+      starrocks-fe-0:
+        condition: service_healthy
+      
     volumes:
       - singleton_be0_data:/opt/starrocks/be/storage
 
