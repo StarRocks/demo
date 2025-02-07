@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   minio:
     container_name: minio
