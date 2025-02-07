@@ -99,8 +99,10 @@ services:
     container_name: starrocks-cn
     user: root
     depends_on:
-      - starrocks-fe
-      - minio
+      starrocks-fe:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     healthcheck:
       test: 'mysql -u root -h starrocks-fe -P 9030 -e "SHOW COMPUTE NODES\G" |grep "Alive: true"'
       interval: 10s
