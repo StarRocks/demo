@@ -1,0 +1,110 @@
+services:
+
+  starrocks-fe:
+    image: starrocks/fe-ubuntu:3.3.5
+    hostname: starrocks-fe
+    container_name: starrocks-fe
+    user: root
+    command: |
+      bash /opt/starrocks/fe/bin/start_fe.sh --host_type FQDN
+    ports:
+      - 8030:8030
+      - 9020:9020
+      - 9030:9030
+    networks:
+      iceberg_net:
+    environment:
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=us-east-1
+    healthcheck:
+      test: 'mysql -u root -h starrocks-fe -P 9030 -e "SHOW FRONTENDS\G" |grep "Alive: true"'
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  starrocks-be:
+    image: starrocks/be-ubuntu:3.3.5
+    command:
+      - /bin/bash
+      - -c
+      - |
+        ulimit -u 65535;
+        ulimit -n 65535;
+        echo "# Enable data cache"  >> /opt/starrocks/be/conf/be.conf
+        echo "block_cache_enable = true"  >> /opt/starrocks/be/conf/be.conf
+        echo "block_cache_mem_size = 536870912" >> /opt/starrocks/be/conf/be.conf
+        echo "block_cache_disk_size = 1073741824" >> /opt/starrocks/be/conf/be.conf
+        sleep 15s
+        mysql --connect-timeout 2 -h starrocks-fe -P 9030 -u root -e "ALTER SYSTEM ADD BACKEND \"starrocks-be:9050\";"
+        bash /opt/starrocks/be/bin/start_be.sh
+    ports:
+      - 8040:8040
+    hostname: starrocks-be
+    container_name: starrocks-be
+    user: root
+    depends_on:
+      - starrocks-fe
+    healthcheck:
+      test: 'mysql -u root -h starrocks-fe -P 9030 -e "SHOW BACKENDS\G" |grep "Alive: true"'
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      iceberg_net:
+    environment:
+      - HOST_TYPE=FQDN
+
+  rest:
+    image: apache/iceberg-rest-fixture
+    container_name: iceberg-rest
+    networks:
+      iceberg_net:
+        aliases:
+          - iceberg-rest.minio
+    ports:
+      - 8181:8181
+    environment:
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=us-east-1
+      - CATALOG_WAREHOUSE=s3://warehouse/
+      - CATALOG_IO__IMPL=org.apache.iceberg.aws.s3.S3FileIO
+      - CATALOG_S3_ENDPOINT=http://minio:9000
+
+  minio:
+    image: minio/minio:RELEASE.2024-10-29T16-01-48Z
+    container_name: minio
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password
+      - MINIO_DOMAIN=minio
+    networks:
+      iceberg_net:
+        aliases:
+          - warehouse.minio
+    ports:
+      - 9001:9001
+      - 9000:9000
+    command: ["server", "/data", "--console-address", ":9001"]
+  mc:
+    depends_on:
+      - minio
+    image: minio/mc:RELEASE.2024-10-29T15-34-59Z
+    container_name: mc
+    networks:
+      iceberg_net:
+    environment:
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=us-east-1
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc config host add minio http://minio:9000 admin password) do echo '...waiting...' && sleep 1; done;
+      /usr/bin/mc rm -r --force minio/warehouse;
+      /usr/bin/mc mb minio/warehouse;
+      /usr/bin/mc policy set public minio/warehouse;
+      tail -f /dev/null
+      "
+networks:
+  iceberg_net:
