@@ -1,5 +1,3 @@
-version: "3"
-
 services:
 
   starrocks-fe:
@@ -42,7 +40,8 @@ services:
     hostname: starrocks-be
     user: root
     depends_on:
-      - starrocks-fe
+      starrocks-fe:
+        condition: service_healthy
     healthcheck:
       test: 'mysql -u root -h starrocks-fe -P 9030 -e "SHOW BACKENDS\G" |grep "Alive: true"'
       interval: 10s

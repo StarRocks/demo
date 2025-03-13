@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   starrocks-fe:
     image: starrocks/fe-ubuntu:3.2-latest

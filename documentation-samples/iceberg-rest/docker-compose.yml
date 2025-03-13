@@ -56,29 +56,8 @@ services:
     environment:
       - HOST_TYPE=FQDN
 
-  spark-iceberg:
-    image: tabulario/spark-iceberg:3.5.1_1.5.0
-    container_name: spark-iceberg
-    build: spark/
-    networks:
-      iceberg_net:
-    depends_on:
-      - rest
-      - minio
-    volumes:
-      - ./warehouse:/home/iceberg/warehouse
-      - ./notebooks:/home/iceberg/notebooks/notebooks
-    environment:
-      - AWS_ACCESS_KEY_ID=admin
-      - AWS_SECRET_ACCESS_KEY=password
-      - AWS_REGION=us-east-1
-    ports:
-      - 8888:8888
-      - 8080:8080
-      - 10000:10000
-      - 10001:10001
   rest:
-    image: tabulario/iceberg-rest:1.6.0
+    image: apache/iceberg-rest-fixture
     container_name: iceberg-rest
     networks:
       iceberg_net:
@@ -109,6 +88,12 @@ services:
       - 9001:9001
       - 9000:9000
     command: ["server", "/data", "--console-address", ":9001"]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   mc:
     depends_on:
       - minio
