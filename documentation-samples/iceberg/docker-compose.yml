@@ -77,8 +77,9 @@ services:
       - 8080:8080
       - 10000:10000
       - 10001:10001
+
   rest:
-    image: tabulario/iceberg-rest:1.6.0
+      image: apache/iceberg-rest-fixture:1.8.1
     container_name: iceberg-rest
     networks:
       iceberg_net:
