@@ -40,7 +40,7 @@ services:
       - minio
 
   starrocks-fe:
-    image: starrocks/fe-ubuntu:3.2-latest
+    image: starrocks/fe-ubuntu:3.5-latest
     hostname: starrocks-fe
     container_name: starrocks-fe
     user: root
@@ -81,7 +81,7 @@ services:
       - minio
 
   starrocks-cn:
-    image: starrocks/cn-ubuntu:3.2-latest
+    image: starrocks/cn-ubuntu:3.5-latest
     command:
       - /bin/bash
       - -c
