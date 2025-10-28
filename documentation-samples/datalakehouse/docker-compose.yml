@@ -49,7 +49,7 @@ services:
       retries: 3
 
   metastore_db:
-    image: postgres:11
+    image: postgres:17.5
     hostname: metastore_db
     environment:
       POSTGRES_USER: hive
@@ -148,7 +148,7 @@ services:
       HUDI_CONF_DIR: /etc/hudi/conf
 
   postgresql:
-    image: quay.io/debezium/postgres:16
+    image: quay.io/debezium/postgres:17
     restart: always
     environment:
       POSTGRES_PASSWORD: postgres
