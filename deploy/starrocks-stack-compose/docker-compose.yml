@@ -12,7 +12,7 @@ services:
     hostname: starrocks.local.com
     platform: "linux/amd64"
     # TODO: Replace image with any image your want to test
-    image: starrocks/allin1-ubuntu:3.5-latest
+    image: starrocks/allin1-ubuntu:4.0-latest
     restart: unless-stopped
     ports: # port mapping format "[host port]:[container port]", can be configured to your preferred port
       - "8030:8030"
