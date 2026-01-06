@@ -1,7 +1,6 @@
-version: "3.9"
 services:
   starrocks-fe-0:
-    image: starrocks/fe-ubuntu:latest
+    image: starrocks/fe-ubuntu:4.0-latest
     hostname: starrocks-fe-0
     container_name: starrocks-fe-0
     command:
@@ -19,13 +18,13 @@ services:
     volumes:
        - singleton_fe0_data:/opt/starrocks/fe/meta
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9030"]
+      test: ["CMD", "curl", "-f", "http://root:@localhost:8030"]
       interval: 5s
       timeout: 5s
       retries: 30
 
   starrocks-be-0:
-    image: starrocks/be-ubuntu:latest
+    image: starrocks/be-ubuntu:4.0-latest
     hostname: starrocks-be-0
     container_name: starrocks-be-0
     command:
@@ -39,7 +38,9 @@ services:
     ports:
       - "8040:8040"
     depends_on:
-      - starrocks-fe-0
+      starrocks-fe-0:
+        condition: service_healthy
+      
     volumes:
       - singleton_be0_data:/opt/starrocks/be/storage
 
