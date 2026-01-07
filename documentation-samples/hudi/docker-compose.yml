@@ -1,7 +1,7 @@
 services:
 
   starrocks-fe:
-    image: starrocks/fe-ubuntu:3.2-latest
+    image: starrocks/fe-ubuntu:4.0-latest
     hostname: starrocks-fe
     user: root
     command: |
@@ -21,7 +21,7 @@ services:
       retries: 3
 
   starrocks-be:
-    image: starrocks/be-ubuntu:3.2-latest
+    image: starrocks/be-ubuntu:4.0-latest
     command:
       - /bin/bash
       - -c
