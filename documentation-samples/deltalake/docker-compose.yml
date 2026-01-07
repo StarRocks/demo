@@ -49,7 +49,7 @@ services:
       retries: 3
 
   metastore_db:
-    image: postgres:11
+    image: postgres:17.5
     hostname: metastore_db
     environment:
       POSTGRES_USER: hive
