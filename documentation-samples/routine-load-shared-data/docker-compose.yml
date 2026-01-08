@@ -49,24 +49,9 @@ services:
       - /bin/bash
       - -c
       - |
-        echo "# enable shared data, set storage type, set endpoint" >> /opt/starrocks/fe/conf/fe.conf
+        echo "# enable the shared data run mode" >> /opt/starrocks/fe/conf/fe.conf
         echo "run_mode = shared_data" >> /opt/starrocks/fe/conf/fe.conf
         echo "cloud_native_storage_type = S3" >> /opt/starrocks/fe/conf/fe.conf
-        echo "aws_s3_endpoint = minio:9000" >> /opt/starrocks/fe/conf/fe.conf
-
-        echo "# set the path in MinIO" >> /opt/starrocks/fe/conf/fe.conf
-        echo "aws_s3_path = starrocks" >> /opt/starrocks/fe/conf/fe.conf
-
-        echo "# credentials for MinIO object read/write" >> /opt/starrocks/fe/conf/fe.conf
-        echo "aws_s3_access_key = AAAAAAAAAAAAAAAAAAAA" >> /opt/starrocks/fe/conf/fe.conf
-        echo "aws_s3_secret_key = BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB" >> /opt/starrocks/fe/conf/fe.conf
-        echo "aws_s3_use_instance_profile = false" >> /opt/starrocks/fe/conf/fe.conf
-        echo "aws_s3_use_aws_sdk_default_behavior = false" >> /opt/starrocks/fe/conf/fe.conf
-
-        echo "# Set this to false if you do not want default" >> /opt/starrocks/fe/conf/fe.conf
-        echo "# storage created in the object storage using" >> /opt/starrocks/fe/conf/fe.conf
-        echo "# the details provided above" >> /opt/starrocks/fe/conf/fe.conf
-        echo "enable_load_volume_from_conf = true" >> /opt/starrocks/fe/conf/fe.conf
 
         /opt/starrocks/fe/bin/start_fe.sh
     ports:
@@ -79,7 +64,8 @@ services:
       timeout: 5s
       retries: 3
     depends_on:
-      - minio
+        minio:
+          condition: service_healthy
 
   starrocks-cn:
     image: starrocks/cn-ubuntu:4.0-latest
