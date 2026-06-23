@@ -28,6 +28,8 @@ services:
       echo cloud_native_storage_type=S3 >> /opt/starrocks/fe/conf/fe.conf &&
       echo aws_s3_use_aws_sdk_default_behavior=true >> /opt/starrocks/fe/conf/fe.conf &&
       bash /opt/starrocks/fe/bin/start_fe.sh"
+    environment:
+      - HOST_TYPE=FQDN
     ports:
       - 8030:8030
       - 9020:9020
@@ -52,6 +54,8 @@ services:
         sleep 15s;
         mysql --connect-timeout 2 -h starrocks-fe -P9030 -uroot -e "ALTER SYSTEM ADD COMPUTE NODE \"starrocks-cn:9050\";"
         /opt/starrocks/cn/bin/start_cn.sh
+    environment:
+      - HOST_TYPE=FQDN
     ports:
       - 8040:8040
     hostname: starrocks-cn

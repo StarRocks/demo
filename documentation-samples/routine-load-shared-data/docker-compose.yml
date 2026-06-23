@@ -53,7 +53,7 @@ services:
         echo "run_mode = shared_data" >> /opt/starrocks/fe/conf/fe.conf
         echo "cloud_native_storage_type = S3" >> /opt/starrocks/fe/conf/fe.conf
 
-        /opt/starrocks/fe/bin/start_fe.sh
+        /opt/starrocks/fe/bin/start_fe.sh --host_type FQDN
     ports:
       - 8030:8030
       - 9020:9020
@@ -78,6 +78,8 @@ services:
         ulimit -n 65535;
         mysql --connect-timeout 2 -h starrocks-fe -P9030 -uroot -e "ALTER SYSTEM ADD COMPUTE NODE \"starrocks-cn:9050\";"
         /opt/starrocks/cn/bin/start_cn.sh
+    environment:
+      - HOST_TYPE=FQDN
     ports:
       - 8040:8040
     hostname: starrocks-cn
