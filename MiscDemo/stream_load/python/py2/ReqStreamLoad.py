@@ -40,7 +40,7 @@ def main():
         "max_filter_ratio": "0.2",
         "columns": "k,v",
         "column_separator": ',',
-        "Expect": "100-continue",
+        # requests does not properly support Expect: 100-continue with FE redirect.
     }
     payload = '''k1,v1\nk2,v2\nk3,v3'''
     database = 'starrocks_demo'
