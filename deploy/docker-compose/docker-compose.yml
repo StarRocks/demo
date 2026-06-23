@@ -40,9 +40,13 @@ services:
     depends_on:
       starrocks-fe-0:
         condition: service_healthy
-      
     volumes:
       - singleton_be0_data:/opt/starrocks/be/storage
+    healthcheck:
+      test: 'mysql -u root -h starrocks-fe-0 -P 9030 -e "SHOW BACKENDS\G" |grep "Alive: true"'
+      interval: 5s
+      timeout: 5s
+      retries: 30
 
 volumes:
   singleton_fe0_data:
