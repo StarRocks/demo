@@ -1,14 +1,11 @@
 ### Demo of StarRocks using Hudi External Catalog on MinIO + HMS
 
 ![StarRocks Technical Overview](https://github.com/StarRocks/demo/assets/749093/b3262af7-ab7b-4c0a-b69c-1aa89cf1d30a)
-<img width="564" alt="Screenshot 2024-03-06 at 9 51 16 PM" src="https://github.com/StarRocks/demo/assets/749093/a6ce8f3c-bd1f-4070-af48-3613a2181933">
+<img width="564" alt="Screenshot 2024-03-06 at 9 51 16 PM" src="https://github.com/StarRocks/demo/assets/749093/a6ce8f3c-bd1f-4070-af48-3613a2181933">
 
 
 > [!NOTE]  
 >  We have more a more complex example/tutorial at https://github.com/StarRocks/demo/tree/master/documentation-samples/datalakehouse that shows you writing Hudi and then using Onetable.dev to convert Hudi into Apache Iceberg and Delta Lake and then querying the all 3 open table format types in StarRocks.
-
-> [!IMPORTANT]  
->  Ensure that "Use Rosetta for x86/amd64 emulation on Apple Silicon" is enabled on your Docker Desktop.  You can find this setting in Setting -> General. 
 
 1. Start the environment
 
@@ -20,7 +17,7 @@ Go to http://localhost:9000/ and login with admin:password and create the bucket
 
 3. Run the Spark Scala code to insert data
 
-Log into the spark-hudi container.   Run `/spark-3.2.1-bin-hadoop3.2/bin/spark-shell`.  Please note that there are spark defaults already set via conf files and run the following to set additional spark configs. Execute
+Log into the spark-hudi container.   Run `/opt/spark/bin/spark-shell`.  Please note that there are spark defaults already set via conf files and run the following to set additional spark configs. Execute
 
 ```
 import org.apache.spark.sql.functions._

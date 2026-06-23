@@ -5,9 +5,6 @@
 ![Screenshot 2024-03-01 at 1 05 20 PM](https://github.com/StarRocks/demo/assets/749093/e810ae65-59b9-4edd-a8dd-87fe2edd4124)
 
 > [!IMPORTANT]  
->  Ensure that "Use Rosetta for x86/amd64 emulation on Apple Silicon" is enabled on your Docker Desktop.  You can find this setting in Setting -> General. 
-
-> [!IMPORTANT]  
 >  Set the memory in Docker Desktop. Setting -> Resources -> Memory Limit should we set at least 16GB.
 
 ## Environment Setup
@@ -28,14 +25,7 @@ Upload the 2 parquet files to the bucket `warehouse`.
 
 Log into the spark-hudi container.   
 
-Run `bash` to remove the older Hudi 0.11 library and use the Hudi 0.14.1.  Please note that there are spark defaults already set via conf files and run the following to set additional spark configs.
-```
-rm -f /spark-3.2.1-bin-hadoop3.2/jars/hudi-spark3-bundle_2.12-0.11.1.jar
-export SPARK_VERSION=3.2
-spark-shell --packages org.apache.hudi:hudi-spark$SPARK_VERSION-bundle_2.12:0.14.1 --driver-memory 16G
-```
-
-Run `/spark-3.2.1-bin-hadoop3.2/bin/spark-shell`.  Execute to load in 2 tables.
+Run `/opt/spark/bin/spark-shell --driver-memory 16G`.  Please note that there are spark defaults already set via conf files and run the following to set additional spark configs.
 
 ```
 import org.apache.hudi.QuickstartUtils._
@@ -124,15 +114,15 @@ Validate the number of entries in user_behavior and item tables.
 
 5. [Optional] Use Onetable.dev to generate Iceberg and Delta Lake metadata
 
-Follow the instruction at https://onetable.dev/docs/setup/.   After running the maven `mvn install -DskipTests` command, it'll generate the utilities-0.1.0-SNAPSHOT-bundled.jar in `onetable/utilities/target/`.   Copy that jar file into the spark container.  To help with the copy, I've already mapped jars to <spark_container>/spark-3.2.1-bin-hadoop3.2/auxjars in the docker-compose yml. 
+Follow the instruction at https://onetable.dev/docs/setup/.   After running the maven `mvn install -DskipTests` command, it'll generate the utilities-0.1.0-SNAPSHOT-bundled.jar in `onetable/utilities/target/`.   Copy that jar file into the spark container.  To help with the copy, I've already mapped jars to <spark_container>/opt/spark/auxjars in the docker-compose yml. 
 
  > [!IMPORTANT]  
 >  You have to compile the onetable code right now to get the 600+ meg utilities-0.1.0-SNAPSHOT-bundled.jar file.   They're working on making it smaller but right now, there is no other option.
 
 Run the onetable utility to generate the open table format metadata.  Details are in the onetable.yaml.
 ```
-cd /spark-3.2.1-bin-hadoop3.2/auxjars
-java -jar utilities-0.1.0-SNAPSHOT-bundled.jar --datasetConfig onetable.yaml -p ../conf/core-site.xml
+cd /opt/spark/auxjars
+java -jar utilities-0.1.0-SNAPSHOT-bundled.jar --datasetConfig onetable.yaml -p /opt/spark/conf/core-site.xml
 ```
 
 Run spark-sql with Iceberg configs
