@@ -1,7 +1,7 @@
 services:
 
   starrocks-fe:
-    image: starrocks/fe-ubuntu:4.0-latest
+    image: starrocks/fe-ubuntu:4.1-latest
     hostname: starrocks-fe
     user: root
     command: |
@@ -21,7 +21,7 @@ services:
       retries: 3
 
   starrocks-be:
-    image: starrocks/be-ubuntu:4.0-latest
+    image: starrocks/be-ubuntu:4.1-latest
     command:
       - /bin/bash
       - -c
@@ -157,6 +157,11 @@ services:
 #      - ./pgdata:/var/lib/postgresql/data
     ports:
       - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   adminer:
     image: adminer
@@ -165,7 +170,7 @@ services:
       - 8080:8080
     depends_on:
       postgresql:
-        condition: service_started
+        condition: service_healthy
 
   zookeeper:
     image: quay.io/debezium/zookeeper:2.6
@@ -218,10 +223,17 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+      postgresql:
+        condition: service_healthy
     volumes:
       - ./kafka-connect-connectors-jar:/opt/connectors
-      - ${DEBEZIUM_JDBC_CONNECTOR_PATH}:-./kafka-connect-connectors-jar}:/kafka/connect/debezium-connector-jdbc
+      - ${DEBEZIUM_JDBC_CONNECTOR_PATH:-./kafka-connect-connectors-jar}:/kafka/connect/debezium-connector-jdbc
 #      ./kafka-conf/log4j.properties:/kafka/config/log4j.properties:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs localhost:8083/connectors || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
 
   starrocks-toolkit:
     image: atwong/starrocks-tool-box
