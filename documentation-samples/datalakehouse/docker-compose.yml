@@ -220,7 +220,7 @@ services:
         condition: service_healthy
     volumes:
       - ./kafka-connect-connectors-jar:/opt/connectors
-      - /Users/atwong/sandbox/debezium-connector-jdbc/target/debezium-connector-jdbc:/kafka/connect/debezium-connector-jdbc
+      - ${DEBEZIUM_JDBC_CONNECTOR_PATH}:-./kafka-connect-connectors-jar}:/kafka/connect/debezium-connector-jdbc
 #      ./kafka-conf/log4j.properties:/kafka/config/log4j.properties:ro
 
   starrocks-toolkit:
