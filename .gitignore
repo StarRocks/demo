@@ -6,4 +6,5 @@ target/
 derby.log
 metastore_db/
 bak/
-
+__pycache__/
+*.pyc
