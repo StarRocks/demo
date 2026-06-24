@@ -11,13 +11,27 @@
 
 `docker compose up --detach --wait --wait-timeout 60`
 
-2. Create the bucket for Apache Hudi files
+2. (Optional) Browse the object store
 
-Go to http://localhost:9000/ and login with admin:password and create the bucket `huditest`
+The `huditest` bucket that Hudi writes to is created automatically by the `mc`
+init container when the stack starts, so there is nothing to do here. To browse
+it, open the MinIO console at http://localhost:9000/ and log in with `admin` /
+`password`.
 
 3. Run the Spark Scala code to insert data
 
-Log into the spark-hudi container.   Run `/opt/spark/bin/spark-shell`.  Please note that there are spark defaults already set via conf files and run the following to set additional spark configs. Execute
+Open a `spark-shell` in the `spark-hudi` container:
+
+```
+docker compose exec -it spark-hudi /opt/spark/bin/spark-shell
+```
+
+The required Spark settings (Kryo serializer, Hive metastore URI, and the
+S3A/MinIO credentials needed to read and write `s3a://huditest`) are already
+provided via `conf/spark-defaults.conf`. On the first launch Spark resolves the
+Hudi and `hadoop-aws` packages from Maven Central, which takes a minute or two.
+Once the `scala>` prompt appears, paste the following — it writes the table to
+MinIO, syncs it to the Hive metastore, and then exits the shell:
 
 ```
 import org.apache.spark.sql.functions._
