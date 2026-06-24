@@ -131,7 +131,7 @@ docker compose exec starrocks-fe mysql -h starrocks-fe -P 9030 -u root -e "
 The `warehouse` and `huditest` buckets are created automatically by the `mc`
 init container when the stack starts, so there is nothing to create by hand.
 
-Open the MinIO console at http://localhost:9000/ (login `admin` / `password`)
+Open the MinIO console at http://localhost:9000/ (login `admin` / `M!nIOR0cks`)
 and upload the 2 parquet files to the `warehouse` bucket:
 * https://cdn.starrocks.io/dataset/user_behavior_sample_data.parquet
 * https://cdn.starrocks.io/dataset/item_sample_data.parquet
@@ -141,14 +141,56 @@ and upload the 2 parquet files to the `warehouse` bucket:
 Open a `spark-shell` in the `spark-hudi` container:
 
 ```
-docker compose exec -it spark-hudi /opt/spark/bin/spark-shell --driver-memory 16G
+docker compose exec -it spark-hudi /opt/spark/bin/spark-shell --driver-memory 8G
 ```
 
 The required Spark settings (Kryo serializer, Hive metastore URI, and the
 S3A/MinIO credentials) are already provided via `spark-conf/spark-defaults.conf`.
 On the first launch Spark resolves the Hudi and `hadoop-aws` packages from Maven
-Central, which takes a minute or two. Once the `scala>` prompt appears, paste
-the following:
+Central, which takes a minute or two.
+
+The shell runs in local mode, so `--driver-memory 8G` is the memory available for the
+whole job. Keep it well under your Docker Desktop memory limit (set to at least 16 GB
+above), since StarRocks and the other services need their share too.
+
+Once the `scala>` prompt appears, the default log level is `WARN`, which prints a lot of
+runtime noise (including a harmless `MetricsConfig: Cannot locate configuration` warning)
+during the writes and queries. To quiet that down to errors only, run:
+
+```
+sc.setLogLevel("ERROR")
+```
+
+(Set it back to `"WARN"` or `"INFO"` if you ever need that output to debug.)
+
+> [!NOTE]
+> `setLogLevel` controls only the Spark/Hadoop runtime logging. A few warnings printed by
+> the JVM and the Scala REPL itself are *not* affected by it and are harmless — you will
+> still see things like `Unable to attach Serviceability Agent`, `Unable to get
+> Instrumentation`, and `warning: one deprecation` (from a deprecated Hudi import). These
+> are expected; ignore them.
+
+> [!IMPORTANT]
+> Enter each block below using the Scala REPL's **`:paste` mode**, not a plain paste.
+> The `df.write…save(basePath)` call is a single multi-line statement; if you paste it
+> line-by-line at the `scala>` prompt the REPL gets stuck in continuation mode (showing
+> `|` prompts) and the write never runs. With `:paste` the whole block compiles as one
+> unit. For each block:
+>
+> 1. Type `:paste` and press Enter.
+> 2. Paste the entire block.
+> 3. After pasting the commands, press `Return` and then `Ctrl-D` to compile and run it.
+> 4. Wait for the write to finish and the `scala>` prompt to return before starting the
+>    next block.
+
+> [!TIP]
+> The `user_behavior` write processes the full ~1.1 GB / 87-million-row parquet file as a
+> Hudi `bulk_insert`. The job appears to stall on a late Spark stage (around "stage 9")
+> for several minutes — this is normal, it is doing the work, not hung. The `item` table
+> is tiny by comparison and finishes quickly. Watch progress at the Spark UI on
+> http://localhost:4041.
+
+Load the first table (`user_behavior`):
 
 ```
 import org.apache.hudi.QuickstartUtils._
@@ -178,6 +220,8 @@ df.write.format("hudi").
   save(basePath)
 ```
 
+Then load the second table (`item`) the same way — `:paste`, paste the block, `Ctrl-D`:
+
 ```
 import org.apache.hudi.QuickstartUtils._
 import scala.collection.JavaConversions._
@@ -206,10 +250,29 @@ df.write.format("hudi").
   save(basePath)
 ```
 
+Both writes sync to the Hive metastore, so before moving on, confirm both Hudi tables
+were created and actually contain data (a common failure is the second block not running
+— see the `:paste` note above). List inside each table directory from the host:
+
+```
+docker compose exec mc mc ls minio/huditest/hudi_ecommerce_user_behavior/
+docker compose exec mc mc ls minio/huditest/hudi_ecommerce_item/
+```
+
+Each should list a `.hoodie/` metadata directory and one or more data files (the Hudi
+base/parquet files), confirming the table has data.
+
+> [!NOTE]
+> A top-level `docker compose exec mc mc ls minio/huditest` shows the table folders with a
+> size of `0B`. That is expected — those are object-store *prefixes*, not real objects, so
+> they always report `0B`. Listing *inside* a table directory (as above) shows the actual
+> data files and their sizes. If `hudi_ecommerce_item/` is missing or empty, re-run the
+> `item` block with `:paste`.
+
 4. Have StarRocks connect to Hudi on S3
 
 ```
-mysql -P 9030 -h 127.0.0.1 -u root --prompt="StarRocks > "
+docker compose exec -it starrocks-fe mysql -P 9030 -h starrocks-fe -u root --prompt="StarRocks > "
 ```
 ```
 CREATE EXTERNAL CATALOG hudi_catalog_hms
@@ -220,7 +283,7 @@ PROPERTIES
     "hive.metastore.uris" = "thrift://hive-metastore:9083",
     "aws.s3.use_instance_profile" = "false",
     "aws.s3.access_key" = "admin",
-    "aws.s3.secret_key" = "password",
+    "aws.s3.secret_key" = "M!nIOR0cks",
     "aws.s3.region" = "us-east-1",
     "aws.s3.enable_ssl" = "false",
     "aws.s3.enable_path_style_access" = "true",
@@ -234,6 +297,11 @@ select count(*) from user_behavior;
 select count(*) from item;
 ```
 Validate the number of entries in user_behavior and item tables.
+
+> [!TIP]
+> `user_behavior` has more than 87 million rows, and this first query is a cold read of
+> the Hudi table from object storage on a single backend — give it a few minutes to
+> return. It is not hung. Subsequent queries are faster as the StarRocks data cache warms up.
 
 5. [Optional] Use Apache XTable to generate Iceberg and Delta Lake metadata
 
@@ -335,7 +403,7 @@ PROPERTIES
     "hive.metastore.uris" = "thrift://hive-metastore:9083",
     "aws.s3.use_instance_profile" = "false",
     "aws.s3.access_key" = "admin",
-    "aws.s3.secret_key" = "password",
+    "aws.s3.secret_key" = "M!nIOR0cks",
     "aws.s3.region" = "us-east-1",
     "aws.s3.enable_ssl" = "false",
     "aws.s3.enable_path_style_access" = "true",
@@ -359,7 +427,7 @@ PROPERTIES
     "hive.metastore.uris" = "thrift://hive-metastore:9083",
     "aws.s3.use_instance_profile" = "false",
     "aws.s3.access_key" = "admin",
-    "aws.s3.secret_key" = "password",
+    "aws.s3.secret_key" = "M!nIOR0cks",
     "aws.s3.region" = "us-east-1",
     "aws.s3.enable_ssl" = "false",
     "aws.s3.enable_path_style_access" = "true",
