@@ -1,4 +1,7 @@
-See https://docs.starrocks.io/docs/quick_start/iceberg/
+# StarRocks with an Iceberg REST catalog
+
+This directory contains a `docker-compose.yml` that runs StarRocks alongside an
+Iceberg REST catalog backed by MinIO.
 
 ## Connecting from external clients
 
