@@ -8,3 +8,7 @@ metastore_db/
 bak/
 __pycache__/
 *.pyc
+
+# StarRocks Kafka connector JAR is downloaded by the user (see datalakehouse README),
+# not checked in, so it stays in sync with upstream releases.
+documentation-samples/datalakehouse/kafka-connect-connectors-jar/*.jar

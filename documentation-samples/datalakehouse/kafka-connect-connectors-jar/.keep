@@ -1,0 +1,3 @@
+Placeholder so this directory exists for the docker-compose bind mount.
+The StarRocks Kafka connector JAR is downloaded here by the user (see README);
+it is intentionally NOT checked in so it stays in sync with upstream releases.

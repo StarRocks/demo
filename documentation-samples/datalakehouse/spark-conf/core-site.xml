@@ -25,7 +25,7 @@
 
     <property>
         <name>fs.s3a.secret.key</name>
-        <value>password</value>
+        <value>M!nIOR0cks</value>
     </property>
 
     <property>
