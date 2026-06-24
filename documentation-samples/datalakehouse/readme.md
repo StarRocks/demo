@@ -1,11 +1,8 @@
-# Retail eCommerce Funnel Analysis Demo with 1 million members and 87 million record dataset using StarRocks | Demo of StarRocks using Hudi, Iceberg, Delta Lake External Catalog on MinIO + HMS + OneTable.dev
+# Retail eCommerce Funnel Analysis Demo with 1 million members and 87 million record dataset using StarRocks | Demo of StarRocks using Hudi, Iceberg, Delta Lake External Catalog on MinIO + HMS + Apache XTable
 
 ![StarRocks Technical Overview](https://github.com/StarRocks/demo/assets/749093/cf5aa363-2b31-4e3b-b9cd-fe94020d3071)
 
 ![Screenshot 2024-03-01 at 1 05 20 PM](https://github.com/StarRocks/demo/assets/749093/e810ae65-59b9-4edd-a8dd-87fe2edd4124)
-
-> [!IMPORTANT]  
->  Ensure that "Use Rosetta for x86/amd64 emulation on Apple Silicon" is enabled on your Docker Desktop.  You can find this setting in Setting -> General. 
 
 > [!IMPORTANT]  
 >  Set the memory in Docker Desktop. Setting -> Resources -> Memory Limit should we set at least 16GB.
@@ -54,26 +51,29 @@ DEBEZIUM_JDBC_CONNECTOR_PATH=/path/to/debezium-connector-jdbc
 
 `docker compose up --detach --wait --wait-timeout 60`
 
-2. Create the bucket for Apache Hudi files and upload files
+2. Upload the sample data
 
-Go to http://localhost:9000/ and login with admin:password and create the bucket `huditest`.
+The `warehouse` and `huditest` buckets are created automatically by the `mc`
+init container when the stack starts, so there is nothing to create by hand.
 
-Upload the 2 parquet files to the bucket `warehouse`.  
+Open the MinIO console at http://localhost:9000/ (login `admin` / `password`)
+and upload the 2 parquet files to the `warehouse` bucket:
 * https://cdn.starrocks.io/dataset/user_behavior_sample_data.parquet
 * https://cdn.starrocks.io/dataset/item_sample_data.parquet
 
 3. Run the Spark Scala code to insert data
 
-Log into the spark-hudi container.   
+Open a `spark-shell` in the `spark-hudi` container:
 
-Run `bash` to remove the older Hudi 0.11 library and use the Hudi 0.14.1.  Please note that there are spark defaults already set via conf files and run the following to set additional spark configs.
 ```
-rm -f /spark-3.2.1-bin-hadoop3.2/jars/hudi-spark3-bundle_2.12-0.11.1.jar
-export SPARK_VERSION=3.2
-spark-shell --packages org.apache.hudi:hudi-spark$SPARK_VERSION-bundle_2.12:0.14.1 --driver-memory 16G
+docker compose exec -it spark-hudi /opt/spark/bin/spark-shell --driver-memory 16G
 ```
 
-Run `/spark-3.2.1-bin-hadoop3.2/bin/spark-shell`.  Execute to load in 2 tables.
+The required Spark settings (Kryo serializer, Hive metastore URI, and the
+S3A/MinIO credentials) are already provided via `spark-conf/spark-defaults.conf`.
+On the first launch Spark resolves the Hudi and `hadoop-aws` packages from Maven
+Central, which takes a minute or two. Once the `scala>` prompt appears, paste
+the following:
 
 ```
 import org.apache.hudi.QuickstartUtils._
@@ -92,7 +92,7 @@ val basePath = "s3a://huditest/hudi_ecommerce_user_behavior"
 
 df.write.format("hudi").
   options(getQuickstartWriteConfigs).
-  option(TABLE_NAME, tableName).
+  option(org.apache.hudi.config.HoodieWriteConfig.TABLE_NAME, tableName).
   option("hoodie.datasource.write.operation", "bulk_insert").
   option("hoodie.datasource.hive_sync.enable", "true").
   option("hoodie.datasource.hive_sync.mode", "hms").
@@ -120,7 +120,7 @@ val basePath = "s3a://huditest/hudi_ecommerce_item"
 
 df.write.format("hudi").
   options(getQuickstartWriteConfigs).
-  option(TABLE_NAME, tableName).
+  option(org.apache.hudi.config.HoodieWriteConfig.TABLE_NAME, tableName).
   option("hoodie.datasource.write.operation", "bulk_insert").
   option("hoodie.datasource.hive_sync.enable", "true").
   option("hoodie.datasource.hive_sync.mode", "hms").
@@ -160,23 +160,55 @@ select count(*) from item;
 ```
 Validate the number of entries in user_behavior and item tables.
 
-5. [Optional] Use Onetable.dev to generate Iceberg and Delta Lake metadata
+5. [Optional] Use Apache XTable to generate Iceberg and Delta Lake metadata
 
-Follow the instruction at https://onetable.dev/docs/setup/.   After running the maven `mvn install -DskipTests` command, it'll generate the utilities-0.1.0-SNAPSHOT-bundled.jar in `onetable/utilities/target/`.   Copy that jar file into the spark container.  To help with the copy, I've already mapped jars to <spark_container>/spark-3.2.1-bin-hadoop3.2/auxjars in the docker-compose yml. 
+OneTable is now [Apache XTable (incubating)](https://github.com/apache/incubator-xtable).
+It converts the Hudi table *in place* by writing Iceberg and Delta Lake metadata
+next to the existing Hudi data, so the same files can be read as all three formats.
 
- > [!IMPORTANT]  
->  You have to compile the onetable code right now to get the 600+ meg utilities-0.1.0-SNAPSHOT-bundled.jar file.   They're working on making it smaller but right now, there is no other option.
+> [!IMPORTANT]
+> XTable's bundled CLI jar is **not published** (it bundles dependencies the ASF
+> cannot redistribute), so you have to build it from source with JDK 11. The build
+> needs a couple of extra steps because the `xtable-utilities` module is excluded
+> from the default Maven reactor:
+> ```
+> git clone --branch 0.3.0-incubating --depth 1 https://github.com/apache/incubator-xtable.git
+> cd incubator-xtable
+> # build the utilities module's dependencies, then the utilities module itself:
+> ./mvnw -DskipTests install -pl xtable-core,xtable-aws,xtable-hive-metastore -am
+> (cd xtable-utilities && ../mvnw -DskipTests package)
+> # -> xtable-utilities/target/xtable-utilities_2.12-0.3.0-incubating-bundled.jar (~170 MB)
+> ```
 
-Run the onetable utility to generate the open table format metadata.  Details are in the onetable.yaml.
+Copy the bundled jar into this demo's `spark-jars/` directory (it is mounted into
+the container at `/opt/spark/auxjars`). The conversion also needs `jol-core`,
+which 0.3.0-incubating leaves test-scoped so it is missing from the bundled jar —
+copy it in too (it lands in your local Maven cache during the build above, or
+download it from Maven Central):
 ```
-cd /spark-3.2.1-bin-hadoop3.2/auxjars
-java -jar utilities-0.1.0-SNAPSHOT-bundled.jar --datasetConfig onetable.yaml -p ../conf/core-site.xml
+cp xtable-utilities/target/xtable-utilities_2.12-0.3.0-incubating-bundled.jar spark-jars/
+cp ~/.m2/repository/org/openjdk/jol/jol-core/0.16/jol-core-0.16.jar spark-jars/
 ```
+
+Run the conversion from inside the `spark-hudi` container. Because `jol-core` has
+to be on the classpath, run the main class with `-cp` rather than `java -jar`.
+`xtable-hadoop-config.xml` (shipped in `spark-jars/`) points XTable at MinIO and
+sets `fs.s3a.aws.credentials.provider` — XTable's bundled hadoop-aws otherwise
+ignores the access keys and fails with a `NoAuthWithAWSException`:
+```
+cd /opt/spark/auxjars
+java -cp xtable-utilities_2.12-0.3.0-incubating-bundled.jar:jol-core-0.16.jar \
+  org.apache.xtable.utilities.RunSync \
+  --datasetConfig onetable.yaml \
+  --hadoopConfig xtable-hadoop-config.xml
+```
+On success XTable logs `Sync is successful for the following formats ICEBERG,DELTA`
+and writes a `_delta_log/` directory and `metadata/*.metadata.json` files next to
+the Hudi data in each table's path.
 
 Run spark-sql with Iceberg configs
 ```
-yum install -y python3
-spark-sql --packages org.apache.iceberg:iceberg-spark-runtime-3.2_2.12:1.2.1 \
+/opt/spark/bin/spark-sql --packages org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,org.apache.hadoop:hadoop-aws:3.3.4 \
 --conf "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions" \
 --conf "spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkSessionCatalog" \
 --conf "spark.sql.catalog.spark_catalog.type=hive" \
@@ -186,23 +218,22 @@ spark-sql --packages org.apache.iceberg:iceberg-spark-runtime-3.2_2.12:1.2.1 \
 
 Register the Iceberg files into HMS
 ```
-CREATE SCHEMA iceberg_db LOCATION 's3://warehouse/';
+CREATE SCHEMA iceberg_db LOCATION 's3a://warehouse/';
 
 CALL hive_prod.system.register_table(
    table => 'hive_prod.iceberg_db.user_behavior',
-   metadata_file => 's3://huditest/hudi_ecommerce_user_behavior/metadata/v2.metadata.json'
+   metadata_file => 's3a://huditest/hudi_ecommerce_user_behavior/metadata/v2.metadata.json'
 );
 
 CALL hive_prod.system.register_table(
    table => 'hive_prod.iceberg_db.item',
-   metadata_file => 's3://huditest/hudi_ecommerce_item/metadata/v2.metadata.json'
+   metadata_file => 's3a://huditest/hudi_ecommerce_item/metadata/v2.metadata.json'
 );
 ```
 
 Run spark-sql with Delta Lake configs
 ```
-yum install -y python3
-spark-sql --packages io.delta:delta-core_2.12:2.0.0 \
+/opt/spark/bin/spark-sql --packages io.delta:delta-spark_2.12:3.2.0,org.apache.hadoop:hadoop-aws:3.3.4 \
 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" \
 --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" \
 --conf "spark.sql.catalogImplementation=hive"
@@ -210,11 +241,11 @@ spark-sql --packages io.delta:delta-core_2.12:2.0.0 \
 
 Register the Delta Lake files into HMS
 ```
-CREATE SCHEMA delta_db LOCATION 's3://warehouse/';
+CREATE SCHEMA delta_db LOCATION 's3a://warehouse/';
 
-CREATE TABLE delta_db.user_behavior USING DELTA LOCATION 's3://huditest/hudi_ecommerce_user_behavior';
+CREATE TABLE delta_db.user_behavior USING DELTA LOCATION 's3a://huditest/hudi_ecommerce_user_behavior';
 
-CREATE TABLE delta_db.item USING DELTA LOCATION 's3://huditest/hudi_ecommerce_item';
+CREATE TABLE delta_db.item USING DELTA LOCATION 's3a://huditest/hudi_ecommerce_item';
 ```
 
 6. [Optional] Connect to Iceberg
