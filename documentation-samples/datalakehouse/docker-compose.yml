@@ -108,6 +108,7 @@ services:
   mc:
     depends_on:
       - minio
+    init: true
     image: minio/mc
     environment:
       - AWS_ACCESS_KEY_ID=admin
@@ -119,13 +120,14 @@ services:
       /usr/bin/mc mb --ignore-existing minio/warehouse minio/huditest;
       /usr/bin/mc anonymous set public minio/warehouse;
       /usr/bin/mc anonymous set public minio/huditest;
-      tail -f /dev/null
+      exec sleep infinity
       "
 
   spark-hudi:
     image: 'apache/spark:3.5.3'
-    hostname: spark-hudi 
-    entrypoint: ["/bin/bash", "-c", "tail -f /dev/null"]
+    hostname: spark-hudi
+    init: true
+    entrypoint: ["sleep", "infinity"]
     depends_on:
       hive-metastore:
         condition: service_healthy
@@ -230,21 +232,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 12
-
-  starrocks-toolkit:
-    image: atwong/starrocks-tool-box
-    hostname: starrocks-toolkit
-    volumes:
-      - ./srtooldata:/home/data
-    entrypoint: > 
-      /bin/sh -c "
-      mysql -P 9030 -h starrocks-fe -u root -e \"create database demo\";
-      mysql -P 9030 -h starrocks-fe -u root -e \"ADMIN SET FRONTEND CONFIG ('default_replication_num' = '1')\";
-      tail -f /dev/null;
-      "
-    depends_on:
-      starrocks-fe:
-        condition: service_healthy
 
 networks:
   default:

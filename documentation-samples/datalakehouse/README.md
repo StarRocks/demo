@@ -7,7 +7,68 @@
 > [!IMPORTANT]  
 >  Set the memory in Docker Desktop. Setting -> Resources -> Memory Limit should we set at least 16GB.
 
+## Which connectors does this demo use? (You do **not** need Debezium JDBC)
+
+This demo runs out of the box without any extra configuration, and **you do not need
+the Debezium JDBC connector**. It is worth understanding the two halves of the pipeline:
+
+- **Source (always Debezium):** the Debezium PostgreSQL *source* connector — bundled in
+  the `debezium/connect:2.6` image — captures changes from PostgreSQL and writes them to
+  Kafka topics. This is always used.
+- **Sink (StarRocks by default):** the **StarRocks Kafka sink connector** consumes those
+  topics and loads the data into StarRocks. You download it during setup (see
+  [Download the StarRocks Kafka sink connector](#download-the-starrocks-kafka-sink-connector-required))
+  and it is used by the registration steps below. This is the recommended sink for StarRocks.
+
+The `DEBEZIUM_JDBC_CONNECTOR_PATH` environment variable only affects the **sink** side. If
+you leave it unset (the default), you use the StarRocks Kafka sink connector and the demo
+works as written. The Debezium JDBC sink is an **optional alternative** — see
+[Configure the Debezium JDBC connector path](#optional-configure-the-debezium-jdbc-connector-path)
+for how to enable it and where to get the files.
+
+### StarRocks Kafka sink vs. Debezium JDBC sink
+
+|  | StarRocks Kafka sink (default) | Debezium JDBC sink (optional) |
+|---|---|---|
+| **Write path** | Native [Stream Load](https://docs.starrocks.io/docs/loading/StreamLoad/) HTTP bulk API | Row-by-row JDBC `INSERT`/`UPSERT` statements |
+| **Throughput** | High — micro-batches optimized for StarRocks | Lower — JDBC statement execution |
+| **Target** | StarRocks only | Any JDBC database (MySQL, PostgreSQL, StarRocks via MySQL protocol, …) |
+| **Schema handling** | You pre-create the table | Can auto-create tables and evolve schema (DDL) |
+| **CDC ops** | Needs `addfield` + `unwrap` transforms | Native upsert/delete handling |
+
+**For loading into StarRocks, the StarRocks Kafka sink is the recommended choice** —
+Stream Load is far more efficient than row-wise JDBC inserts. You might still prefer the
+Debezium JDBC sink when:
+
+1. **You sink to heterogeneous targets** (e.g. MySQL, PostgreSQL, *and* StarRocks) and
+   want one connector type instead of a different sink per target.
+2. **You want automatic table creation / schema evolution** at the destination, which the
+   StarRocks connector does not do.
+3. **You want native CDC upsert/delete semantics** without StarRocks-specific transforms.
+
 ## Environment Setup
+
+### Download the StarRocks Kafka sink connector (required)
+
+The StarRocks Kafka sink connector JAR is **not** checked into this repo, so it never
+drifts out of sync with upstream releases. Download the latest release into
+`kafka-connect-connectors-jar/` before starting the stack — that directory is bind-mounted
+into the `connect` container's plugin path (`/opt/connectors`):
+
+```
+mkdir -p kafka-connect-connectors-jar
+curl -s https://api.github.com/repos/StarRocks/starrocks-connector-for-kafka/releases/latest \
+  | grep browser_download_url \
+  | grep with-dependencies \
+  | cut -d '"' -f 4 \
+  | xargs -n1 curl -L --output-dir kafka-connect-connectors-jar -O
+```
+
+This downloads the single `starrocks-connector-for-kafka-<version>-with-dependencies.jar`
+fat JAR (connector plus all dependencies). To pin a specific version instead of the
+latest, grab the matching `…-with-dependencies.jar` from the
+[releases page](https://github.com/StarRocks/starrocks-connector-for-kafka/releases) into
+the same directory.
 
 ### (Optional) Configure the Debezium JDBC connector path
 
@@ -50,6 +111,20 @@ DEBEZIUM_JDBC_CONNECTOR_PATH=/path/to/debezium-connector-jdbc
 1. Start the environment
 
 `docker compose up --detach --wait --wait-timeout 60`
+
+Once the `starrocks-fe` service is healthy, bootstrap the StarRocks cluster for the
+demo by creating the `demo` database and setting the default replication factor to 1
+(a single-BE local cluster cannot satisfy the out-of-the-box default of 3 replicas):
+
+```
+docker compose exec starrocks-fe mysql -h starrocks-fe -P 9030 -u root -e "
+  CREATE DATABASE IF NOT EXISTS demo;
+  ADMIN SET FRONTEND CONFIG ('default_replication_num' = '1');"
+```
+
+> These two commands were previously run automatically by a `starrocks-toolkit`
+> helper container. That image was removed, so run them yourself here. The rest of the
+> guide assumes the `demo` database already exists.
 
 2. Upload the sample data
 
@@ -340,12 +415,13 @@ volumes:
 
 - **Debezium PostgreSQL *source* connector** — already bundled inside the
   `debezium/connect:2.6` image, so nothing to download.
-- **StarRocks Kafka *sink* connector** — checked into this repo at
-  `./kafka-connect-connectors-jar/starrocks-kafka-connector-1.0.3/` and mounted at
-  `/opt/connectors`. This is the recommended sink for loading into StarRocks. Newer
-  releases are available from the
+- **StarRocks Kafka *sink* connector** — downloaded by you into
+  `./kafka-connect-connectors-jar/` (see
+  [Download the StarRocks Kafka sink connector](#download-the-starrocks-kafka-sink-connector-required))
+  and mounted at `/opt/connectors`. This is the recommended sink for loading into
+  StarRocks. It is deliberately **not** checked into this repo so it stays in sync with the
   [StarRocks Kafka connector releases](https://github.com/StarRocks/starrocks-connector-for-kafka/releases)
-  (download `starrocks-connector-for-kafka-<version>-with-dependencies.jar`).
+  (the `starrocks-connector-for-kafka-<version>-with-dependencies.jar` fat JAR).
 - **Debezium JDBC *sink* connector** — *optional* alternative sink, mounted from the
   `DEBEZIUM_JDBC_CONNECTOR_PATH` directory described in
   [Configure the Debezium JDBC connector path](#optional-configure-the-debezium-jdbc-connector-path).
@@ -393,8 +469,8 @@ docker compose exec postgresql psql -U postgres -d postgres -c "
   INSERT INTO customers VALUES (1,'Ada','London'),(2,'Linus','Helsinki');"
 ```
 
-Then create a matching **Primary Key** table in the StarRocks `demo` database (created
-automatically by the `starrocks-toolkit` service):
+Then create a matching **Primary Key** table in the StarRocks `demo` database (created in
+[step 1 of Start the environment](#start-the-environment)):
 
 ```
 docker compose exec starrocks-fe mysql -h starrocks-fe -P 9030 -u root -e "
@@ -461,7 +537,8 @@ docker compose exec starrocks-fe mysql -h starrocks-fe -P 9030 -u root -e "
      }'
    ```
 
-   > The `demo` database is created automatically by the `starrocks-toolkit` service.
+   > The `demo` database is created in
+   > [step 1 of Start the environment](#start-the-environment).
    > Create a matching Primary Key table (e.g. `customers`) in StarRocks before starting
    > the sink. Use the StarRocks Kafka connector for loading into StarRocks; the optional
    > Debezium JDBC sink connector is an alternative for writing to JDBC targets in general.
