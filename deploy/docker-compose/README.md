@@ -39,6 +39,28 @@ After StarRocks is deployed, check the cluster status:
 
 If the field `Alive` is true, this BE node is properly started and added to the cluster.
 
+## Connecting from external clients
+
+The compose files set `HOST_TYPE=FQDN` so that the FE, BE, and CN register their
+**hostnames** with the cluster rather than their internal container IP addresses.
+This matters for clients that connect from the host — for example the
+Flink-StarRocks connector, which queries the FE for BE/CN endpoints and then
+connects to them directly (e.g. on port 8040).
+
+For those hostnames to resolve from outside Docker, add them to your `/etc/hosts`
+file pointing at `127.0.0.1`. The compose files in this directory use these
+hostnames:
+
+```
+# docker-compose.yml / docker-compose-3BE.yml
+127.0.0.1  starrocks-fe-0  starrocks-be-0  starrocks-be-1  starrocks-be-2
+# docker-compose-shared-data.yml
+127.0.0.1  starrocks-fe  starrocks-cn
+```
+
+Without these entries an external client will receive a hostname (or, without
+`HOST_TYPE=FQDN`, an unroutable container IP) that it cannot reach.
+
 ## Troubleshooting
 
 When you connect to the cluster, StarRocks may return the following error:

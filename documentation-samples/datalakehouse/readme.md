@@ -9,6 +9,44 @@
 
 ## Environment Setup
 
+### (Optional) Configure the Debezium JDBC connector path
+
+The `connect` (Debezium Kafka Connect) service bind-mounts a host directory into
+`/kafka/connect/debezium-connector-jdbc` so the Debezium JDBC connector JARs are on
+the Connect plugin path. The host directory is controlled by the
+`DEBEZIUM_JDBC_CONNECTOR_PATH` environment variable:
+
+```yaml
+- ${DEBEZIUM_JDBC_CONNECTOR_PATH:-./kafka-connect-connectors-jar}:/kafka/connect/debezium-connector-jdbc
+```
+
+- If `DEBEZIUM_JDBC_CONNECTOR_PATH` is **set**, that directory is mounted.
+- If it is **unset**, it falls back to the in-repo `./kafka-connect-connectors-jar`
+  directory (relative to this `docker-compose.yml`), so `docker compose up` still
+  starts without any extra configuration.
+
+If you have your own build of the [Debezium JDBC connector](https://debezium.io/documentation/reference/stable/connectors/jdbc.html),
+point the variable at the directory containing its JARs before starting the stack —
+either by exporting it in your shell:
+
+```
+export DEBEZIUM_JDBC_CONNECTOR_PATH=/path/to/debezium-connector-jdbc
+```
+
+or by adding it to a `.env` file next to `docker-compose.yml`:
+
+```
+DEBEZIUM_JDBC_CONNECTOR_PATH=/path/to/debezium-connector-jdbc
+```
+
+> [!NOTE]
+> This replaces a previously hardcoded, machine-specific path so the demo runs on any
+> machine (see issue #86). The default value is just a placeholder that exists in the
+> repo so Compose has a valid directory to mount; supply the real connector path if you
+> need the Debezium JDBC connector.
+
+### Start the environment
+
 1. Start the environment
 
 `docker compose up --detach --wait --wait-timeout 60`
@@ -225,6 +263,183 @@ drop catalog hudi_catalog_hms;
 drop catalog iceberg_catalog_hms
 drop catalog deltalake_catalog_hms;
 ```
+
+# Real-time CDC from PostgreSQL into StarRocks (Debezium + Kafka)
+
+In addition to the data lakehouse services, this `docker-compose.yml` also brings up a
+complete Change Data Capture (CDC) stack. It is independent of the Hudi/Iceberg/Delta
+flow above and lets you stream row-level changes from PostgreSQL into StarRocks in real
+time.
+
+## Pipeline architecture
+
+```
+PostgreSQL ──▶ Debezium PostgreSQL source connector ──▶ Kafka topic ──▶ StarRocks sink connector ──▶ StarRocks
+ (postgresql)            (runs in `connect`)           (kafka)        (runs in `connect`)        (starrocks-fe/be)
+```
+
+| Service      | Image                          | Role                                                        | Host access |
+|--------------|--------------------------------|-------------------------------------------------------------|-------------|
+| `postgresql` | `quay.io/debezium/postgres:17` | Source database, pre-configured for logical replication/CDC | `localhost:5432` (user/pass `postgres`/`postgres`) |
+| `adminer`    | `adminer`                      | Web UI for browsing/editing PostgreSQL                      | http://localhost:8080 |
+| `zookeeper`  | `quay.io/debezium/zookeeper:2.6` | Kafka coordination                                        | `localhost:2181` |
+| `kafka`      | `quay.io/debezium/kafka:2.6`   | Message broker that carries the change events               | `localhost:9092` (internal `kafka:29092`) |
+| `connect`    | `quay.io/debezium/connect:2.6` | Kafka Connect runtime hosting the source and sink connectors | REST API http://localhost:8083 |
+
+## How the connectors get into the `connect` container
+
+The `connect` service loads connector plugins from two directories on its plugin path
+(`CONNECT_PLUGIN_PATH=/kafka/connect,/opt/connectors`), both supplied by bind-mounts:
+
+```yaml
+volumes:
+  - ./kafka-connect-connectors-jar:/opt/connectors
+  - ${DEBEZIUM_JDBC_CONNECTOR_PATH:-./kafka-connect-connectors-jar}:/kafka/connect/debezium-connector-jdbc
+```
+
+- **Debezium PostgreSQL *source* connector** — already bundled inside the
+  `debezium/connect:2.6` image, so nothing to download.
+- **StarRocks Kafka *sink* connector** — checked into this repo at
+  `./kafka-connect-connectors-jar/starrocks-kafka-connector-1.0.3/` and mounted at
+  `/opt/connectors`. This is the recommended sink for loading into StarRocks. Newer
+  releases are available from the
+  [StarRocks Kafka connector releases](https://github.com/StarRocks/starrocks-connector-for-kafka/releases)
+  (download `starrocks-connector-for-kafka-<version>-with-dependencies.jar`).
+- **Debezium JDBC *sink* connector** — *optional* alternative sink, mounted from the
+  `DEBEZIUM_JDBC_CONNECTOR_PATH` directory described in
+  [Configure the Debezium JDBC connector path](#optional-configure-the-debezium-jdbc-connector-path).
+  It is **not** included in this repo — see below for where to get it.
+
+### Where to get the Debezium JDBC connector files
+
+The connector version must match the `debezium/connect:2.6` runtime, so download a
+`2.6.x` plugin archive from Maven Central. Extract it, then point
+`DEBEZIUM_JDBC_CONNECTOR_PATH` at the extracted directory before `docker compose up`:
+
+```
+# Download the 2.6 plugin bundle (matches the debezium/connect:2.6 image)
+curl -LO https://repo1.maven.org/maven2/io/debezium/debezium-connector-jdbc/2.6.2.Final/debezium-connector-jdbc-2.6.2.Final-plugin.tar.gz
+
+# Extract it
+mkdir -p debezium-connector-jdbc
+tar -xzf debezium-connector-jdbc-2.6.2.Final-plugin.tar.gz -C debezium-connector-jdbc --strip-components=1
+
+# Point the env var at the directory containing the JARs
+export DEBEZIUM_JDBC_CONNECTOR_PATH="$(pwd)/debezium-connector-jdbc"
+```
+
+You can also browse available versions on
+[Maven Central](https://central.sonatype.com/artifact/io.debezium/debezium-connector-jdbc)
+or follow the
+[Debezium JDBC connector docs](https://debezium.io/documentation/reference/stable/connectors/jdbc.html)
+and the [Debezium install guide](https://debezium.io/documentation/reference/stable/install.html).
+
+## Registering the connectors
+
+Connectors are registered by POSTing their JSON config to the Kafka Connect REST API on
+`localhost:8083`. The configs below are reference templates from the official docs —
+adjust database/table/topic names to match your data. The example uses a `customers`
+table; the following steps were validated end-to-end against StarRocks 4.1.
+
+First, create a source table in PostgreSQL (the `quay.io/debezium/postgres` image is
+already configured with `wal_level=logical`). `REPLICA IDENTITY FULL` makes the `before`
+image of updates/deletes available to Debezium:
+
+```
+docker compose exec postgresql psql -U postgres -d postgres -c "
+  CREATE TABLE customers (id int PRIMARY KEY, name varchar(100), city varchar(100));
+  ALTER TABLE customers REPLICA IDENTITY FULL;
+  INSERT INTO customers VALUES (1,'Ada','London'),(2,'Linus','Helsinki');"
+```
+
+Then create a matching **Primary Key** table in the StarRocks `demo` database (created
+automatically by the `starrocks-toolkit` service):
+
+```
+docker compose exec starrocks-fe mysql -h starrocks-fe -P 9030 -u root -e "
+  CREATE TABLE demo.customers (
+    id INT NOT NULL,
+    name VARCHAR(100),
+    city VARCHAR(100)
+  )
+  PRIMARY KEY (id)
+  DISTRIBUTED BY HASH(id) BUCKETS 1
+  PROPERTIES ('replication_num'='1');"
+```
+
+1. **Register the Debezium PostgreSQL source connector** so changes in PostgreSQL are
+   published to Kafka topics. (See the
+   [Debezium PostgreSQL connector docs](https://debezium.io/documentation/reference/stable/connectors/postgresql.html).)
+
+   ```
+   curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" \
+     localhost:8083/connectors/ -d '{
+       "name": "postgres-source",
+       "config": {
+         "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+         "database.hostname": "postgresql",
+         "database.port": "5432",
+         "database.user": "postgres",
+         "database.password": "postgres",
+         "database.dbname": "postgres",
+         "topic.prefix": "test",
+         "table.include.list": "public.customers",
+         "plugin.name": "pgoutput"
+       }
+     }'
+   ```
+
+   This produces change events on the topic `test.public.customers`.
+
+2. **Register the StarRocks sink connector** to consume that topic and load into
+   StarRocks. For a StarRocks Primary Key table receiving Debezium CDC data, the
+   `addfield` and `unwrap` transforms are required so INSERT/UPDATE/DELETE operations are
+   applied correctly (see
+   [Load data using Kafka connector](https://docs.starrocks.io/docs/loading/Kafka-connector-starrocks/)).
+
+   ```
+   curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" \
+     localhost:8083/connectors/ -d '{
+       "name": "starrocks-sink",
+       "config": {
+         "connector.class": "com.starrocks.connector.kafka.StarRocksSinkConnector",
+         "topics": "test.public.customers",
+         "starrocks.http.url": "starrocks-fe:8030",
+         "starrocks.database.name": "demo",
+         "starrocks.username": "root",
+         "starrocks.password": "",
+         "starrocks.topic2table.map": "test.public.customers:customers",
+         "sink.properties.format": "json",
+         "sink.properties.strip_outer_array": "true",
+         "transforms": "addfield,unwrap",
+         "transforms.addfield.type": "com.starrocks.connector.kafka.transforms.AddOpFieldForDebeziumRecord",
+         "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+         "transforms.unwrap.drop.tombstones": "true",
+         "transforms.unwrap.delete.handling.mode": "rewrite"
+       }
+     }'
+   ```
+
+   > The `demo` database is created automatically by the `starrocks-toolkit` service.
+   > Create a matching Primary Key table (e.g. `customers`) in StarRocks before starting
+   > the sink. Use the StarRocks Kafka connector for loading into StarRocks; the optional
+   > Debezium JDBC sink connector is an alternative for writing to JDBC targets in general.
+   >
+   > The `sink.properties.format=json` and `sink.properties.strip_outer_array=true`
+   > settings are required: the connector batches records into a JSON array, and without
+   > them StarRocks Stream Load rejects the batch with a `DATA_QUALITY_ERROR` ("The value
+   > is array type in json document stream").
+
+3. **Verify the connectors are running:**
+
+   ```
+   curl -s localhost:8083/connectors          # list registered connectors
+   curl -s localhost:8083/connectors/postgres-source/status
+   curl -s localhost:8083/connectors/starrocks-sink/status
+   ```
+
+Insert or update a row in PostgreSQL (via `adminer` at http://localhost:8080 or `psql`)
+and it will flow through Kafka into the StarRocks `demo.customers` table within seconds.
 
 # About the Scenario
 
