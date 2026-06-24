@@ -59,9 +59,12 @@ under the License.
 //   - The label header is optional. Supplying a unique label gives you at-most-once
 //     semantics: re-running with the same label returns "Label Already Exists".
 //
-//   - We do NOT set the "Expect: 100-continue" header. The FE answers the load
-//     request with a redirect to a BE, and Go's net/http (like Python requests)
-//     does not replay a 100-continue handshake cleanly across that redirect.
+//   - The StarRocks FE requires the "Expect: 100-continue" header on a stream
+//     load and rejects the request with "There is no 100-continue header" when it
+//     is missing. We set it explicitly. Go's net/http drives the handshake across
+//     the FE->BE redirect because http.NewRequest with a bytes.Reader populates
+//     req.GetBody (so the body is replayable) and http.DefaultTransport sets a
+//     non-zero ExpectContinueTimeout.
 
 package main
 
@@ -109,6 +112,12 @@ func streamLoad(content []byte) error {
 	}
 	req.SetBasicAuth(starrocksUser, starrocksPassword)
 	req.Header.Set("label", generateLabel())
+
+	// The FE rejects a stream load that lacks this header with the error
+	// "There is no 100-continue header". Go honors it because the request body is
+	// replayable (http.NewRequest set req.GetBody from the bytes.Reader) and
+	// http.DefaultTransport has a non-zero ExpectContinueTimeout.
+	req.Header.Set("Expect", "100-continue")
 
 	// The FE redirects the load to a BE. Go strips the Authorization header on a
 	// redirect to a different host, so we re-attach it from the original request,
