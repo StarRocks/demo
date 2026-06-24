@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 # Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
@@ -17,7 +17,6 @@
 
 
 from requests import Session
-import base64
 
 
 class LoadSession(Session):
@@ -37,15 +36,17 @@ def main():
         "Content-Type":  "text/html; charset=UTF-8",
         #"Content-Type":  "application/octet-stream",  # file upload
         "connection": "keep-alive",
+        # The StarRocks FE requires this header and rejects the load without it
+        # ("There is no 100-continue header"). Sending it explicitly is enough.
+        "Expect": "100-continue",
         "max_filter_ratio": "0.2",
         "columns": "k,v",
         "column_separator": ',',
-        # requests does not properly support Expect: 100-continue with FE redirect.
     }
     payload = '''k1,v1\nk2,v2\nk3,v3'''
     database = 'starrocks_demo'
     tablename = 'tb1'
-    api = 'http://master1:8030/api/%s/%s/_stream_load' % (database, tablename)
+    api = 'http://localhost:8030/api/%s/%s/_stream_load' % (database, tablename)
     session = LoadSession()
     session.auth = (username, password)
     response = session.put(url=api, headers=headers, data=payload)
