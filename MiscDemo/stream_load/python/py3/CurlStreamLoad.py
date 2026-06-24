@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 # Copyright (c) 2021 Beijing Dingshi Zongheng Technology Co., Ltd. All rights reserved.
@@ -22,7 +22,7 @@ import time
 class StarRocksClient(object):
 
     def __init__(self, host, port, database, columns, sep,
-                username, password, filename, table, timeout):
+                 username, password, filename, table, timeout):
         self.filename = filename
         self.table = table
         self.columns = columns
@@ -34,9 +34,9 @@ class StarRocksClient(object):
         self.password = password
         self.timeout = timeout
 
-    def get_label(self):        
-        t = time.time().__str__().replace(".", "_")
-        return '_'.join([self.database,self.table, t])
+    def get_label(self):
+        t = str(time.time()).replace(".", "_")
+        return '_'.join([self.database, self.table, t])
 
     def load(self):
         label = self.get_label()
@@ -49,18 +49,22 @@ class StarRocksClient(object):
         )
         p = subprocess.Popen([
             cmd, param_location,
-            "-H", 'columns: %s' %self.columns,
-            "-H", "column_separator: %s" %self.sep,
-            "-H", "label: %s" %self.get_label(),
-            "-H", "timeout: %d" %self.timeout,
+            # The StarRocks FE requires Expect: 100-continue and rejects the load
+            # without it. curl sends it automatically for chunked uploads (e.g.
+            # stdin) but omits it for small fixed-size files, so set it explicitly.
+            "-H", "Expect: 100-continue",
+            "-H", 'columns: %s' % self.columns,
+            "-H", "column_separator: %s" % self.sep,
+            "-H", "label: %s" % label,
+            "-H", "timeout: %d" % self.timeout,
             "-u", param_user,
             "-T", param_file,
             param_url])
         p.wait()
         if p.returncode != 0:
-            print """\nLoad to starrocks failed! LABEL is %s""" % (label)
+            print("\nLoad to starrocks failed! LABEL is %s" % label)
         else:
-            print """\nLoad to starrocks success! LABEL is %s """ % (label)
+            print("\nLoad to starrocks success! LABEL is %s" % label)
         return label
 
 
@@ -69,7 +73,7 @@ if __name__ == '__main__':
     """
     -- Stream load Demo with Linux cmd - Curl
     --
-    -- StarRocks DDL: 
+    -- StarRocks DDL:
     CREATE TABLE `starrocks_demo`.`tb1` (
       `k` varchar(65533) NULL COMMENT "",
       `v` varchar(65533) NULL COMMENT ""
@@ -86,12 +90,12 @@ if __name__ == '__main__':
 
     # load job 1
     client1 = StarRocksClient(
-        host="master1",
+        host="localhost",
         port="8030",
         database="starrocks_demo",
         username="root",
         password="",
-        filename="/tmp/test.csv",    # data from local file /tmp/test.csv, usage: python CurlStreamLoad.py
+        filename="/tmp/test.csv",      # data from local file /tmp/test.csv, usage: python3 CurlStreamLoad.py
         table="tb1",
         columns='k,v',
         sep=",",
@@ -103,16 +107,15 @@ if __name__ == '__main__':
 
     # load job 2
     client2 = StarRocksClient(
-        host="master1",
+        host="localhost",
         port="8030",
         database="starrocks_demo",
         username="root",
         password="",
-        filename="-",                  # data from stdin, usage: echo 'k1,v1\nk2,v2'| python CurlStreamLoad.py
+        filename="-",                  # data from stdin, usage: echo 'k1,v1\nk2,v2' | python3 CurlStreamLoad.py
         table="tb1",
         columns='k,v',
         sep=",",
         timeout=86400
     )
     client2.load()
-

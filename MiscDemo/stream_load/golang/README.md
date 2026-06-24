@@ -43,6 +43,12 @@ standard library (`net/http`).
    ```
 
    ```sql
+   CREATE DATABASE IF NOT EXISTS test;
+
+   USE test;
+   ```
+
+   ```sql
    CREATE TABLE `stream_test` (
      `id`       bigint(20)  COMMENT "",
      `id2`      bigint(20)  COMMENT "",
