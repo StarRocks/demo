@@ -30,7 +30,12 @@ standard library (`net/http`).
 1. StarRocks running and reachable on the FE HTTP port (default `8030`).
 
 2. A target table. Create it with any MySQL client:
+   ```sql
+   CREATE DATABASE IF NOT EXISTS quickstart;
 
+   USE quickstart;
+   ```
+   
    ```sql
    CREATE TABLE `stream_test` (
      `id`       bigint(20)  COMMENT "",
