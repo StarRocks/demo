@@ -32,6 +32,12 @@ standard library (`net/http`).
 2. A target table. Create it with any MySQL client:
 
    ```sql
+   CREATE DATABASE IF NOT EXISTS test;
+
+   USE test;
+   ```
+
+   ```sql
    CREATE TABLE `stream_test` (
      `id`       bigint(20)  COMMENT "",
      `id2`      bigint(20)  COMMENT "",
@@ -102,9 +108,11 @@ Go 1.21+'s built-in `GOTOOLCHAIN=auto`), just use Go 1.24 or newer on Darwin
   re-attaches it in a `CheckRedirect` hook (the Java and Python demos do the
   equivalent).
 
-- The demo deliberately does **not** send `Expect: 100-continue`. Go's
-  `net/http` (like Python's `requests`) does not replay the 100-continue
-  handshake cleanly across the FE→BE redirect.
+- The demo sends `Expect: 100-continue`. The StarRocks FE **requires** this
+  header and rejects a load without it (`There is no 100-continue header`). Go's
+  `net/http` drives the handshake across the FE→BE redirect because
+  `http.NewRequest` with a `bytes.Reader` populates `req.GetBody` (so the body is
+  replayable) and `http.DefaultTransport` uses a non-zero `ExpectContinueTimeout`.
 
 - Supplying a unique `label` header gives at-most-once semantics: re-running
   with the same label returns `Label Already Exists`.
