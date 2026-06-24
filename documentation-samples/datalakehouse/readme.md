@@ -51,19 +51,29 @@ DEBEZIUM_JDBC_CONNECTOR_PATH=/path/to/debezium-connector-jdbc
 
 `docker compose up --detach --wait --wait-timeout 60`
 
-2. Create the bucket for Apache Hudi files and upload files
+2. Upload the sample data
 
-Go to http://localhost:9000/ and login with admin:password and create the bucket `huditest`.
+The `warehouse` and `huditest` buckets are created automatically by the `mc`
+init container when the stack starts, so there is nothing to create by hand.
 
-Upload the 2 parquet files to the bucket `warehouse`.  
+Open the MinIO console at http://localhost:9000/ (login `admin` / `password`)
+and upload the 2 parquet files to the `warehouse` bucket:
 * https://cdn.starrocks.io/dataset/user_behavior_sample_data.parquet
 * https://cdn.starrocks.io/dataset/item_sample_data.parquet
 
 3. Run the Spark Scala code to insert data
 
-Log into the spark-hudi container.   
+Open a `spark-shell` in the `spark-hudi` container:
 
-Run `/opt/spark/bin/spark-shell --driver-memory 16G`.  Please note that there are spark defaults already set via conf files and run the following to set additional spark configs.
+```
+docker compose exec -it spark-hudi /opt/spark/bin/spark-shell --driver-memory 16G
+```
+
+The required Spark settings (Kryo serializer, Hive metastore URI, and the
+S3A/MinIO credentials) are already provided via `spark-conf/spark-defaults.conf`.
+On the first launch Spark resolves the Hudi and `hadoop-aws` packages from Maven
+Central, which takes a minute or two. Once the `scala>` prompt appears, paste
+the following:
 
 ```
 import org.apache.hudi.QuickstartUtils._
@@ -165,7 +175,7 @@ java -jar utilities-0.1.0-SNAPSHOT-bundled.jar --datasetConfig onetable.yaml -p 
 
 Run spark-sql with Iceberg configs
 ```
-/opt/spark/bin/spark-sql --packages org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1 \
+/opt/spark/bin/spark-sql --packages org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.6.1,org.apache.hadoop:hadoop-aws:3.3.4 \
 --conf "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions" \
 --conf "spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkSessionCatalog" \
 --conf "spark.sql.catalog.spark_catalog.type=hive" \
@@ -190,7 +200,7 @@ CALL hive_prod.system.register_table(
 
 Run spark-sql with Delta Lake configs
 ```
-/opt/spark/bin/spark-sql --packages io.delta:delta-spark_2.12:3.2.0 \
+/opt/spark/bin/spark-sql --packages io.delta:delta-spark_2.12:3.2.0,org.apache.hadoop:hadoop-aws:3.3.4 \
 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" \
 --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" \
 --conf "spark.sql.catalogImplementation=hive"
