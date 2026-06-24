@@ -30,18 +30,7 @@ standard library (`net/http`).
 1. StarRocks running and reachable on the FE HTTP port (default `8030`).
 
 2. A target table. Create it with any MySQL client:
-   ```sql
-   CREATE DATABASE IF NOT EXISTS quickstart;
-
-   USE quickstart;
-   ```
    
-   ```sql
-   CREATE DATABASE IF NOT EXISTS test;
-
-   USE test;
-   ```
-
    ```sql
    CREATE DATABASE IF NOT EXISTS test;
 
@@ -71,12 +60,6 @@ On success you'll see the JSON load result with `"Status": "Success"`.
 
 > Note: an HTTP 200 only means the BE service answered — it does **not** mean
 > the load succeeded. Always check the `"Status"` field in the response body.
-
-## Test
-
-```bash
-go test ./...
-```
 
 ## Go toolchain (`mise.toml`)
 
