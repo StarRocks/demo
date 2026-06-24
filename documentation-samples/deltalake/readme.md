@@ -11,16 +11,24 @@
 
 `docker compose up --detach --wait --wait-timeout 60`
 
-2. Create the bucket for Delta Lake files
+2. (Optional) Browse the object store
 
-Go to http://localhost:9000/ and login with admin:password and create the bucket `warehouse`
+The `warehouse` bucket that Delta Lake writes to is created automatically by the
+`mc` init container when the stack starts, so there is nothing to do here. To
+browse it, open the MinIO console at http://localhost:9000/ and log in with
+`admin` / `password`.
 
 3. Run the Spark SQL code to insert data
 
-Log into the spark container. Please note that there are spark defaults already set via conf files and run the following to set additional spark configs.
+Open a `spark-sql` session in the `spark` container. The Hive metastore URI and
+the S3A/MinIO credentials are already set via `conf/spark-defaults.conf`; the
+Delta Lake and `hadoop-aws` packages (the latter provides the `s3a://`
+filesystem, which the official `apache/spark` image does not bundle) are pulled
+from Maven Central on first launch, which takes a minute or two:
 
 ```
-/opt/spark/bin/spark-sql --packages io.delta:delta-spark_2.12:3.2.0 \
+docker compose exec -it spark /opt/spark/bin/spark-sql \
+--packages io.delta:delta-spark_2.12:3.2.0,org.apache.hadoop:hadoop-aws:3.3.4 \
 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" \
 --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" \
 --conf "spark.sql.catalogImplementation=hive"
