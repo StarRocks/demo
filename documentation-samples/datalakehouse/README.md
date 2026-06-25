@@ -422,6 +422,30 @@ CALL hive_prod.system.register_table(
 );
 ```
 
+Each `register_table` call returns one row — `current_snapshot_id`, `total_records`,
+`total_data_files` — confirming the table was registered with the expected row counts (the
+same counts as the Hudi tables):
+
+```
+spark-sql (default)> CREATE SCHEMA iceberg_db LOCATION 's3a://warehouse/';
+Time taken: 0.746 seconds
+spark-sql (default)> CALL hive_prod.system.register_table(
+                   >    table => 'hive_prod.iceberg_db.user_behavior',
+                   >    metadata_file => 's3a://huditest/hudi_ecommerce_user_behavior/metadata/v2.metadata.json'
+                   > );
+1190166881057252708	86953525	10
+Time taken: 0.744 seconds, Fetched 1 row(s)
+spark-sql (default)> CALL hive_prod.system.register_table(
+                   >    table => 'hive_prod.iceberg_db.item',
+                   >    metadata_file => 's3a://huditest/hudi_ecommerce_item/metadata/v2.metadata.json'
+                   > );
+7267346864876294996	3962559	1
+Time taken: 0.075 seconds, Fetched 1 row(s)
+```
+
+(The snapshot IDs will differ on your run; the record counts — `86953525` and `3962559` —
+should match.)
+
 Run spark-sql with Delta Lake configs
 ```
 /opt/spark/bin/spark-sql --packages io.delta:delta-spark_2.12:3.2.0,org.apache.hadoop:hadoop-aws:3.3.4 \
