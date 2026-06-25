@@ -516,6 +516,48 @@ use iceberg_db;
 show tables;
 ```
 
+Expected output:
+
+```
+StarRocks > show catalogs;
++---------------------+----------+------------------------------------------------------------------+
+| Catalog             | Type     | Comment                                                          |
++---------------------+----------+------------------------------------------------------------------+
+| default_catalog     | Internal | An internal catalog contains this cluster's self-managed tables. |
+| hudi_catalog_hms    | Hudi     | NULL                                                             |
+| iceberg_catalog_hms | Iceberg  | NULL                                                             |
++---------------------+----------+------------------------------------------------------------------+
+
+StarRocks > show databases;
++--------------------+
+| Database           |
++--------------------+
+| default            |
+| delta_db           |
+| hudi_ecommerce     |
+| iceberg_db         |
+| information_schema |
++--------------------+
+
+StarRocks > use iceberg_db;
+StarRocks > show tables;
++----------------------+
+| Tables_in_iceberg_db |
++----------------------+
+| item                 |
+| user_behavior        |
++----------------------+
+```
+
+> [!NOTE]
+> The Iceberg catalog lists **all** Hive-metastore databases (`delta_db`, `hudi_ecommerce`,
+> …), not just Iceberg ones, because they share one metastore — only the Iceberg-format
+> tables under `iceberg_db` are queryable through this catalog. A `describe item` /
+> `describe user_behavior` shows the table's columns plus the five `_hoodie_*` metadata
+> columns carried over from the source Hudi table by XTable (`VARCHAR(1073741824)` is just
+> StarRocks' unbounded-string type). You can confirm data is readable with
+> `select count(*) from user_behavior;` — it returns the same `86953525` as the Hudi table.
+
 7. [Optional] Connect to Delta Lake
 
 Also in the StarRocks MySQL client. Add the Delta Lake External Catalog
