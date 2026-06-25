@@ -487,6 +487,13 @@ Exit this `spark-sql` session with `Ctrl-D` when you are done.
 
 6. [Optional] Connect to Iceberg
 
+The remaining steps run in the **StarRocks MySQL client** (not `spark-sql`) — the same
+client used in step 4. If you exited it, reconnect from the host:
+
+```
+docker compose exec -it starrocks-fe mysql -P 9030 -h starrocks-fe -u root --prompt="StarRocks > "
+```
+
 Add the Iceberg External Catalog
 ```
 CREATE EXTERNAL CATALOG iceberg_catalog_hms
@@ -511,7 +518,7 @@ show tables;
 
 7. [Optional] Connect to Delta Lake
 
-Add the Delta Lake External Catalog
+Also in the StarRocks MySQL client. Add the Delta Lake External Catalog
 ```
 CREATE EXTERNAL CATALOG deltalake_catalog_hms
 PROPERTIES
