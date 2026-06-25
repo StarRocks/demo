@@ -12,3 +12,8 @@ __pycache__/
 # StarRocks Kafka connector JAR is downloaded by the user (see datalakehouse README),
 # not checked in, so it stays in sync with upstream releases.
 documentation-samples/datalakehouse/kafka-connect-connectors-jar/*.jar
+
+# Apache XTable build artifacts (see datalakehouse README step 5) — built/copied by the
+# user into spark-jars/, not checked in (the bundled jar is ~1 GB).
+documentation-samples/datalakehouse/spark-jars/xtable-utilities_*-bundled.jar
+documentation-samples/datalakehouse/spark-jars/jol-core-*.jar
