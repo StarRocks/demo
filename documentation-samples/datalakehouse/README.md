@@ -366,13 +366,36 @@ java -Dlog4j2.configurationFile=/opt/spark/auxjars/xtable-log4j2.properties \
 ```
 On success XTable logs `Sync is successful for the following formats ICEBERG,DELTA` once per
 table (twice here, for `item` and `user_behavior`) and writes a `_delta_log/` directory and
-`metadata/*.metadata.json` files next to the Hudi data in each table's path.
+`metadata/*.metadata.json` files next to the Hudi data in each table's path. With the log4j2
+config above, the output looks like this:
+
+```
+WARNING: Runtime environment or build system does not support multi-release JARs. This will impact location-based features.
+2026-06-25 15:29:10 INFO  org.apache.xtable.utilities.RunSync - Running sync for basePath s3a://huditest/hudi_ecommerce_item for following table formats [DELTA, ICEBERG]
+WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by org.apache.spark.unsafe.Platform (file:/opt/spark/auxjars/xtable-utilities_2.12-0.3.0-incubating-bundled.jar) to constructor java.nio.DirectByteBuffer(long,int)
+WARNING: Please consider reporting this to the maintainers of org.apache.spark.unsafe.Platform
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
+2026-06-25 15:29:18 INFO  org.apache.xtable.conversion.ConversionController - Sync is successful for the following formats ICEBERG,DELTA
+2026-06-25 15:29:18 INFO  org.apache.xtable.utilities.RunSync - Running sync for basePath s3a://huditest/hudi_ecommerce_user_behavior for following table formats [DELTA, ICEBERG]
+2026-06-25 15:29:20 INFO  org.apache.xtable.conversion.ConversionController - Sync is successful for the following formats ICEBERG,DELTA
+```
 
 > [!NOTE]
+> The `WARNING:` lines above (multi-release JARs, "illegal reflective access") are **normal
+> and harmless** — they are emitted directly by the JDK 11 JVM, not by XTable, so the log4j2
+> config cannot silence them. You can ignore them. (They go away on newer JDKs, or you can
+> add `--illegal-access=permit` to the `java` command if you prefer.)
+>
 > Check the `Sync is successful` lines, **not** the exit code. `RunSync` catches per-table
 > failures, logs `ERROR ... Error running sync for <path>`, and continues — so the process
 > can exit `0` even when a table failed. To verify, confirm you got one `Sync is successful`
 > line per table and no `Error running sync` lines.
+>
+> Re-running the command after a successful sync is a safe no-op: with no new Hudi commits
+> there is nothing to propagate, so you will see the `Running sync ...` lines but **no**
+> `Sync is successful` lines (and no errors). That is expected, not a failure.
 
 Run spark-sql with Iceberg configs
 ```
