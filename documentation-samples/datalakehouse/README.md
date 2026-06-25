@@ -353,17 +353,26 @@ the build above; otherwise re-enter with `docker compose exec -it spark-hudi bas
 `jol-core` has to be on the classpath, run the main class with `-cp` rather than `java -jar`.
 `xtable-hadoop-config.xml` (shipped in `spark-jars/`) points XTable at MinIO and
 sets `fs.s3a.aws.credentials.provider` — XTable's bundled hadoop-aws otherwise
-ignores the access keys and fails with a `NoAuthWithAWSException`:
+ignores the access keys and fails with a `NoAuthWithAWSException`. The
+`-Dlog4j2.configurationFile=...` quiets XTable's very verbose Log4j2 output (also shipped
+in `spark-jars/`) so only XTable's own progress and any real errors print:
 ```
 cd /opt/spark/auxjars
-java -cp xtable-utilities_2.12-0.3.0-incubating-bundled.jar:jol-core-0.16.jar \
+java -Dlog4j2.configurationFile=/opt/spark/auxjars/xtable-log4j2.properties \
+  -cp xtable-utilities_2.12-0.3.0-incubating-bundled.jar:jol-core-0.16.jar \
   org.apache.xtable.utilities.RunSync \
   --datasetConfig onetable.yaml \
   --hadoopConfig xtable-hadoop-config.xml
 ```
-On success XTable logs `Sync is successful for the following formats ICEBERG,DELTA`
-and writes a `_delta_log/` directory and `metadata/*.metadata.json` files next to
-the Hudi data in each table's path.
+On success XTable logs `Sync is successful for the following formats ICEBERG,DELTA` once per
+table (twice here, for `item` and `user_behavior`) and writes a `_delta_log/` directory and
+`metadata/*.metadata.json` files next to the Hudi data in each table's path.
+
+> [!NOTE]
+> Check the `Sync is successful` lines, **not** the exit code. `RunSync` catches per-table
+> failures, logs `ERROR ... Error running sync for <path>`, and continues — so the process
+> can exit `0` even when a table failed. To verify, confirm you got one `Sync is successful`
+> line per table and no `Error running sync` lines.
 
 Run spark-sql with Iceberg configs
 ```
