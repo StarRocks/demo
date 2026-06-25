@@ -311,43 +311,91 @@ next to the existing Hudi data, so the same files can be read as all three forma
 
 > [!IMPORTANT]
 > XTable's bundled CLI jar is **not published** (it bundles dependencies the ASF
-> cannot redistribute), so you have to build it from source with JDK 11. The build
-> needs a couple of extra steps because the `xtable-utilities` module is excluded
-> from the default Maven reactor:
+> cannot redistribute), so you build it from source with JDK 11. **Build it inside the
+> `spark-hudi` container** — that image already has JDK 11 (with `javac`), so you do not
+> need Java, Maven, or git on your host. The XTable source tarball ships no Maven wrapper
+> and the container has no system Maven, so download a standalone Maven into the container
+> first (a source tarball is used so no `git` is needed). The build then takes two steps
+> because the `xtable-utilities` module is excluded from the default Maven reactor:
 > ```
-> git clone --branch 0.3.0-incubating --depth 1 https://github.com/apache/incubator-xtable.git
-> cd incubator-xtable
+> docker compose exec -it spark-hudi bash
+> cd /tmp
+> # The spark user's passwd home is /nonexistent. The JVM derives user.home from
+> # /etc/passwd (NOT $HOME), so Maven would try to write ~/.m2 under /nonexistent.
+> # Override user.home for the JVM (Maven's local repo) AND set HOME so the shell's
+> # ~ (used in the cp step below) matches.
+> export MAVEN_OPTS="-Duser.home=/tmp"
+> export HOME=/tmp
+> # standalone Maven (the repo has no mvnw wrapper, and the image has no mvn)
+> curl -L https://archive.apache.org/dist/maven/maven-3/3.9.16/binaries/apache-maven-3.9.16-bin.tar.gz | tar xz
+> export PATH=/tmp/apache-maven-3.9.16/bin:$PATH
+> # XTable source (tarball, so no git needed)
+> curl -L https://github.com/apache/incubator-xtable/archive/refs/tags/0.3.0-incubating.tar.gz | tar xz
+> cd incubator-xtable-0.3.0-incubating
 > # build the utilities module's dependencies, then the utilities module itself:
-> ./mvnw -DskipTests install -pl xtable-core,xtable-aws,xtable-hive-metastore -am
-> (cd xtable-utilities && ../mvnw -DskipTests package)
+> mvn -DskipTests install -pl xtable-core,xtable-aws,xtable-hive-metastore -am
+> (cd xtable-utilities && mvn -DskipTests package)
 > # -> xtable-utilities/target/xtable-utilities_2.12-0.3.0-incubating-bundled.jar (~170 MB)
 > ```
+> The first run downloads a lot of Maven dependencies, so it takes several minutes.
 
-Copy the bundled jar into this demo's `spark-jars/` directory (it is mounted into
-the container at `/opt/spark/auxjars`). The conversion also needs `jol-core`,
-which 0.3.0-incubating leaves test-scoped so it is missing from the bundled jar —
-copy it in too (it lands in your local Maven cache during the build above, or
-download it from Maven Central):
+Still inside the container, copy the bundled jar into `/opt/spark/auxjars` — that path is
+the mount of this demo's `spark-jars/` directory, so the jar also appears on your host. The
+conversion also needs `jol-core`, which 0.3.0-incubating leaves test-scoped so it is missing
+from the bundled jar — copy it from the Maven cache the build just populated:
 ```
-cp xtable-utilities/target/xtable-utilities_2.12-0.3.0-incubating-bundled.jar spark-jars/
-cp ~/.m2/repository/org/openjdk/jol/jol-core/0.16/jol-core-0.16.jar spark-jars/
+cp xtable-utilities/target/xtable-utilities_2.12-0.3.0-incubating-bundled.jar /opt/spark/auxjars/
+cp ~/.m2/repository/org/openjdk/jol/jol-core/0.16/jol-core-0.16.jar /opt/spark/auxjars/
 ```
 
-Run the conversion from inside the `spark-hudi` container. Because `jol-core` has
-to be on the classpath, run the main class with `-cp` rather than `java -jar`.
+Run the conversion from inside the same `spark-hudi` container (you are already there from
+the build above; otherwise re-enter with `docker compose exec -it spark-hudi bash`). Because
+`jol-core` has to be on the classpath, run the main class with `-cp` rather than `java -jar`.
 `xtable-hadoop-config.xml` (shipped in `spark-jars/`) points XTable at MinIO and
 sets `fs.s3a.aws.credentials.provider` — XTable's bundled hadoop-aws otherwise
-ignores the access keys and fails with a `NoAuthWithAWSException`:
+ignores the access keys and fails with a `NoAuthWithAWSException`. The
+`-Dlog4j2.configurationFile=...` quiets XTable's very verbose Log4j2 output (also shipped
+in `spark-jars/`) so only XTable's own progress and any real errors print:
 ```
 cd /opt/spark/auxjars
-java -cp xtable-utilities_2.12-0.3.0-incubating-bundled.jar:jol-core-0.16.jar \
+java -Dlog4j2.configurationFile=/opt/spark/auxjars/xtable-log4j2.properties \
+  -cp xtable-utilities_2.12-0.3.0-incubating-bundled.jar:jol-core-0.16.jar \
   org.apache.xtable.utilities.RunSync \
   --datasetConfig onetable.yaml \
   --hadoopConfig xtable-hadoop-config.xml
 ```
-On success XTable logs `Sync is successful for the following formats ICEBERG,DELTA`
-and writes a `_delta_log/` directory and `metadata/*.metadata.json` files next to
-the Hudi data in each table's path.
+On success XTable logs `Sync is successful for the following formats ICEBERG,DELTA` once per
+table (twice here, for `item` and `user_behavior`) and writes a `_delta_log/` directory and
+`metadata/*.metadata.json` files next to the Hudi data in each table's path. With the log4j2
+config above, the output looks like this:
+
+```
+WARNING: Runtime environment or build system does not support multi-release JARs. This will impact location-based features.
+2026-06-25 15:29:10 INFO  org.apache.xtable.utilities.RunSync - Running sync for basePath s3a://huditest/hudi_ecommerce_item for following table formats [DELTA, ICEBERG]
+WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by org.apache.spark.unsafe.Platform (file:/opt/spark/auxjars/xtable-utilities_2.12-0.3.0-incubating-bundled.jar) to constructor java.nio.DirectByteBuffer(long,int)
+WARNING: Please consider reporting this to the maintainers of org.apache.spark.unsafe.Platform
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
+2026-06-25 15:29:18 INFO  org.apache.xtable.conversion.ConversionController - Sync is successful for the following formats ICEBERG,DELTA
+2026-06-25 15:29:18 INFO  org.apache.xtable.utilities.RunSync - Running sync for basePath s3a://huditest/hudi_ecommerce_user_behavior for following table formats [DELTA, ICEBERG]
+2026-06-25 15:29:20 INFO  org.apache.xtable.conversion.ConversionController - Sync is successful for the following formats ICEBERG,DELTA
+```
+
+> [!NOTE]
+> The `WARNING:` lines above (multi-release JARs, "illegal reflective access") are **normal
+> and harmless** — they are emitted directly by the JDK 11 JVM, not by XTable, so the log4j2
+> config cannot silence them. You can ignore them. (They go away on newer JDKs, or you can
+> add `--illegal-access=permit` to the `java` command if you prefer.)
+>
+> Check the `Sync is successful` lines, **not** the exit code. `RunSync` catches per-table
+> failures, logs `ERROR ... Error running sync for <path>`, and continues — so the process
+> can exit `0` even when a table failed. To verify, confirm you got one `Sync is successful`
+> line per table and no `Error running sync` lines.
+>
+> Re-running the command after a successful sync is a safe no-op: with no new Hudi commits
+> there is nothing to propagate, so you will see the `Running sync ...` lines but **no**
+> `Sync is successful` lines (and no errors). That is expected, not a failure.
 
 Run spark-sql with Iceberg configs
 ```
@@ -374,6 +422,32 @@ CALL hive_prod.system.register_table(
 );
 ```
 
+Each `register_table` call returns one row — `current_snapshot_id`, `total_records`,
+`total_data_files` — confirming the table was registered with the expected row counts (the
+same counts as the Hudi tables):
+
+```
+spark-sql (default)> CREATE SCHEMA iceberg_db LOCATION 's3a://warehouse/';
+Time taken: 0.746 seconds
+spark-sql (default)> CALL hive_prod.system.register_table(
+                   >    table => 'hive_prod.iceberg_db.user_behavior',
+                   >    metadata_file => 's3a://huditest/hudi_ecommerce_user_behavior/metadata/v2.metadata.json'
+                   > );
+1190166881057252708	86953525	10
+Time taken: 0.744 seconds, Fetched 1 row(s)
+spark-sql (default)> CALL hive_prod.system.register_table(
+                   >    table => 'hive_prod.iceberg_db.item',
+                   >    metadata_file => 's3a://huditest/hudi_ecommerce_item/metadata/v2.metadata.json'
+                   > );
+7267346864876294996	3962559	1
+Time taken: 0.075 seconds, Fetched 1 row(s)
+```
+
+(The snapshot IDs will differ on your run; the record counts — `86953525` and `3962559` —
+should match.)
+
+Exit this `spark-sql` session with `Ctrl-D` before launching the next one.
+
 Run spark-sql with Delta Lake configs
 ```
 /opt/spark/bin/spark-sql --packages io.delta:delta-spark_2.12:3.2.0,org.apache.hadoop:hadoop-aws:3.3.4 \
@@ -391,7 +465,34 @@ CREATE TABLE delta_db.user_behavior USING DELTA LOCATION 's3a://huditest/hudi_ec
 CREATE TABLE delta_db.item USING DELTA LOCATION 's3a://huditest/hudi_ecommerce_item';
 ```
 
+Each `CREATE TABLE` finishes with a `Time taken: …` line and prints two warnings, both of
+which are **expected and harmless**:
+
+```
+spark-sql (default)> CREATE TABLE delta_db.user_behavior USING DELTA LOCATION 's3a://huditest/hudi_ecommerce_user_behavior';
+26/06/25 16:38:00 WARN HiveExternalCatalog: Couldn't find corresponding Hive SerDe for data source provider delta. Persisting data source table `spark_catalog`.`delta_db`.`user_behavior` into Hive metastore in Spark SQL specific format, which is NOT compatible with Hive.
+26/06/25 16:38:00 WARN SessionState: METASTORE_FILTER_HOOK will be ignored, since hive.security.authorization.manager is set to instance of HiveAuthorizerFactory.
+Time taken: 1.814 seconds
+spark-sql (default)> CREATE TABLE delta_db.item USING DELTA LOCATION 's3a://huditest/hudi_ecommerce_item';
+26/06/25 16:38:07 WARN HiveExternalCatalog: Couldn't find corresponding Hive SerDe for data source provider delta. Persisting data source table `spark_catalog`.`delta_db`.`item` into Hive metastore in Spark SQL specific format, which is NOT compatible with Hive.
+Time taken: 0.218 seconds
+```
+
+The `Couldn't find corresponding Hive SerDe for data source provider delta` warning is
+normal: Delta tables are not natively Hive-readable, so Spark records them in the metastore
+in its own format. StarRocks reads them through its Delta Lake connector (next step), so this
+does not affect the demo.
+
+Exit this `spark-sql` session with `Ctrl-D` when you are done.
+
 6. [Optional] Connect to Iceberg
+
+The remaining steps run in the **StarRocks MySQL client** (not `spark-sql`) — the same
+client used in step 4. If you exited it, reconnect from the host:
+
+```
+docker compose exec -it starrocks-fe mysql -P 9030 -h starrocks-fe -u root --prompt="StarRocks > "
+```
 
 Add the Iceberg External Catalog
 ```
@@ -415,9 +516,51 @@ use iceberg_db;
 show tables;
 ```
 
+Expected output:
+
+```
+StarRocks > show catalogs;
++---------------------+----------+------------------------------------------------------------------+
+| Catalog             | Type     | Comment                                                          |
++---------------------+----------+------------------------------------------------------------------+
+| default_catalog     | Internal | An internal catalog contains this cluster's self-managed tables. |
+| hudi_catalog_hms    | Hudi     | NULL                                                             |
+| iceberg_catalog_hms | Iceberg  | NULL                                                             |
++---------------------+----------+------------------------------------------------------------------+
+
+StarRocks > show databases;
++--------------------+
+| Database           |
++--------------------+
+| default            |
+| delta_db           |
+| hudi_ecommerce     |
+| iceberg_db         |
+| information_schema |
++--------------------+
+
+StarRocks > use iceberg_db;
+StarRocks > show tables;
++----------------------+
+| Tables_in_iceberg_db |
++----------------------+
+| item                 |
+| user_behavior        |
++----------------------+
+```
+
+> [!NOTE]
+> The Iceberg catalog lists **all** Hive-metastore databases (`delta_db`, `hudi_ecommerce`,
+> …), not just Iceberg ones, because they share one metastore — only the Iceberg-format
+> tables under `iceberg_db` are queryable through this catalog. A `describe item` /
+> `describe user_behavior` shows the table's columns plus the five `_hoodie_*` metadata
+> columns carried over from the source Hudi table by XTable (`VARCHAR(1073741824)` is just
+> StarRocks' unbounded-string type). You can confirm data is readable with
+> `select count(*) from user_behavior;` — it returns the same `86953525` as the Hudi table.
+
 7. [Optional] Connect to Delta Lake
 
-Add the Delta Lake External Catalog
+Also in the StarRocks MySQL client. Add the Delta Lake External Catalog
 ```
 CREATE EXTERNAL CATALOG deltalake_catalog_hms
 PROPERTIES
@@ -437,6 +580,185 @@ set catalog deltalake_catalog_hms;
 show databases;
 use delta_db;
 show tables;
+```
+
+## Sample analytical queries (JOINs)
+
+Run these in the **StarRocks MySQL client**. They use the `user_behavior` (≈87M rows) and
+`item` (≈4M rows) tables joined on `ItemID`. `BehaviorType` is one of `pv`, `cart`, `fav`,
+`buy`; `Timestamp` is a datetime string (UTC — the source data is from Taobao, which is
+UTC+8, so "evening" shopping in China appears in the early-afternoon UTC hours below).
+
+> [!NOTE]
+> These queries scan tens of millions of rows. They run **much faster with multiple compute
+> nodes** — this demo deploys a single FE and a single BE, and the emphasis is on
+> **interoperating across table formats**, not on query speed. (With the BE data cache warm,
+> they still return in seconds here.)
+
+Every table is fully catalog-qualified (`catalog.database.table`), so the queries work no
+matter which catalog is currently selected.
+
+### 1. Cross-format federated JOIN ⭐
+The query that makes this demo special: a single statement joining an **Iceberg** table to a
+**Hudi** table — the same data XTable wrote in multiple formats — with StarRocks federating
+across catalogs. Swap `hudi_catalog_hms.hudi_ecommerce.item` for
+`deltalake_catalog_hms.delta_db.item` to join Iceberg ⋈ Delta instead; the answer is identical.
+```sql
+SELECT i.Name, count_if(ub.BehaviorType='buy') AS buys
+FROM iceberg_catalog_hms.iceberg_db.user_behavior ub      -- Iceberg
+JOIN hudi_catalog_hms.hudi_ecommerce.item        i        -- Hudi
+  ON ub.ItemID = i.ItemID
+GROUP BY i.Name
+ORDER BY buys DESC
+LIMIT 5;
+```
+```
++----------------+------+
+| Name           | buys |
++----------------+------+
+| item 3122135   | 1396 |
+| item 3031354   |  846 |
+| item 3964583   |  599 |
+| item 2560262   |  569 |
+| item 2964774   |  511 |
++----------------+------+
+```
+
+### 2. Per-item conversion funnel (view → cart → fav → buy)
+```sql
+SELECT i.Name,
+       count_if(ub.BehaviorType='pv')   AS views,
+       count_if(ub.BehaviorType='cart') AS carts,
+       count_if(ub.BehaviorType='fav')  AS favs,
+       count_if(ub.BehaviorType='buy')  AS buys
+FROM iceberg_catalog_hms.iceberg_db.user_behavior ub
+JOIN iceberg_catalog_hms.iceberg_db.item i ON ub.ItemID = i.ItemID
+GROUP BY i.Name
+ORDER BY buys DESC
+LIMIT 3;
+```
+```
++--------------+-------+-------+------+------+
+| Name         | views | carts | favs | buys |
++--------------+-------+-------+------+------+
+| item 3122135 |  1640 |   339 |  150 | 1396 |
+| item 3031354 | 15134 |  1581 |  474 |  846 |
+| item 3964583 |  4422 |   505 |  139 |  599 |
++--------------+-------+-------+------+------+
+```
+
+### 3. Best-converting popular items (view → buy %)
+```sql
+SELECT i.Name,
+       count_if(ub.BehaviorType='pv')  AS views,
+       count_if(ub.BehaviorType='buy') AS buys,
+       ROUND(count_if(ub.BehaviorType='buy') * 100.0
+             / NULLIF(count_if(ub.BehaviorType='pv'), 0), 2) AS buy_pct
+FROM iceberg_catalog_hms.iceberg_db.user_behavior ub
+JOIN iceberg_catalog_hms.iceberg_db.item i ON ub.ItemID = i.ItemID
+GROUP BY i.Name
+HAVING views >= 1000
+ORDER BY buy_pct DESC
+LIMIT 3;
+```
+```
++--------------+-------+------+---------+
+| Name         | views | buys | buy_pct |
++--------------+-------+------+---------+
+| item 3122135 |  1640 | 1396 |   85.12 |
+| item 1910706 |  1423 |  503 |   35.35 |
+| item 3997963 |  1076 |  272 |   25.28 |
++--------------+-------+------+---------+
+```
+
+### 4. Cart abandonment — frequently carted, never bought
+```sql
+SELECT i.Name,
+       count_if(ub.BehaviorType='cart') AS carts,
+       count_if(ub.BehaviorType='buy')  AS buys
+FROM iceberg_catalog_hms.iceberg_db.user_behavior ub
+JOIN iceberg_catalog_hms.iceberg_db.item i ON ub.ItemID = i.ItemID
+GROUP BY i.Name
+HAVING carts >= 50 AND buys = 0
+ORDER BY carts DESC
+LIMIT 3;
+```
+```
++--------------+-------+------+
+| Name         | carts | buys |
++--------------+-------+------+
+| item 860684  |   135 |    0 |
+| item 1196202 |   116 |    0 |
+| item 3082847 |    97 |    0 |
++--------------+-------+------+
+```
+
+### 5. Market-basket: items bought together by the same user (self-join)
+Filtering both sides to `buy` first shrinks the self-join from 87M to ~1.76M rows; `a.ItemID
+< b.ItemID` avoids self-pairs and duplicate (A,B)/(B,A) rows.
+```sql
+SELECT i1.Name AS item_a, i2.Name AS item_b, COUNT(*) AS shoppers
+FROM iceberg_catalog_hms.iceberg_db.user_behavior a
+JOIN iceberg_catalog_hms.iceberg_db.user_behavior b
+  ON a.UserID = b.UserID AND a.ItemID < b.ItemID
+JOIN iceberg_catalog_hms.iceberg_db.item i1 ON a.ItemID = i1.ItemID
+JOIN iceberg_catalog_hms.iceberg_db.item i2 ON b.ItemID = i2.ItemID
+WHERE a.BehaviorType = 'buy' AND b.BehaviorType = 'buy'
+GROUP BY i1.Name, i2.Name
+HAVING shoppers >= 3
+ORDER BY shoppers DESC
+LIMIT 3;
+```
+```
++--------------+--------------+----------+
+| item_a       | item_b       | shoppers |
++--------------+--------------+----------+
+| item 2015127 | item 3119316 |      870 |
+| item 3412394 | item 5117987 |      675 |
+| item 4373712 | item 4470561 |      270 |
++--------------+--------------+----------+
+```
+
+### 6. Hourly shopping rhythm (time + JOIN)
+```sql
+SELECT hour(cast(ub.Timestamp as datetime)) AS hr,
+       count_if(ub.BehaviorType='buy') AS buys,
+       COUNT(DISTINCT CASE WHEN ub.BehaviorType='buy' THEN i.ItemID END) AS distinct_items_sold
+FROM iceberg_catalog_hms.iceberg_db.user_behavior ub
+JOIN iceberg_catalog_hms.iceberg_db.item i ON ub.ItemID = i.ItemID
+GROUP BY hr
+ORDER BY hr;
+```
+```
++------+--------+---------------------+
+| hr   | buys   | distinct_items_sold |
++------+--------+---------------------+
+|   13 | 126747 |               88428 |   <- ~21:00 Beijing, evening peak
+|   14 | 121140 |               84931 |
+|   ...                               |
+|   19 |   7213 |                6795 |   <- ~03:00 Beijing, overnight low
++------+--------+---------------------+
+```
+
+### 7. Top categories by purchase volume
+```sql
+SELECT ub.CategoryID,
+       count_if(ub.BehaviorType='buy') AS buys,
+       COUNT(DISTINCT i.ItemID)        AS distinct_items
+FROM iceberg_catalog_hms.iceberg_db.user_behavior ub
+JOIN iceberg_catalog_hms.iceberg_db.item i ON ub.ItemID = i.ItemID
+GROUP BY ub.CategoryID
+ORDER BY buys DESC
+LIMIT 3;
+```
+```
++------------+-------+----------------+
+| CategoryID | buys  | distinct_items |
++------------+-------+----------------+
+|    1464116 | 30225 |          21443 |
+|    2735466 | 29671 |          17739 |
+|    4145813 | 27825 |          65955 |
++------------+-------+----------------+
 ```
 
 X. Clean up
