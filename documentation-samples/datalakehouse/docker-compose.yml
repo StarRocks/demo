@@ -171,7 +171,7 @@ services:
         condition: service_healthy
 
   zookeeper:
-    image: quay.io/debezium/zookeeper:3.3
+    image: quay.io/debezium/zookeeper:2.6
     ports:
       - 2181:2181
       - 2888:2888
@@ -180,7 +180,7 @@ services:
       test: bash -c "exec 6<> /dev/tcp/localhost/2181"
 
   kafka:
-    image: quay.io/debezium/kafka:3.3
+    image: quay.io/debezium/kafka:2.6
     ports:
       - 9092:9092
       - 29094:29094
@@ -201,7 +201,7 @@ services:
       retries: 60
 
   connect:
-    image: quay.io/debezium/connect:3.3
+    image: quay.io/debezium/connect:2.6
     ports: 
       - 8083:8083
       - 5005:5005

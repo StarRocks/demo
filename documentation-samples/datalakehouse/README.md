@@ -13,7 +13,7 @@ This demo runs out of the box without any extra configuration, and **you do not 
 the Debezium JDBC connector**. It is worth understanding the two halves of the pipeline:
 
 - **Source (always Debezium):** the Debezium PostgreSQL *source* connector — bundled in
-  the `debezium/connect:3.3` image — captures changes from PostgreSQL and writes them to
+  the `debezium/connect:2.6` image — captures changes from PostgreSQL and writes them to
   Kafka topics. This is always used.
 - **Sink (StarRocks by default):** the **StarRocks Kafka sink connector** consumes those
   topics and loads the data into StarRocks. You download it during setup (see
@@ -466,9 +466,9 @@ PostgreSQL ──▶ Debezium PostgreSQL source connector ──▶ Kafka topic 
 |--------------|--------------------------------|-------------------------------------------------------------|-------------|
 | `postgresql` | `quay.io/debezium/postgres:17` | Source database, pre-configured for logical replication/CDC | `localhost:5432` (user/pass `postgres`/`postgres`) |
 | `adminer`    | `adminer`                      | Web UI for browsing/editing PostgreSQL                      | http://localhost:8080 |
-| `zookeeper`  | `quay.io/debezium/zookeeper:3.3` | Kafka coordination                                        | `localhost:2181` |
-| `kafka`      | `quay.io/debezium/kafka:3.3`   | Message broker that carries the change events               | `localhost:9092` (internal `kafka:29092`) |
-| `connect`    | `quay.io/debezium/connect:3.3` | Kafka Connect runtime hosting the source and sink connectors | REST API http://localhost:8083 |
+| `zookeeper`  | `quay.io/debezium/zookeeper:2.6` | Kafka coordination                                        | `localhost:2181` |
+| `kafka`      | `quay.io/debezium/kafka:2.6`   | Message broker that carries the change events               | `localhost:9092` (internal `kafka:29092`) |
+| `connect`    | `quay.io/debezium/connect:2.6` | Kafka Connect runtime hosting the source and sink connectors | REST API http://localhost:8083 |
 
 ## How the connectors get into the `connect` container
 
@@ -482,7 +482,7 @@ volumes:
 ```
 
 - **Debezium PostgreSQL *source* connector** — already bundled inside the
-  `debezium/connect:3.3` image, so nothing to download.
+  `debezium/connect:2.6` image, so nothing to download.
 - **StarRocks Kafka *sink* connector** — downloaded by you into
   `./kafka-connect-connectors-jar/` (see
   [Download the StarRocks Kafka sink connector](#download-the-starrocks-kafka-sink-connector-required))
@@ -497,21 +497,17 @@ volumes:
 
 ### Where to get the Debezium JDBC connector files
 
-The Kafka Connect runtime is `debezium/connect:3.3`. Download a Debezium JDBC connector
-plugin archive from Maven Central and point `DEBEZIUM_JDBC_CONNECTOR_PATH` at the extracted
-directory before `docker compose up`. Pick the newest available
-[`debezium-connector-jdbc` release](https://central.sonatype.com/artifact/io.debezium/debezium-connector-jdbc/versions)
-— note the JDBC connector trails the runtime, so a `3.3.x` build may not exist yet; use the
-latest `3.x` `Final` release (it is compatible with the 3.3 runtime):
+The connector version must match the `debezium/connect:2.6` runtime, so download a
+`2.6.x` plugin archive from Maven Central. Extract it, then point
+`DEBEZIUM_JDBC_CONNECTOR_PATH` at the extracted directory before `docker compose up`:
 
 ```
-# Replace <VERSION> with the newest 3.x Final from Maven Central, e.g. 3.1.1.Final
-VERSION=<VERSION>
-curl -LO https://repo1.maven.org/maven2/io/debezium/debezium-connector-jdbc/${VERSION}/debezium-connector-jdbc-${VERSION}-plugin.tar.gz
+# Download the 2.6 plugin bundle (matches the debezium/connect:2.6 image)
+curl -LO https://repo1.maven.org/maven2/io/debezium/debezium-connector-jdbc/2.6.2.Final/debezium-connector-jdbc-2.6.2.Final-plugin.tar.gz
 
 # Extract it
 mkdir -p debezium-connector-jdbc
-tar -xzf debezium-connector-jdbc-${VERSION}-plugin.tar.gz -C debezium-connector-jdbc --strip-components=1
+tar -xzf debezium-connector-jdbc-2.6.2.Final-plugin.tar.gz -C debezium-connector-jdbc --strip-components=1
 
 # Point the env var at the directory containing the JARs
 export DEBEZIUM_JDBC_CONNECTOR_PATH="$(pwd)/debezium-connector-jdbc"
