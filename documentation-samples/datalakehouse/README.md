@@ -446,6 +446,8 @@ Time taken: 0.075 seconds, Fetched 1 row(s)
 (The snapshot IDs will differ on your run; the record counts — `86953525` and `3962559` —
 should match.)
 
+Exit this `spark-sql` session with `Ctrl-D` before launching the next one.
+
 Run spark-sql with Delta Lake configs
 ```
 /opt/spark/bin/spark-sql --packages io.delta:delta-spark_2.12:3.2.0,org.apache.hadoop:hadoop-aws:3.3.4 \
@@ -462,6 +464,26 @@ CREATE TABLE delta_db.user_behavior USING DELTA LOCATION 's3a://huditest/hudi_ec
 
 CREATE TABLE delta_db.item USING DELTA LOCATION 's3a://huditest/hudi_ecommerce_item';
 ```
+
+Each `CREATE TABLE` finishes with a `Time taken: …` line and prints two warnings, both of
+which are **expected and harmless**:
+
+```
+spark-sql (default)> CREATE TABLE delta_db.user_behavior USING DELTA LOCATION 's3a://huditest/hudi_ecommerce_user_behavior';
+26/06/25 16:38:00 WARN HiveExternalCatalog: Couldn't find corresponding Hive SerDe for data source provider delta. Persisting data source table `spark_catalog`.`delta_db`.`user_behavior` into Hive metastore in Spark SQL specific format, which is NOT compatible with Hive.
+26/06/25 16:38:00 WARN SessionState: METASTORE_FILTER_HOOK will be ignored, since hive.security.authorization.manager is set to instance of HiveAuthorizerFactory.
+Time taken: 1.814 seconds
+spark-sql (default)> CREATE TABLE delta_db.item USING DELTA LOCATION 's3a://huditest/hudi_ecommerce_item';
+26/06/25 16:38:07 WARN HiveExternalCatalog: Couldn't find corresponding Hive SerDe for data source provider delta. Persisting data source table `spark_catalog`.`delta_db`.`item` into Hive metastore in Spark SQL specific format, which is NOT compatible with Hive.
+Time taken: 0.218 seconds
+```
+
+The `Couldn't find corresponding Hive SerDe for data source provider delta` warning is
+normal: Delta tables are not natively Hive-readable, so Spark records them in the metastore
+in its own format. StarRocks reads them through its Delta Lake connector (next step), so this
+does not affect the demo.
+
+Exit this `spark-sql` session with `Ctrl-D` when you are done.
 
 6. [Optional] Connect to Iceberg
 
