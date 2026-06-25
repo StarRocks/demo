@@ -320,6 +320,8 @@ next to the existing Hudi data, so the same files can be read as all three forma
 > ```
 > docker compose exec -it spark-hudi bash
 > cd /tmp
+> # the spark user's HOME is /nonexistent; give Maven a writable ~/.m2
+> export HOME=/tmp
 > # standalone Maven (the repo has no mvnw wrapper, and the image has no mvn)
 > curl -L https://archive.apache.org/dist/maven/maven-3/3.9.16/binaries/apache-maven-3.9.16-bin.tar.gz | tar xz
 > export PATH=/tmp/apache-maven-3.9.16/bin:$PATH
