@@ -610,7 +610,7 @@ JOIN hudi_catalog_hms.hudi_ecommerce.item        i        -- Hudi
   ON ub.ItemID = i.ItemID
 GROUP BY i.Name
 ORDER BY buys DESC
-LIMIT 10;
+LIMIT 5;
 ```
 ```
 +----------------+------+
@@ -635,7 +635,7 @@ FROM iceberg_catalog_hms.iceberg_db.user_behavior ub
 JOIN iceberg_catalog_hms.iceberg_db.item i ON ub.ItemID = i.ItemID
 GROUP BY i.Name
 ORDER BY buys DESC
-LIMIT 20;
+LIMIT 3;
 ```
 ```
 +--------------+-------+-------+------+------+
@@ -659,7 +659,7 @@ JOIN iceberg_catalog_hms.iceberg_db.item i ON ub.ItemID = i.ItemID
 GROUP BY i.Name
 HAVING views >= 1000
 ORDER BY buy_pct DESC
-LIMIT 20;
+LIMIT 3;
 ```
 ```
 +--------------+-------+------+---------+
@@ -681,7 +681,7 @@ JOIN iceberg_catalog_hms.iceberg_db.item i ON ub.ItemID = i.ItemID
 GROUP BY i.Name
 HAVING carts >= 50 AND buys = 0
 ORDER BY carts DESC
-LIMIT 20;
+LIMIT 3;
 ```
 ```
 +--------------+-------+------+
@@ -707,7 +707,7 @@ WHERE a.BehaviorType = 'buy' AND b.BehaviorType = 'buy'
 GROUP BY i1.Name, i2.Name
 HAVING shoppers >= 3
 ORDER BY shoppers DESC
-LIMIT 20;
+LIMIT 3;
 ```
 ```
 +--------------+--------------+----------+
@@ -735,7 +735,7 @@ ORDER BY hr;
 +------+--------+---------------------+
 |   13 | 126747 |               88428 |   <- ~21:00 Beijing, evening peak
 |   14 | 121140 |               84931 |
-|   ...                                |
+|   ...                               |
 |   19 |   7213 |                6795 |   <- ~03:00 Beijing, overnight low
 +------+--------+---------------------+
 ```
@@ -749,7 +749,7 @@ FROM iceberg_catalog_hms.iceberg_db.user_behavior ub
 JOIN iceberg_catalog_hms.iceberg_db.item i ON ub.ItemID = i.ItemID
 GROUP BY ub.CategoryID
 ORDER BY buys DESC
-LIMIT 15;
+LIMIT 3;
 ```
 ```
 +------------+-------+----------------+
