@@ -320,7 +320,11 @@ next to the existing Hudi data, so the same files can be read as all three forma
 > ```
 > docker compose exec -it spark-hudi bash
 > cd /tmp
-> # the spark user's HOME is /nonexistent; give Maven a writable ~/.m2
+> # The spark user's passwd home is /nonexistent. The JVM derives user.home from
+> # /etc/passwd (NOT $HOME), so Maven would try to write ~/.m2 under /nonexistent.
+> # Override user.home for the JVM (Maven's local repo) AND set HOME so the shell's
+> # ~ (used in the cp step below) matches.
+> export MAVEN_OPTS="-Duser.home=/tmp"
 > export HOME=/tmp
 > # standalone Maven (the repo has no mvnw wrapper, and the image has no mvn)
 > curl -L https://archive.apache.org/dist/maven/maven-3/3.9.16/binaries/apache-maven-3.9.16-bin.tar.gz | tar xz
