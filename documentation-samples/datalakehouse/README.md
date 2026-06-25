@@ -311,30 +311,35 @@ next to the existing Hudi data, so the same files can be read as all three forma
 
 > [!IMPORTANT]
 > XTable's bundled CLI jar is **not published** (it bundles dependencies the ASF
-> cannot redistribute), so you have to build it from source with JDK 11. The build
-> needs a couple of extra steps because the `xtable-utilities` module is excluded
-> from the default Maven reactor:
+> cannot redistribute), so you build it from source with JDK 11. **Build it inside the
+> `spark-hudi` container** — that image already has JDK 11 (with `javac`), so you do not
+> need Java, Maven, or git on your host. It uses the project's `./mvnw` wrapper (no system
+> Maven needed) and a source tarball (no `git` needed). The build takes two steps because
+> the `xtable-utilities` module is excluded from the default Maven reactor:
 > ```
-> git clone --branch 0.3.0-incubating --depth 1 https://github.com/apache/incubator-xtable.git
-> cd incubator-xtable
+> docker compose exec -it spark-hudi bash
+> cd /tmp
+> curl -L https://github.com/apache/incubator-xtable/archive/refs/tags/0.3.0-incubating.tar.gz | tar xz
+> cd incubator-xtable-0.3.0-incubating
 > # build the utilities module's dependencies, then the utilities module itself:
 > ./mvnw -DskipTests install -pl xtable-core,xtable-aws,xtable-hive-metastore -am
 > (cd xtable-utilities && ../mvnw -DskipTests package)
 > # -> xtable-utilities/target/xtable-utilities_2.12-0.3.0-incubating-bundled.jar (~170 MB)
 > ```
+> The first run downloads a lot of Maven dependencies, so it takes several minutes.
 
-Copy the bundled jar into this demo's `spark-jars/` directory (it is mounted into
-the container at `/opt/spark/auxjars`). The conversion also needs `jol-core`,
-which 0.3.0-incubating leaves test-scoped so it is missing from the bundled jar —
-copy it in too (it lands in your local Maven cache during the build above, or
-download it from Maven Central):
+Still inside the container, copy the bundled jar into `/opt/spark/auxjars` — that path is
+the mount of this demo's `spark-jars/` directory, so the jar also appears on your host. The
+conversion also needs `jol-core`, which 0.3.0-incubating leaves test-scoped so it is missing
+from the bundled jar — copy it from the Maven cache the build just populated:
 ```
-cp xtable-utilities/target/xtable-utilities_2.12-0.3.0-incubating-bundled.jar spark-jars/
-cp ~/.m2/repository/org/openjdk/jol/jol-core/0.16/jol-core-0.16.jar spark-jars/
+cp xtable-utilities/target/xtable-utilities_2.12-0.3.0-incubating-bundled.jar /opt/spark/auxjars/
+cp ~/.m2/repository/org/openjdk/jol/jol-core/0.16/jol-core-0.16.jar /opt/spark/auxjars/
 ```
 
-Run the conversion from inside the `spark-hudi` container. Because `jol-core` has
-to be on the classpath, run the main class with `-cp` rather than `java -jar`.
+Run the conversion from inside the same `spark-hudi` container (you are already there from
+the build above; otherwise re-enter with `docker compose exec -it spark-hudi bash`). Because
+`jol-core` has to be on the classpath, run the main class with `-cp` rather than `java -jar`.
 `xtable-hadoop-config.xml` (shipped in `spark-jars/`) points XTable at MinIO and
 sets `fs.s3a.aws.credentials.provider` — XTable's bundled hadoop-aws otherwise
 ignores the access keys and fails with a `NoAuthWithAWSException`:
