@@ -582,6 +582,185 @@ use delta_db;
 show tables;
 ```
 
+## Sample analytical queries (JOINs)
+
+Run these in the **StarRocks MySQL client**. They use the `user_behavior` (≈87M rows) and
+`item` (≈4M rows) tables joined on `ItemID`. `BehaviorType` is one of `pv`, `cart`, `fav`,
+`buy`; `Timestamp` is a datetime string (UTC — the source data is from Taobao, which is
+UTC+8, so "evening" shopping in China appears in the early-afternoon UTC hours below).
+
+> [!NOTE]
+> These queries scan tens of millions of rows. They run **much faster with multiple compute
+> nodes** — this demo deploys a single FE and a single BE, and the emphasis is on
+> **interoperating across table formats**, not on query speed. (With the BE data cache warm,
+> they still return in seconds here.)
+
+Every table is fully catalog-qualified (`catalog.database.table`), so the queries work no
+matter which catalog is currently selected.
+
+### 1. Cross-format federated JOIN ⭐
+The query that makes this demo special: a single statement joining an **Iceberg** table to a
+**Hudi** table — the same data XTable wrote in multiple formats — with StarRocks federating
+across catalogs. Swap `hudi_catalog_hms.hudi_ecommerce.item` for
+`deltalake_catalog_hms.delta_db.item` to join Iceberg ⋈ Delta instead; the answer is identical.
+```sql
+SELECT i.Name, count_if(ub.BehaviorType='buy') AS buys
+FROM iceberg_catalog_hms.iceberg_db.user_behavior ub      -- Iceberg
+JOIN hudi_catalog_hms.hudi_ecommerce.item        i        -- Hudi
+  ON ub.ItemID = i.ItemID
+GROUP BY i.Name
+ORDER BY buys DESC
+LIMIT 10;
+```
+```
++----------------+------+
+| Name           | buys |
++----------------+------+
+| item 3122135   | 1396 |
+| item 3031354   |  846 |
+| item 3964583   |  599 |
+| item 2560262   |  569 |
+| item 2964774   |  511 |
++----------------+------+
+```
+
+### 2. Per-item conversion funnel (view → cart → fav → buy)
+```sql
+SELECT i.Name,
+       count_if(ub.BehaviorType='pv')   AS views,
+       count_if(ub.BehaviorType='cart') AS carts,
+       count_if(ub.BehaviorType='fav')  AS favs,
+       count_if(ub.BehaviorType='buy')  AS buys
+FROM iceberg_catalog_hms.iceberg_db.user_behavior ub
+JOIN iceberg_catalog_hms.iceberg_db.item i ON ub.ItemID = i.ItemID
+GROUP BY i.Name
+ORDER BY buys DESC
+LIMIT 20;
+```
+```
++--------------+-------+-------+------+------+
+| Name         | views | carts | favs | buys |
++--------------+-------+-------+------+------+
+| item 3122135 |  1640 |   339 |  150 | 1396 |
+| item 3031354 | 15134 |  1581 |  474 |  846 |
+| item 3964583 |  4422 |   505 |  139 |  599 |
++--------------+-------+-------+------+------+
+```
+
+### 3. Best-converting popular items (view → buy %)
+```sql
+SELECT i.Name,
+       count_if(ub.BehaviorType='pv')  AS views,
+       count_if(ub.BehaviorType='buy') AS buys,
+       ROUND(count_if(ub.BehaviorType='buy') * 100.0
+             / NULLIF(count_if(ub.BehaviorType='pv'), 0), 2) AS buy_pct
+FROM iceberg_catalog_hms.iceberg_db.user_behavior ub
+JOIN iceberg_catalog_hms.iceberg_db.item i ON ub.ItemID = i.ItemID
+GROUP BY i.Name
+HAVING views >= 1000
+ORDER BY buy_pct DESC
+LIMIT 20;
+```
+```
++--------------+-------+------+---------+
+| Name         | views | buys | buy_pct |
++--------------+-------+------+---------+
+| item 3122135 |  1640 | 1396 |   85.12 |
+| item 1910706 |  1423 |  503 |   35.35 |
+| item 3997963 |  1076 |  272 |   25.28 |
++--------------+-------+------+---------+
+```
+
+### 4. Cart abandonment — frequently carted, never bought
+```sql
+SELECT i.Name,
+       count_if(ub.BehaviorType='cart') AS carts,
+       count_if(ub.BehaviorType='buy')  AS buys
+FROM iceberg_catalog_hms.iceberg_db.user_behavior ub
+JOIN iceberg_catalog_hms.iceberg_db.item i ON ub.ItemID = i.ItemID
+GROUP BY i.Name
+HAVING carts >= 50 AND buys = 0
+ORDER BY carts DESC
+LIMIT 20;
+```
+```
++--------------+-------+------+
+| Name         | carts | buys |
++--------------+-------+------+
+| item 860684  |   135 |    0 |
+| item 1196202 |   116 |    0 |
+| item 3082847 |    97 |    0 |
++--------------+-------+------+
+```
+
+### 5. Market-basket: items bought together by the same user (self-join)
+Filtering both sides to `buy` first shrinks the self-join from 87M to ~1.76M rows; `a.ItemID
+< b.ItemID` avoids self-pairs and duplicate (A,B)/(B,A) rows.
+```sql
+SELECT i1.Name AS item_a, i2.Name AS item_b, COUNT(*) AS shoppers
+FROM iceberg_catalog_hms.iceberg_db.user_behavior a
+JOIN iceberg_catalog_hms.iceberg_db.user_behavior b
+  ON a.UserID = b.UserID AND a.ItemID < b.ItemID
+JOIN iceberg_catalog_hms.iceberg_db.item i1 ON a.ItemID = i1.ItemID
+JOIN iceberg_catalog_hms.iceberg_db.item i2 ON b.ItemID = i2.ItemID
+WHERE a.BehaviorType = 'buy' AND b.BehaviorType = 'buy'
+GROUP BY i1.Name, i2.Name
+HAVING shoppers >= 3
+ORDER BY shoppers DESC
+LIMIT 20;
+```
+```
++--------------+--------------+----------+
+| item_a       | item_b       | shoppers |
++--------------+--------------+----------+
+| item 2015127 | item 3119316 |      870 |
+| item 3412394 | item 5117987 |      675 |
+| item 4373712 | item 4470561 |      270 |
++--------------+--------------+----------+
+```
+
+### 6. Hourly shopping rhythm (time + JOIN)
+```sql
+SELECT hour(cast(ub.Timestamp as datetime)) AS hr,
+       count_if(ub.BehaviorType='buy') AS buys,
+       COUNT(DISTINCT CASE WHEN ub.BehaviorType='buy' THEN i.ItemID END) AS distinct_items_sold
+FROM iceberg_catalog_hms.iceberg_db.user_behavior ub
+JOIN iceberg_catalog_hms.iceberg_db.item i ON ub.ItemID = i.ItemID
+GROUP BY hr
+ORDER BY hr;
+```
+```
++------+--------+---------------------+
+| hr   | buys   | distinct_items_sold |
++------+--------+---------------------+
+|   13 | 126747 |               88428 |   <- ~21:00 Beijing, evening peak
+|   14 | 121140 |               84931 |
+|   ...                                |
+|   19 |   7213 |                6795 |   <- ~03:00 Beijing, overnight low
++------+--------+---------------------+
+```
+
+### 7. Top categories by purchase volume
+```sql
+SELECT ub.CategoryID,
+       count_if(ub.BehaviorType='buy') AS buys,
+       COUNT(DISTINCT i.ItemID)        AS distinct_items
+FROM iceberg_catalog_hms.iceberg_db.user_behavior ub
+JOIN iceberg_catalog_hms.iceberg_db.item i ON ub.ItemID = i.ItemID
+GROUP BY ub.CategoryID
+ORDER BY buys DESC
+LIMIT 15;
+```
+```
++------------+-------+----------------+
+| CategoryID | buys  | distinct_items |
++------------+-------+----------------+
+|    1464116 | 30225 |          21443 |
+|    2735466 | 29671 |          17739 |
+|    4145813 | 27825 |          65955 |
++------------+-------+----------------+
+```
+
 X. Clean up
 
 Do not run this until you're done with the tutorial.
