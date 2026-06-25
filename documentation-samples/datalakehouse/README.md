@@ -313,17 +313,22 @@ next to the existing Hudi data, so the same files can be read as all three forma
 > XTable's bundled CLI jar is **not published** (it bundles dependencies the ASF
 > cannot redistribute), so you build it from source with JDK 11. **Build it inside the
 > `spark-hudi` container** — that image already has JDK 11 (with `javac`), so you do not
-> need Java, Maven, or git on your host. It uses the project's `./mvnw` wrapper (no system
-> Maven needed) and a source tarball (no `git` needed). The build takes two steps because
-> the `xtable-utilities` module is excluded from the default Maven reactor:
+> need Java, Maven, or git on your host. The XTable source tarball ships no Maven wrapper
+> and the container has no system Maven, so download a standalone Maven into the container
+> first (a source tarball is used so no `git` is needed). The build then takes two steps
+> because the `xtable-utilities` module is excluded from the default Maven reactor:
 > ```
 > docker compose exec -it spark-hudi bash
 > cd /tmp
+> # standalone Maven (the repo has no mvnw wrapper, and the image has no mvn)
+> curl -L https://archive.apache.org/dist/maven/maven-3/3.9.16/binaries/apache-maven-3.9.16-bin.tar.gz | tar xz
+> export PATH=/tmp/apache-maven-3.9.16/bin:$PATH
+> # XTable source (tarball, so no git needed)
 > curl -L https://github.com/apache/incubator-xtable/archive/refs/tags/0.3.0-incubating.tar.gz | tar xz
 > cd incubator-xtable-0.3.0-incubating
 > # build the utilities module's dependencies, then the utilities module itself:
-> ./mvnw -DskipTests install -pl xtable-core,xtable-aws,xtable-hive-metastore -am
-> (cd xtable-utilities && ../mvnw -DskipTests package)
+> mvn -DskipTests install -pl xtable-core,xtable-aws,xtable-hive-metastore -am
+> (cd xtable-utilities && mvn -DskipTests package)
 > # -> xtable-utilities/target/xtable-utilities_2.12-0.3.0-incubating-bundled.jar (~170 MB)
 > ```
 > The first run downloads a lot of Maven dependencies, so it takes several minutes.
