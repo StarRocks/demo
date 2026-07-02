@@ -54,13 +54,43 @@ docker compose ps -a --format "table {{.Service}}\t{{.Status}}"
 >
 > If the CN is not reporting healthy just wait a few seconds and check again, it is the last service to start.
 
-### 2. Create the storage volume (storage-compute separation)
+### 2. Create a bucket in MinIO
 
 Open the MinIO console at **http://localhost:9001** (login `miniouser` / `M!n10R0cks`),
 Click on **Create Bucket**, and
 create the bucket **`my-starrocks-bucket`**
 
-then:
+### 3. Create the storage volume (storage-compute separation)
+
+Examine the file `storage_volume.sql`. This creates a StarRocks storage volume using the bucket created in the previous step:
+
+- increases the timeout for tablet creation
+- creates the storage volume
+
+```sql
+-- belt-and-braces: default is 10 s, too tight for object-store tablet creation
+ADMIN SET FRONTEND CONFIG ('tablet_create_timeout_second'='60');
+
+CREATE STORAGE VOLUME s3_volume
+    TYPE = S3
+    LOCATIONS = ("s3://my-starrocks-bucket/")
+    PROPERTIES (
+        "enabled" = "true",
+        "aws.s3.endpoint" = "minio:9000",
+        "aws.s3.access_key" = "AAAAAAAAAAAAAAAAAAAA",
+        "aws.s3.secret_key" = "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+        "aws.s3.use_instance_profile" = "false",
+        "aws.s3.use_aws_sdk_default_behavior" = "false"
+    );
+```
+
+- sets the new storage volume as the default
+- shows the details
+
+```sql
+SET s3_volume AS DEFAULT STORAGE VOLUME;   -- REQUIRED before CREATE DATABASE/TABLE
+DESC STORAGE VOLUME s3_volume\G            -- verify: enabled=true, IsDefault=true
+```
 
 ```bash
 docker compose exec -T starrocks-fe \
@@ -69,7 +99,18 @@ docker compose exec -T starrocks-fe \
 
 This must succeed (and the volume must be the default) before any `CREATE TABLE`.
 
-### 3. Create the tables
+```sql
+*************************** 1. row ***************************
+     Name: s3_volume
+     Type: S3
+IsDefault: true
+ Location: s3://my-starrocks-bucket/
+   Params: {"aws.s3.access_key":"******","aws.s3.secret_key":"******","aws.s3.endpoint":"minio:9000","aws.s3.region":"us-east-1","aws.s3.use_instance_profile":"false","aws.s3.use_web_identity_token_file":"false","aws.s3.use_aws_sdk_default_behavior":"false"}
+  Enabled: true
+  Comment:
+```
+
+### 4. Create the tables
 
 ```bash
 docker compose exec -T starrocks-fe \
@@ -80,7 +121,11 @@ docker compose exec -T starrocks-fe \
 >
 > If you see an error "The specified bucket does not exist" you may have skipped part of the previous step, open the Minio UI and create the bucket specified above.
 
-### 4. Load the data
+> Tip:
+>
+> This is a good time to try out the MCP server. Start Claude Code from the current directory and allow the two MCP servers (aistor and mcp-starrocks), then ask Claude to list the databases and describe the schema in the `olist` DB.
+
+### 5. Load the data
 
 Download the Olist CSVs from Kaggle with **kagglehub** — anonymous, no Kaggle account or API
 token required. It caches the files locally and prints the folder they landed in:
@@ -108,7 +153,7 @@ FE_HTTP_PORT=8040 bash load_olist.sh
 `FE_HTTP_PORT=8040` posts Stream Load straight to the CN, avoiding a `starrocks-cn` hostname
 redirect (no `/etc/hosts` edit / no sudo needed). The script prints a row-count check at the end.
 
-### 5. Wire the MCP servers to Claude
+### 6. Wire the MCP servers to Claude
 
 ```bash
 cp .env.example .env   # edit only if you changed keys or ports
@@ -122,7 +167,7 @@ the same block to Claude Desktop's config) and confirm the StarRocks tools are a
 The StarRocks cluster is reachable over the MySQL protocol as `root` (no password) at
 `localhost:9030`, database `olist`.
 
-### 6. Ask questions
+### 7. Ask questions
 
 Ask Claude plain-English questions about the data — start by having it orient itself, e.g.
 *"What tables are in this database, and how do they relate to each other?"*, then explore from
