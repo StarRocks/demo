@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "mcp-server-starrocks": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "set -a; . \"${CLAUDE_PROJECT_DIR:-.}/.env\"; exec uv run --python 3.12 --with \"git+https://github.com/StarRocks/mcp-server-starrocks.git@main\" --with statsmodels mcp-server-starrocks"
+      ]
+    },
+    "aistor": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "--env-file", "${CLAUDE_PROJECT_DIR:-.}/.env",
+        "quay.io/minio/aistor/mcp-server-aistor:latest"
+      ]
+    }
+  }
+}
