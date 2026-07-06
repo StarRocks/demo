@@ -67,7 +67,7 @@ Examine the file `storage_volume.sql`. This creates a StarRocks storage volume u
 - creates the storage volume
 
 ```sql
--- belt-and-braces: default is 10 s, too tight for object-store tablet creation
+-- default is 10 s, too tight for object-store tablet creation
 ADMIN SET FRONTEND CONFIG ('tablet_create_timeout_second'='60');
 
 CREATE STORAGE VOLUME s3_volume

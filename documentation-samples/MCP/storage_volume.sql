@@ -1,4 +1,4 @@
--- belt-and-braces: default is 10 s, too tight for object-store tablet creation
+-- default is 10 s, too tight for object-store tablet creation
 ADMIN SET FRONTEND CONFIG ('tablet_create_timeout_second'='60');
 
 CREATE STORAGE VOLUME s3_volume
