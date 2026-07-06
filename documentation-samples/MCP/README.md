@@ -8,15 +8,14 @@ data lives in object storage on **MinIO**.
 The dataset is the **Olist Brazilian E-Commerce** set — 8 related tables, good for genuinely
 complex joins. Everything runs on **1 FE + 1 CN**, on a laptop or a free cloud tier.
 
-> **This repo is the live environment only.** It deliberately contains *no* canned queries,
-> no expected answers, and no walkthrough — so that everything Claude shows is reasoned from
-> the live schema in front of the audience, not recalled from material in the checkout. The
-> build kit (setup notes, video script) lives in a separate repository — see [Setup kit](#setup-kit).
+> **This directory contains just enough to get you going.** It deliberately contains *no* canned queries, no expected answers, and no walkthrough — so that everything Claude shows is reasoned from the live schema, not recalled from material in the checkout.
 
 ## What's in here
 
 | File | What it is |
 |---|---|
+| [`CLAUDE.md`](CLAUDE.md) | Instructions to Claude Code to show its work, rely on the schema and not outside information, etc. You should read this file. |
+| [`settings.json`](.claude/settings.json) | Content is `"autoMemoryEnabled": false` to prevent Claude from remembering the questions (and answers) asked in previous sessions. You can remove this if you like, it is in here to prevent the author's questions from biasing your experimentation. |
 | [`docker-compose.yml`](docker-compose.yml) | StarRocks shared-data quick start (1 FE + 1 CN + MinIO), patched for laptop/Docker use. |
 | [`storage_volume.sql`](storage_volume.sql) | Creates the S3 (MinIO) storage volume and sets it as default. |
 | [`olist_schema.sql`](olist_schema.sql) | DDL for the 8 (+1 optional) Olist tables. |
