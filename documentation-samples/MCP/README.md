@@ -35,13 +35,28 @@ complex joins. Everything runs on **1 FE + 1 CN**, on a laptop or a free cloud t
 
 ## Setup
 
+### 1. Clone the demo repo
+
+[https://github.com/StarRocks/demo](https://github.com/StarRocks/demo)
+
+```bash
+gh repo clone StarRocks/demo
+```
+
+or 
+
+```bash
+git clone git@github.com:StarRocks/demo.git
+```
+
 ### 1. Bring up StarRocks + MinIO
 
 ```bash
+cd demo/documentation-samples/MCP
 docker compose up --detach --wait --wait-timeout 120
 ```
 
-A frontend (FE), a compute node (CN), and MinIO come up locally.
+A frontend (FE), a compute node (CN), and MinIO AIStor come up locally.
 
 Check for healthy status on MinIO, FE, and CN services:
 
@@ -53,7 +68,7 @@ docker compose ps -a --format "table {{.Service}}\t{{.Status}}"
 >
 > If the CN is not reporting healthy just wait a few seconds and check again, it is the last service to start.
 
-### 2. Create a bucket in MinIO
+### 2. Create a bucket in MinIO AIStor
 
 Open the MinIO console at **http://localhost:9001** (login `miniouser` / `M!n10R0cks`),
 Click on **Create Bucket**, and
