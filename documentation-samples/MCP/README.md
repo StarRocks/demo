@@ -26,7 +26,7 @@ complex joins. Everything runs on **1 FE + 1 CN**, on a laptop or a free cloud t
 ## Prerequisites
 
 - **Docker** (Docker Desktop or engine + compose). The stack needs ~4 GB.
-- **A MySQL client** (e.g. `mysql`) to run the SQL files.
+- **A MySQL client** (e.g. `mysql`) to run the SQL files. - this is provided by the StarRocks FE server, so all of the SQL commands are run with `docker compose exec`
 - **[`uv`](https://docs.astral.sh/uv/)** — runs the StarRocks MCP server.
 - **Claude Code** or **Claude Desktop** — to connect the MCP servers.
 - The **Olist dataset** — downloaded automatically in step 4 via `kagglehub` (no Kaggle
@@ -34,6 +34,41 @@ complex joins. Everything runs on **1 FE + 1 CN**, on a laptop or a free cloud t
 - *(Apple Silicon: StarRocks leans on AVX2 (x86); use an ARM build or expect slower emulation.)*
 
 ## Setup
+
+### 0. Install prerequisites
+
+#### `uv`
+
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+ # Or via Homebrew / pipx / pip
+brew install uv
+# pipx install uv
+# pip install uv
+```
+
+See the [official `uv` installation guide](https://docs.astral.sh/uv/getting-started/installation/) for other options. After installing, verify it is on your `PATH`:
+
+```bash
+uv --version
+```
+
+#### Docker
+
+[https://www.docker.com/get-started/](https://www.docker.com/get-started/)
+
+#### Claude Code
+
+> Tip:
+>
+> This demo includes steps using Claude Code. Other LLMs work with MCP servers, but this demo has only been tested with Claude Code. Please open an issue and let us know hat you experience with other LLMs.
+
+[https://claude.com/product/claude-code](https://claude.com/product/claude-code)
 
 ### 1. Clone the demo repo
 
@@ -170,7 +205,7 @@ redirect (no `/etc/hosts` edit / no sudo needed). The script prints a row-count 
 ### 6. Wire the MCP servers to Claude
 
 ```bash
-cp .env.example .env   # edit only if you changed keys or ports
+cp .env.example .env
 ```
 
 `.mcp.json` defines two MCP servers — `mcp-server-starrocks` (run from GitHub via `uv`, so
