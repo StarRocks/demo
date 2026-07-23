@@ -10,7 +10,7 @@ services:
         /opt/starrocks/fe_entrypoint.sh starrocks-fe
     environment:
       - HOST_TYPE=FQDN
-      - TZ=Asia/Shanghai
+      - TZ=America/New_York
     ports:
       - "8030:8030"
       - "9020:9020"
@@ -32,7 +32,7 @@ services:
         /opt/starrocks/be_entrypoint.sh starrocks-fe
     environment:
       - HOST_TYPE=FQDN
-      - TZ=Asia/Shanghai
+      - TZ=America/New_York
     ports:
       - "8040:8040"
     depends_on:
