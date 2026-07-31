@@ -12,11 +12,10 @@
     <artifactId>SparkDemo</artifactId>
 
   <properties>
-        <scala.version>2.11.12</scala.version>
-        <scala.binary.version>2.11</scala.binary.version>
+        <scala.version>2.12.18</scala.version>
+        <scala.binary.version>2.12</scala.binary.version>
         <java.version>1.8</java.version>
-        <spark.version>2.3.3</spark.version>
-<!--        <spark.version>2.4.8</spark.version>-->
+        <spark.version>3.5.7</spark.version>
         <scope.mode>compile</scope.mode>
     </properties>
 
@@ -31,7 +30,7 @@
 
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.11</artifactId>
+            <artifactId>spark-core_2.12</artifactId>
             <version>${spark.version}</version>
             <scope>${scope.mode}</scope>
         </dependency>
@@ -40,34 +39,34 @@
         <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka -->
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.11</artifactId>
-            <version>1.0.1</version>
+            <artifactId>kafka_2.12</artifactId>
+            <version>3.9.1</version>
 <!--            <scope>${scope.mode}</scope>-->
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-streaming-kafka-0-10 -->
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-streaming-kafka-0-10_2.11</artifactId>
+            <artifactId>spark-streaming-kafka-0-10_2.12</artifactId>
             <version>${spark.version}</version>
 <!--            <scope>${scope.mode}</scope>-->
         </dependency>
 
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-streaming_2.11</artifactId>
+            <artifactId>spark-streaming_2.12</artifactId>
             <version>${spark.version}</version>
             <scope>${scope.mode}</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_2.11</artifactId>
+            <artifactId>spark-sql_2.12</artifactId>
             <version>${spark.version}</version>
             <scope>${scope.mode}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-hive_2.11</artifactId>
+            <artifactId>spark-hive_2.12</artifactId>
             <version>${spark.version}</version>
             <scope>${scope.mode}</scope>
         </dependency>
@@ -111,7 +110,7 @@
             <artifactId>spark</artifactId>
             <version>1.0.0</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/starrocks-spark2_2.11-1.0.0.jar</systemPath>
+            <systemPath>${project.basedir}/src/main/resources/starrocks-spark3_2.12-1.0.0.jar</systemPath>
         </dependency>
 <!--        <dependency>-->
 <!--            <groupId>net.jpountz.lz4</groupId>-->
