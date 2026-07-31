@@ -287,35 +287,58 @@ Launch Claude Code from this directory (or add the same block to Claude Desktop'
 > (pyarrow, kaleido, …, ~115 MB), so it can take a couple of minutes to come up the first time.
 > Subsequent launches are fast.
 
-Once `/mcp` shows all three connected, confirm the tools are available (e.g. ask *"What tools
-does the Superset MCP server provide?"* — you should see `create_virtual_dataset`,
-`generate_chart`, `generate_dashboard`, `execute_sql`, and friends).
+Once `/mcp` shows all three connected, confirm the tools are available:
+
+> 1. *What tools does the Superset MCP server provide?*
+
+You should hear about `create_virtual_dataset`, `generate_chart`, `generate_dashboard`,
+`execute_sql`, and friends.
+
+> **Only four Superset tools in `/mcp`? That's expected.** The Superset service publishes a
+> compact front door — `health_check`, `get_instance_info`, `search_tools`, and `call_tool` —
+> and Claude reaches the other two dozen tools by searching for them and calling them through
+> `call_tool`. Asking the question above is the reliable way to see the real inventory.
 
 The StarRocks cluster is reachable over the MySQL protocol as `root` (no password) at
 `localhost:9030`, database `olist`.
 
 ### 8. Ask questions, then build the dashboard
 
-Start where the [`MCP`](../MCP) demo starts — have Claude orient itself:
+Five prompts take you from an empty Superset to a published dashboard. Continuing the
+numbering from step 7:
 
-> *What tables are in this database, and how do they relate to each other?*
+> 2. *What tables are in this database, and how do they relate to each other?*
 
-Explore from there, and when an answer is worth keeping, ask for it in Superset:
+Claude inspects the live schema and works out the relationships itself. This is where the
+[`MCP`](../MCP) demo starts too — nothing in this checkout tells it the answer.
 
-> *Save that as a Superset dataset and chart it, then put the charts on a dashboard called
-> "Olist delivery performance".*
+> 3. *Let's find some interesting business insights in the data, and then chart some of them
+>    in Superset. Plot orders by customer state.*
 
-Claude will run the SQL, call `create_virtual_dataset` to save it, `generate_chart` for each
-chart, and `generate_dashboard` to assemble them — then hand back a URL like
-`http://localhost:8088/superset/dashboard/1/`. Open it; the charts query StarRocks live, so
+Deliberately open-ended, with one concrete ask at the end. Claude explores, then — for the
+chart — writes the SQL, verifies it, saves it with `create_virtual_dataset`, and builds the
+chart with `generate_chart`. Watch which joins it picks: orders carry a `customer_id`, so
+"by customer state" is a join away, not a column.
+
+> 4. *Add more charts and put them on a dashboard.*
+
+`generate_dashboard` assembles them and hands back a URL like
+`http://localhost:8088/superset/dashboard/1/`. Open it — the charts query StarRocks live, so
 they refresh when the data does.
 
-Things worth trying:
+> 5. *Publish the dashboard.*
+
+New dashboards are **drafts**, which is why this is its own step: a draft is visible to you
+but isn't listed for everyone else. If Claude can't flip it, the Draft/Published toggle sits
+next to the dashboard title in the UI.
+
+Then keep going — this is where it gets interesting:
 
 - Ask for a specific chart type ("a big number with a trendline", "a pie chart of payment
   types") and see how it maps the request onto Superset's chart types.
-- Add to a dashboard that already exists, rather than making a new one.
+- Add to the dashboard you already have, rather than making a second one.
 - Ask *why* it chose a chart type, then ask it to change it.
+- Push on a surprising number — ask it to show the rows behind the aggregate.
 
 > **Two chart paths, on purpose.** The StarRocks MCP server also draws charts — interactive
 > Plotly HTML written to `DEMO_Output/` (set by `STARROCKS_CHART_OUTPUT_DIR` in `.env`). Those
