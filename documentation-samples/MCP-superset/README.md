@@ -304,8 +304,8 @@ The StarRocks cluster is reachable over the MySQL protocol as `root` (no passwor
 
 ### 8. Ask questions, then build the dashboard
 
-Five prompts take you from an empty Superset to a published dashboard. Continuing the
-numbering from step 7:
+Four prompts take you from an empty Superset to a dashboard. Continuing the numbering from
+step 7:
 
 > 2. *What tables are in this database, and how do they relate to each other?*
 
@@ -325,12 +325,6 @@ chart with `generate_chart`. Watch which joins it picks: orders carry a `custome
 `generate_dashboard` assembles them and hands back a URL like
 `http://localhost:8088/superset/dashboard/1/`. Open it — the charts query StarRocks live, so
 they refresh when the data does.
-
-> 5. *Publish the dashboard.*
-
-New dashboards are **drafts**, which is why this is its own step: a draft is visible to you
-but isn't listed for everyone else. If Claude can't flip it, the Draft/Published toggle sits
-next to the dashboard title in the UI.
 
 Then keep going — this is where it gets interesting:
 
