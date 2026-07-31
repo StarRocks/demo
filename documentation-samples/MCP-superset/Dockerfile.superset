@@ -1,0 +1,28 @@
+# Apache Superset plus the two pieces the released image does not ship:
+#
+#   starrocks  the SQLAlchemy dialect Superset's StarRocksEngineSpec needs in order to
+#              talk to a StarRocks FE (without it the connection fails with
+#              "Could not load database driver: StarRocksEngineSpec")
+#   fastmcp    the framework behind `superset mcp run`. The MCP service *code* ships in
+#              the image (superset/mcp_service), but its dependency is an optional
+#              extra, so `superset mcp run` exits with
+#              "MCP service dependencies not installed" on the stock image.
+#
+#   psycopg2   the driver for Superset's own Postgres metadata database
+#              (superset-db in docker-compose.yml).
+#
+# All three are pinned to the ranges Superset 6.1.0 declares in pyproject.toml
+# (starrocks>=1.0.0, fastmcp>=3.1.0,<4.0, psycopg2-binary==2.9.9).
+ARG SUPERSET_VERSION=6.1.0
+FROM apache/superset:${SUPERSET_VERSION}
+
+USER root
+# `uv pip` into the image's virtualenv at /app/.venv -- that is the interpreter the
+# `superset` entrypoint runs. Plain `pip` on the PATH belongs to the *system* Python,
+# so installing with it silently puts the packages somewhere Superset never looks.
+ENV UV_PROJECT_ENVIRONMENT=/app/.venv
+RUN uv pip install --python /app/.venv/bin/python --no-cache \
+      "starrocks>=1.2.0" \
+      "fastmcp>=3.1.0,<4.0" \
+      "psycopg2-binary==2.9.9"
+USER superset
