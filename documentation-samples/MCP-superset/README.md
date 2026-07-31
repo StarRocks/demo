@@ -37,7 +37,7 @@ complex joins. Everything runs on **1 FE + 1 CN**, on a laptop or a free cloud t
 
 | Service | URL / port | Login |
 |---|---|---|
-| Superset | http://localhost:8088 | `admin` / `admin` |
+| Superset | http://localhost:8088 | `admin` / `SuperSetR0cks!` |
 | Superset MCP service | http://localhost:5008/mcp | none — see [the security note](#a-note-on-the-mcp-services-auth) |
 | MinIO console | http://localhost:9001 | `miniouser` / `M!n10R0cks` |
 | StarRocks FE (MySQL protocol) | `localhost:9030` | `root`, no password |
@@ -121,8 +121,8 @@ cd demo/documentation-samples/MCP-superset
 cp .env.example .env
 ```
 
-The defaults work as-is. Change `SUPERSET_SECRET_KEY` and the admin password if this will be
-reachable by anyone but you.
+The defaults work as-is. Change `SUPERSET_SECRET_KEY` and `SUPERSET_ADMIN_PASSWORD` if this
+will be reachable by anyone but you.
 
 ### 3. Bring up StarRocks, MinIO, and Superset
 
@@ -130,7 +130,7 @@ reachable by anyone but you.
 docker compose up --detach --wait --wait-timeout 600 superset-mcp
 ```
 
-Naming `superset-mcp` starts everything: it sits at the end of the dependency chain, so
+Specifying `superset-mcp` at the end of the `compose up` starts everything: it sits at the end of the dependency chain, so
 Compose pulls the whole stack up behind it and `--wait` returns only once it is healthy.
 (Waiting on *every* service instead would exit non-zero, because two of them are one-shot
 bootstrap containers that finish and exit.)
@@ -157,7 +157,7 @@ docker compose ps -a --format "table {{.Service}}\t{{.Status}}"
 > If the CN is not reporting healthy just wait a few seconds and check again, it is the last
 > StarRocks service to start.
 
-Open Superset at **http://localhost:8088** and log in with `admin` / `admin`. Under
+Open Superset at **http://localhost:8088** and log in with `admin` / `SuperSetR0cks!`. Under
 **Settings → Database Connections** there is one connection, **StarRocks**. It has nothing to
 show yet — the next three steps create and fill the database it points at.
 
