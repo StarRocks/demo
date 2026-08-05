@@ -1,0 +1,256 @@
+# # StarRocks on Minikube
+# The yaml deploys a pair of starrocks `fe` and `be` services on k8s cluster. 
+# 
+# Prerequisites:
+# - valid minikube cluster
+# 
+# Deploy hints:
+# - it's OK to use host names of services in http api calls
+# - only fully qualified domain names (FQDNs) or IP addresses are reliable for interactions between starrocks 'fe' and 'be'
+# - the `fe` and `be` communicate with each other in both directions, so their FQDNs should be valid and resolvable
+# 
+# Topology:
+# ```mermaid
+# stateDiagram
+#   state MiniKubeCluster {
+#       fe_deployment --> fe_service
+#       be_deployment --> be_service
+#       be_deployment --> fe_deployment
+#       fe_deployment --> be_deployment
+#     }
+#   fe_service --> ExternalApp
+#  ```
+# 
+# ## Usage
+# 
+# Create resources labeled with "demo=starrocks-pair":
+# ```shell
+# kubectl apply -f minikube-starrocks-fe-be-pair-fqdn.yaml
+# ```
+#
+# Check status of the deployments:
+# (The `fe` sql service is ready for data loading once all deployments are available.)
+# ```shell
+# kubectl get deployment.apps --selector=demo=starrocks-pair
+# ```
+#
+# Get external ips of the services, which could be used to access the services:
+# ```shell
+# kubectl get service --selector=demo=starrocks-pair
+# ```
+#
+# Delete all resources created by this yaml:
+# ```shell
+# kubectl delete -f minikube-starrocks-fe-be-pair-fqdn.yaml
+# ```
+# Or:
+# ```shell
+# kubectl delete all --selector=demo=starrocks-pair
+# kubectl delete configmap --selector=demo=starrocks-pair
+# ```
+#
+# Software versions:
+# - minikube v1.30.1(Kubernetes v1.26.3, Docker 20.10.23_
+# - starrocks v2.5.4
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: starrocks-deploy-envs
+  namespace: default
+  labels:
+    demo: starrocks-pair
+data:
+  FE_HOST: starrocks-fe
+  BE_HOST: starrocks-be
+---
+# The default log level is overridden to DEBUG
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fe-config
+  namespace: default
+  labels:
+    demo: starrocks-pair
+data:
+  fe.conf: |
+    LOG_DIR = ${STARROCKS_HOME}/log
+    DATE = "$(date +%Y%m%d-%H%M%S)"
+    JAVA_OPTS="-Dlog4j2.formatMsgNoLookups=true -Xmx8192m -XX:+UseMembar -XX:SurvivorRatio=8 -XX:MaxTenuringThreshold=7 -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSClassUnloadingEnabled -XX:-CMSParallelRemarkEnabled -XX:CMSInitiatingOccupancyFraction=80 -XX:SoftRefLRUPolicyMSPerMB=0 -Xloggc:${LOG_DIR}/fe.gc.log.$DATE -XX:+PrintConcurrentLocks"
+    JAVA_OPTS_FOR_JDK_9="-Dlog4j2.formatMsgNoLookups=true -Xmx8192m -XX:SurvivorRatio=8 -XX:MaxTenuringThreshold=7 -XX:+CMSClassUnloadingEnabled -XX:-CMSParallelRemarkEnabled -XX:CMSInitiatingOccupancyFraction=80 -XX:SoftRefLRUPolicyMSPerMB=0 -Xlog:gc*:${LOG_DIR}/fe.gc.log.$DATE:time"
+    sys_log_level = DEBUG
+    http_port = 8030
+    rpc_port = 9020
+    query_port = 9030
+    edit_log_port = 9010
+    mysql_service_nio_enabled = true
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    starrocks: be
+    demo: starrocks-pair
+  name: starrocks-be
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      starrocks: be
+  template:
+    metadata:
+      labels:
+        starrocks: be
+    spec:
+      # create `be` container when `fe` service is healthy
+      initContainers:
+        - name: wait-for-fe
+          image: curlimages/curl:8.00.1
+          args:
+            - /bin/sh
+            - -c
+            - |
+              while true; do
+                response=$(curl -s http://$FE_HOST:8030/api/bootstrap)
+                status=$(echo "$response" | grep -Eo '"status":"[^"]+"' | cut -d '"' -f 4)
+                if [ "$status" = "OK" ]; then
+                  break
+                else
+                  sleep 10
+                fi
+              done
+          envFrom:
+            - configMapRef:
+                name: starrocks-deploy-envs
+      # when the `fe` service is healthy, it's safe to add the `be` FQDN:PORT as a backend of `fe` and then start it.
+      containers:
+        - args:
+            - /bin/bash
+            - -c
+            - |
+              mysql --connect-timeout 2 -h $FE_HOST -P9030 -uroot -e "alter system add backend \"$BE_HOST-deployment.starrocks-be.default.svc.cluster.local:9050\";"
+              /opt/starrocks/be/bin/start_be.sh
+          image: starrocks/be-ubuntu:2.5.4
+          name: starrocks-be-container
+          ports:
+            - containerPort: 8040
+            - containerPort: 9050
+            - containerPort: 9060
+          resources: {}
+          envFrom:
+            - configMapRef:
+                name: starrocks-deploy-envs
+      hostname: starrocks-be-deployment
+      # subdomain is required to let starrocks access `be` deployment by FQDN
+      subdomain: starrocks-be
+      restartPolicy: Always
+      
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    starrocks: be
+    demo: starrocks-pair
+  name: starrocks-be
+spec:
+  # uncomment the following line if you want to expose `be` service
+  # type: LoadBalancer
+  ports:
+    - name: "http"
+      port: 8040
+      targetPort: 8040
+    - name: "heartbeat"
+      port: 9050
+      targetPort: 9050
+    - name: "be"
+      port: 9060
+      targetPort: 9060
+  selector:
+    starrocks: be
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    starrocks: fe
+    demo: starrocks-pair
+  name: starrocks-fe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      starrocks: fe
+  template:
+    metadata:
+      labels:
+        starrocks: fe
+    spec:
+      # start `fe` as FQDN host_type
+      containers:
+        - args:
+            - /bin/sh
+            - -c
+            - |
+              /opt/starrocks/fe/bin/start_fe.sh --host_type FQDN
+          image: starrocks/fe-ubuntu:2.5.4
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - 'response=$(curl -s http://$FE_HOST:8030/api/bootstrap) && status=$(echo "$response" | grep -Po ''"status":.*?[^\\]",'' | cut -d ''"'' -f 4) && [ "$status" = "OK" ]'
+            initialDelaySeconds: 5
+            failureThreshold: 30
+            periodSeconds: 5
+            timeoutSeconds: 5
+          name: starrocks-fe-container
+          ports:
+            - containerPort: 8030
+            - containerPort: 9010
+            - containerPort: 9020
+            - containerPort: 9030
+          resources: {}
+          volumeMounts:
+            - mountPath: /opt/starrocks/fe/conf/fe.conf
+              subPath: fe.conf
+              name: fe-conf-volume
+          envFrom:
+            - configMapRef:
+                name: starrocks-deploy-envs
+      hostname: starrocks-fe-deployment
+      # subdomain is required to let starrocks `be` access `fe` deployment by FQDN
+      subdomain: starrocks-fe
+      volumes:
+        - name: fe-conf-volume
+          configMap:
+            name: fe-config
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    starrocks: fe
+    demo: starrocks-pair
+  name: starrocks-fe
+spec:
+  # exposed ports
+  type: LoadBalancer
+  ports:
+    - name: "http"
+      port: 8030
+      targetPort: 8030
+    - name: "rpc"
+      port: 9020
+      targetPort: 9020
+    - name: "query"
+      port: 9030
+      targetPort: 9030
+  selector:
+    starrocks: fe
+
+---
