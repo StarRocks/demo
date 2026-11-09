@@ -26,7 +26,7 @@ complex joins. Everything runs on **1 FE + 1 CN**, on a laptop or a free cloud t
 ## Prerequisites
 
 - **Docker** (Docker Desktop or engine + compose). The stack needs ~4 GB.
-- **A MySQL client** (e.g. `mysql`) to run the SQL files.
+- **A MySQL client** (e.g. `mysql`) to run the SQL files. - this is provided by the StarRocks FE server, so all of the SQL commands are run with `docker compose exec`
 - **[`uv`](https://docs.astral.sh/uv/)** — runs the StarRocks MCP server.
 - **Claude Code** or **Claude Desktop** — to connect the MCP servers.
 - The **Olist dataset** — downloaded automatically in step 4 via `kagglehub` (no Kaggle
@@ -35,6 +35,41 @@ complex joins. Everything runs on **1 FE + 1 CN**, on a laptop or a free cloud t
 - A MinIO AIStor license. A Free Tier license is enough for the environment deployed with this Docker Compose file.
 
 ## Setup
+
+### 0. Install prerequisites
+
+#### `uv`
+
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+ # Or via Homebrew / pipx / pip
+brew install uv
+# pipx install uv
+# pip install uv
+```
+
+See the [official `uv` installation guide](https://docs.astral.sh/uv/getting-started/installation/) for other options. After installing, verify it is on your `PATH`:
+
+```bash
+uv --version
+```
+
+#### Docker
+
+[https://www.docker.com/get-started/](https://www.docker.com/get-started/)
+
+#### Claude Code
+
+> Tip:
+>
+> This demo includes steps using Claude Code. Other LLMs work with MCP servers, but this demo has only been tested with Claude Code. Please open an issue and let us know hat you experience with other LLMs.
+
+[https://claude.com/product/claude-code](https://claude.com/product/claude-code)
 
 ### 1. Clone the demo repo
 
@@ -65,7 +100,7 @@ cd demo/documentation-samples/MCP
 docker compose up --detach --wait --wait-timeout 120
 ```
 
-A frontend (FE), a compute node (CN), and MinIO AIStor come up locally.
+A frontend (FE), a compute node (CN), and MinIO come up locally.
 
 Check for healthy status on MinIO, FE, and CN services:
 
@@ -179,13 +214,30 @@ redirect (no `/etc/hosts` edit / no sudo needed). The script prints a row-count 
 ### 8. Wire the MCP servers to Claude
 
 ```bash
-cp .env.example .env   # edit only if you changed keys or ports
+cp .env.example .env
 ```
 
-`.mcp.json` defines two MCP servers — `mcp-server-starrocks` (run via `uv`) and `aistor`
-(MinIO, run via Docker) — both reading `.env`. Launch Claude Code from this directory (or add
-the same block to Claude Desktop's config) and confirm the StarRocks tools are available
-(e.g. ask *"What tools does the StarRocks MCP server provide?"*).
+`.mcp.json` defines two MCP servers — `mcp-server-starrocks` (run from GitHub via `uv`, so
+there's **nothing to install by hand**) and `aistor` (MinIO, run via Docker) — both reading
+`.env`. Launch Claude Code from this directory (or add the same block to Claude Desktop's
+config).
+
+> **Approve the servers on first launch.** Project-scoped servers from `.mcp.json` are *not*
+> trusted automatically — Claude Code prompts *"New MCP servers found — approve?"* the first
+> time you launch here. Accept it. (The pre-approval lives in `.claude/settings.local.json`,
+> which is gitignored, so it is **absent on a fresh clone** — that's expected; approving via
+> the prompt recreates it.)
+>
+> **Confirm the connection with `/mcp`.** Run `/mcp` inside Claude Code and check that both
+> `mcp-server-starrocks` and `aistor` show **connected**. This is the authoritative status
+> check — if a server isn't connected, its tools won't load no matter how you ask.
+>
+> **First launch is slow.** The first `uv run` downloads the server's dependencies
+> (pyarrow, kaleido, …, ~115 MB), so the StarRocks server can take a couple of minutes to
+> come up the first time. Subsequent launches are fast.
+
+Once `/mcp` shows both servers connected, confirm the tools are available (e.g. ask
+*"What tools does the StarRocks MCP server provide?"*).
 
 The StarRocks cluster is reachable over the MySQL protocol as `root` (no password) at
 `localhost:9030`, database `olist`.
@@ -202,6 +254,16 @@ there. Claude inspects the live schema and writes the SQL itself.
 
 ## Troubleshooting
 
+- **StarRocks MCP tools never load / server "still connecting":** the project servers were
+  never approved. Run `/mcp` — if they aren't **connected**, relaunch Claude Code from this
+  directory and accept the *"New MCP servers found — approve?"* prompt (or add
+  `"enabledMcpjsonServers": ["mcp-server-starrocks", "aistor"]` to `.claude/settings.local.json`).
+  You do **not** need to install the server separately — `.mcp.json` runs it from GitHub via `uv`.
+- **First launch takes a couple of minutes:** the first `uv run` downloads the server's deps
+  (~115 MB). This is expected once, not a failure.
+- **`mysql` client fails with `Authentication plugin 'mysql_native_password' cannot be loaded`:**
+  a Homebrew `mysql`-client quirk, not a StarRocks problem. Query through the container instead:
+  `docker compose exec -T starrocks-fe mysql -h127.0.0.1 -P9030 -uroot -e "SHOW DATABASES;"`.
 - **`CREATE TABLE` hangs / times out:** the CN's AWS SDK is probing the EC2 metadata service.
   The compose file already sets `AWS_EC2_METADATA_DISABLED=true` on `starrocks-cn`; if you use
   your own compose file, add it.
