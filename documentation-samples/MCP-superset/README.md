@@ -50,8 +50,9 @@ complex joins. Everything runs on **1 FE + 1 CN**, on a laptop or a free cloud t
   FE server, so all of the SQL commands below run with `docker compose exec`.
 - **[`uv`](https://docs.astral.sh/uv/)** — runs the StarRocks MCP server and downloads the dataset.
 - **Claude Code** or **Claude Desktop** — to connect the MCP servers.
-- The **Olist dataset** — downloaded automatically in step 5 via `kagglehub` (no Kaggle
+- The **Olist dataset** — downloaded automatically in step 7 via `kagglehub` (no Kaggle
   account needed): https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
+- A MinIO AIStor license. A Free Tier license is enough for the environment deployed with this Docker Compose file.
 - *(Apple Silicon: StarRocks leans on AVX2 (x86); use an ARM build or expect slower emulation.)*
 
 > **Don't run this demo and the [`MCP`](../MCP) demo at the same time.** They use the same
@@ -124,7 +125,15 @@ cp .env.example .env
 The defaults work as-is. Change `SUPERSET_SECRET_KEY` and `SUPERSET_ADMIN_PASSWORD` if this
 will be reachable by anyone but you.
 
-### 3. Bring up StarRocks, MinIO, and Superset
+### 3. Acquire a MinIO AIStor license
+
+MinIO AIStor requires a license to run. You can use an existing license, or you can request a new MinIO AIStor Free Tier license.
+
+To request a new MinIO AIStor Free Tier license, go to the [MinIO AIStor pricing](https://min.io/pricing) page and select **Get Started** under the Free tier to obtain a free license. The free tier license allows you to run MinIO AIStor on a single compute resource with one or more drives.
+
+Save the license file as `minio.license` in this directory, next to `docker-compose.yml`. The compose file mounts it into the MinIO AIStor container. Without a valid license, MinIO AIStor starts but denies all S3 operations.
+
+### 4. Bring up StarRocks, MinIO, and Superset
 
 ```bash
 docker compose up --detach --wait --wait-timeout 600 superset-mcp
@@ -161,7 +170,7 @@ Open Superset at **http://localhost:8088** and log in with `admin` / `SuperSetR0
 **Settings → Database Connections** there is one connection, **StarRocks**. It has nothing to
 show yet — the next three steps create and fill the database it points at.
 
-### 4. Create the storage volume (storage-compute separation)
+### 5. Create the storage volume (storage-compute separation)
 
 Examine the file `storage_volume.sql`. This creates a StarRocks storage volume using the
 bucket that `minio_mc` created:
@@ -212,7 +221,7 @@ IsDefault: true
   Comment:
 ```
 
-### 5. Create the tables
+### 6. Create the tables
 
 ```bash
 docker compose exec -T starrocks-fe \
@@ -225,7 +234,7 @@ docker compose exec -T starrocks-fe \
 > finish. Open the MinIO console at http://localhost:9001 and check for a bucket named
 > `my-starrocks-bucket`; create it if it is missing, then re-run the previous step.
 
-### 6. Load the data
+### 7. Load the data
 
 Download the Olist CSVs from Kaggle with **kagglehub** — anonymous, no Kaggle account or API
 token required. It caches the files locally and prints the folder they landed in.
@@ -260,7 +269,7 @@ docker compose exec -T starrocks-fe mysql -h127.0.0.1 -P9030 -uroot \
       UNION ALL SELECT 'order_items', count(*) FROM olist.order_items;"
 ```
 
-### 7. Wire the MCP servers to Claude
+### 8. Wire the MCP servers to Claude
 
 `.mcp.json` defines three MCP servers, all reading `.env`:
 
@@ -302,10 +311,10 @@ You should hear about `create_virtual_dataset`, `generate_chart`, `generate_dash
 The StarRocks cluster is reachable over the MySQL protocol as `root` (no password) at
 `localhost:9030`, database `olist`.
 
-### 8. Ask questions, then build the dashboard
+### 9. Ask questions, then build the dashboard
 
 Four prompts take you from an empty Superset to a dashboard. Continuing the numbering from
-step 7:
+step 8:
 
 > 2. *What tables are in this database, and how do they relate to each other?*
 
@@ -418,7 +427,7 @@ deployment set `MCP_AUTH_ENABLED = True` with the `MCP_JWT_*` settings and leave
 - **`order_reviews` rejects rows:** the free-text comment columns contain embedded newlines;
   use the LEAN variant noted in `load_olist.sh`.
 - **Start over:** `docker compose down --volumes` drops the Superset metadata (dashboards,
-  charts, datasets) and the StarRocks data along with it. Re-run from step 3.
+  charts, datasets) and the StarRocks data along with it. Re-run from step 4.
 
 ## Setup kit
 

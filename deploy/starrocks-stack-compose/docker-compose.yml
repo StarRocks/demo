@@ -38,7 +38,7 @@ services:
     container_name: minio
     platform: "linux/amd64"
     hostname: minio.local.com
-    image: quay.io/minio/minio
+    image: quay.io/minio/aistor/minio:latest
     restart: unless-stopped
     ports:  # port mapping format "[host port]:[container port]", can be configured to your preferred port
       - "9000:9000"
@@ -49,6 +49,7 @@ services:
       timeout: 5s
       retries: 3
     volumes:
+      - ./minio.license:/minio.license:ro
       - ${HOME}/dv/minio/data:/data
     networks: # network config, can be configured to your preferred port and ip address, if not specified, it will use default network and assign a dynamic ip
       starrocks-stack-network:

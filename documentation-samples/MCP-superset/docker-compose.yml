@@ -19,7 +19,9 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-    image: minio/minio:latest
+    image: quay.io/minio/aistor/minio:latest
+    volumes:
+      - ./minio.license:/minio.license:ro
     ports:
       - "9001:9001"
       - "9000:9000"
@@ -38,7 +40,7 @@ services:
     # - creates a MinIO Access Key that the StarRocks services will use
     # - creates the bucket the StarRocks storage volume writes to
     # - exits
-    image: minio/mc:latest
+    image: quay.io/minio/aistor/mc:latest
     container_name: minio-mc
     entrypoint:
       - sh
