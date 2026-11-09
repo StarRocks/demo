@@ -9,7 +9,9 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-    image: minio/minio:latest
+    image: quay.io/minio/aistor/minio:latest
+    volumes:
+      - ./minio.license:/minio.license:ro
     ports:
       - "9001:9001"
       - "9000:9000"
@@ -27,7 +29,7 @@ services:
     # - checks to see if the MinIO service `minio` is ready
     # - creates a MinIO Access Key that the StarRocks services will use
     # - exits
-    image: minio/mc:latest
+    image: quay.io/minio/aistor/mc:latest
     entrypoint:
       - sh
       - -c
@@ -41,6 +43,7 @@ services:
         --secret-key ${MINIO_SECRET_KEY} \
         myminio \
         miniouser
+        mc license info myminio
     depends_on:
         minio:
           condition: service_healthy

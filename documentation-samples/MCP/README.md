@@ -32,6 +32,7 @@ complex joins. Everything runs on **1 FE + 1 CN**, on a laptop or a free cloud t
 - The **Olist dataset** — downloaded automatically in step 4 via `kagglehub` (no Kaggle
   account needed): https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
 - *(Apple Silicon: StarRocks leans on AVX2 (x86); use an ARM build or expect slower emulation.)*
+- A MinIO AIStor license. A Free Tier license is enough for the environment deployed with this Docker Compose file.
 
 ## Setup
 
@@ -84,7 +85,15 @@ or
 git clone git@github.com:StarRocks/demo.git
 ```
 
-### 1. Bring up StarRocks + MinIO
+### 2. Acquire a MinIO AIStor license
+
+MinIO AIStor requires a license to run. You can use an existing license, or you can request a new MinIO AIStor Free Tier license.
+
+To request a new MinIO AIStor Free Tier license, go to the [MinIO AIStor pricing](https://min.io/pricing) page and select Get Started under the Free tier to obtain a free license. The free tier license allows you to run MinIO AIStor on a single compute resource with one or more drives.
+
+Place the license file in your local clone of the `StarRocks/demo` repo you cloned in the previous step, in the `demo/documentation-samples/MCP` directory.
+
+### 3. Bring up StarRocks + MinIO
 
 ```bash
 cd demo/documentation-samples/MCP
@@ -103,13 +112,13 @@ docker compose ps -a --format "table {{.Service}}\t{{.Status}}"
 >
 > If the CN is not reporting healthy just wait a few seconds and check again, it is the last service to start.
 
-### 2. Create a bucket in MinIO
+### 4. Create a bucket in MinIO AIStor
 
 Open the MinIO console at **http://localhost:9001** (login `miniouser` / `M!n10R0cks`),
 Click on **Create Bucket**, and
 create the bucket **`my-starrocks-bucket`**
 
-### 3. Create the storage volume (storage-compute separation)
+### 5. Create the storage volume (storage-compute separation)
 
 Examine the file `storage_volume.sql`. This creates a StarRocks storage volume using the bucket created in the previous step:
 
@@ -159,7 +168,7 @@ IsDefault: true
   Comment:
 ```
 
-### 4. Create the tables
+### 6. Create the tables
 
 ```bash
 docker compose exec -T starrocks-fe \
@@ -174,7 +183,7 @@ docker compose exec -T starrocks-fe \
 >
 > This is a good time to try out the MCP server. Start Claude Code from the current directory and allow the two MCP servers (aistor and mcp-starrocks), then ask Claude to list the databases and describe the schema in the `olist` DB.
 
-### 5. Load the data
+### 7. Load the data
 
 Download the Olist CSVs from Kaggle with **kagglehub** — anonymous, no Kaggle account or API
 token required. It caches the files locally and prints the folder they landed in:
@@ -202,7 +211,7 @@ FE_HTTP_PORT=8040 bash load_olist.sh
 `FE_HTTP_PORT=8040` posts Stream Load straight to the CN, avoiding a `starrocks-cn` hostname
 redirect (no `/etc/hosts` edit / no sudo needed). The script prints a row-count check at the end.
 
-### 6. Wire the MCP servers to Claude
+### 8. Wire the MCP servers to Claude
 
 ```bash
 cp .env.example .env
@@ -233,7 +242,7 @@ Once `/mcp` shows both servers connected, confirm the tools are available (e.g. 
 The StarRocks cluster is reachable over the MySQL protocol as `root` (no password) at
 `localhost:9030`, database `olist`.
 
-### 7. Ask questions
+### 9. Ask questions
 
 Ask Claude plain-English questions about the data — start by having it orient itself, e.g.
 *"What tables are in this database, and how do they relate to each other?"*, then explore from
