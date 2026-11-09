@@ -92,7 +92,9 @@ services:
       test: bash -c "exec 6<> /dev/tcp/localhost/9083"
 
   minio:
-    image: minio/minio
+    image: quay.io/minio/aistor/minio:latest
+    volumes:
+      - ./minio.license:/minio.license:ro
     environment:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=password
@@ -108,7 +110,7 @@ services:
   mc:
     depends_on:
       - minio
-    image: minio/mc
+    image: quay.io/minio/aistor/mc:latest
     environment:
       - AWS_ACCESS_KEY_ID=admin
       - AWS_SECRET_ACCESS_KEY=password

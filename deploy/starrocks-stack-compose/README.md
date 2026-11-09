@@ -16,6 +16,14 @@ Docker Compose for StarRocks AllIn1 container and a few other peripheral applica
 
 **Note**: Please refer to [docker-compose.yml](docker-compose.yml) to customize the container port mapping, volume mount, or other docker configs.
 
+## MinIO AIStor license
+
+MinIO AIStor requires a license to run. You can use an existing license, or you can request a new MinIO AIStor Free Tier license.
+
+To request a new MinIO AIStor Free Tier license, go to the [MinIO AIStor pricing](https://min.io/pricing) page and select **Get Started** under the Free tier to obtain a free license. The free tier license allows you to run MinIO AIStor on a single compute resource with one or more drives.
+
+Save the license file as `minio.license` in this directory, next to `docker-compose.yml`. The compose file mounts it into the MinIO AIStor container. Without a valid license, MinIO AIStor starts but denies all S3 operations.
+
 ## Start the StarRocks stack compose environment
 
 ### Start all services in the compose file

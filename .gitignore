@@ -17,3 +17,6 @@ documentation-samples/datalakehouse/kafka-connect-connectors-jar/*.jar
 # user into spark-jars/, not checked in (the bundled jar is ~1 GB).
 documentation-samples/datalakehouse/spark-jars/xtable-utilities_*-bundled.jar
 documentation-samples/datalakehouse/spark-jars/jol-core-*.jar
+
+# MinIO AIStor license files (see each sample README)
+minio.license
